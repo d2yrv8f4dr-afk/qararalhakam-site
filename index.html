@@ -202,6 +202,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .opt4{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:12px}.optrow{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center}.optrow b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--pitch);color:#fff;font-size:.85rem}.optrow input{font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;min-width:0}
 .srcpick{display:grid;grid-template-columns:1fr 1fr;gap:10px}.srcbtn{display:grid;justify-items:center;gap:4px;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font:inherit;font-weight:700;cursor:pointer;color:inherit}.srcbtn b{font-size:1.8rem}.srcbtn[aria-pressed=true]{border-color:var(--pitch);background:color-mix(in srgb,var(--pitch) 10%,transparent)}
 .vidbox video{width:100%;height:100%;background:#000;display:block}
+.mediagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.mediagrid figure{margin:0;display:grid;gap:4px;font-size:.8rem}.mediagrid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:var(--line)}.mediagrid button{justify-self:start}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -1662,7 +1663,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
     art.innerHTML="<h2 style='margin:0'></h2><p class='muted' style='margin:0'></p><p style='margin:0'></p>";art.querySelector("h2").textContent=(P?P.name:SBS.user.email)+(SBS.admin?" 🛡":"");
     art.querySelector(".muted").textContent=SBS.user.email;art.querySelectorAll("p")[1].textContent=P?[nm(COUNTRIES,P.country),nm(GRADES,P.grade)].filter(Boolean).join(" · "):"";
     if(SBS.admin){const b=document.createElement("p");b.style.cssText="margin:0;font-weight:600;color:var(--pitch)";b.textContent=A?"🛡 مدير المنصة: تنشر المقاطع والمحاضرات لكل المستخدمين من المكتبة.":"🛡 Platform admin: publish clips and lectures to everyone from the library.";art.append(b)}
-    if(!P)art.append(profileForm());if(SBS.admin){const tok=box.dataset.r=String(Math.random());setTimeout(()=>{if(box.dataset.r!==tok)return;box.append(contentAdminEl(),membersAdminEl());if(CONTENT_LOADED)box.append(aiAdminEl())})}
+    if(!P)art.append(profileForm());if(SBS.admin){const tok=box.dataset.r=String(Math.random());setTimeout(()=>{if(box.dataset.r!==tok)return;box.append(contentAdminEl(),membersAdminEl());if(CONTENT_LOADED)box.append(mediaAdminEl(),aiAdminEl())})}
     const out=document.createElement("button");out.className="btn";out.style.justifySelf="start";out.textContent=A?"تسجيل الخروج":"Sign out";out.onclick=()=>signOutNow();art.append(out);box.append(art);return}
   const art=document.createElement("article");art.className="quiz";let mode=store.get("acmode","up");
   const tabs=document.createElement("div");tabs.className="lvl";[["up",A?"حساب جديد":"Sign up"],["in",A?"تسجيل الدخول":"Sign in"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",mode===k);b.onclick=()=>{store.set("acmode",k);renderAccount()};tabs.append(b)});art.append(tabs);
@@ -1829,17 +1830,44 @@ function addQuestion(key){const d=document.createElement("details");d.className=
 /* real photos: stored per part, with credit and licence */
 let ASSETS=null,DB=null,PHOTOS={};
 const LIC={own:["تصوير قرار الحكم","Qarar Al-Hakam photo"],cc0:["ملكية عامة / CC0","Public domain / CC0"],ccby:["رخصة CC BY","CC BY licence"],ccbysa:["رخصة CC BY-SA","CC BY-SA licence"],free:["رخصة مجانية (Unsplash / Pexels)","Free licence (Unsplash / Pexels)"],paid:["ترخيص مدفوع","Paid licence"]};
+/* public site: the admin's photos live in the private "media" store; their details are part of the server content */
+function shrinkImage(file,max=1600){return new Promise(ok=>{const img=new Image();img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(img.src);c.toBlob(b=>ok(b||file),"image/jpeg",0.85)};img.onerror=()=>ok(file);img.src=URL.createObjectURL(file)})}
+async function photosSave(){const {error}=await SB.from("content").upsert({key:"photos",data:PHOTOS,updated_at:new Date().toISOString()});if(error)throw error}
+async function photoSaveSB(key,file,meta){const blob=await shrinkImage(file);const path=`parts/${key}-${Date.now()}.jpg`;
+  const {error}=await SB.storage.from("media").upload(path,blob,{contentType:"image/jpeg",upsert:false});if(error)throw error;
+  const old=PHOTOS[key]?.path;PHOTOS={...PHOTOS,[key]:{...meta,path,at:new Date().toISOString()}};try{await photosSave()}catch(e){SB.storage.from("media").remove([path]).catch(()=>{});throw e}
+  if(old)SB.storage.from("media").remove([old]).catch(()=>{});if(!$("#lawView").hidden)renderLaw()}
+async function photoRemoveSB(key){const old=PHOTOS[key]?.path;const n={...PHOTOS};delete n[key];PHOTOS=n;await photosSave();if(old)await SB.storage.from("media").remove([old]).catch(()=>{});if(!$("#lawView").hidden)renderLaw()}
+function mediaAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"🖼 صور الدليل":"🖼 Guide photos";
+  const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"ارفع صورة حقيقية لأي جزء من القوانين. تظهر للأعضاء فوق شرح الجزء، وتُصغَّر تلقائيًا لتوفير المساحة.":"Upload a real photo for any part of the Laws. Members see it above the part's text; it is resized automatically to save space.";art.append(h,tip);
+  const g=document.createElement("div");g.className="anform";const lab=(t2,el)=>{const l=document.createElement("label");l.textContent=t2;l.append(el);g.append(l);return el};
+  const sl=lab(A?"القانون":"Law",document.createElement("select"));LAW_IDS().forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=`${n}. ${LAWS[n-1][A?1:2]}`;sl.append(o)});
+  const sp=lab(A?"الجزء":"Part",document.createElement("select"));const fillP=()=>{sp.innerHTML="";LAW_DATA[sl.value].parts.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=`${p.title[lang]}${PHOTOS[`${sl.value}-${p.id}`]?" 🖼":""}`;sp.append(o)})};sl.onchange=fillP;fillP();
+  const fi=lab(A?"الصورة":"Photo",document.createElement("input"));fi.type="file";fi.accept="image/jpeg,image/png,image/webp";
+  const cr=lab(A?"المصوّر أو الجهة (يظهر تحت الصورة)":"Photographer or owner (shown under the photo)",document.createElement("input"));
+  const li=lab(A?"الترخيص":"Licence",document.createElement("select"));Object.entries(LIC).forEach(([k,v])=>{const o=document.createElement("option");o.value=k;o.textContent=v[A?0:1];li.append(o)});
+  art.append(g);const ok=document.createElement("label");ok.className="check";ok.innerHTML="<input type='checkbox'><span></span>";ok.querySelector("span").textContent=A?"أؤكد أن لدينا حق استخدام هذه الصورة، وأنها لا تُظهر أشخاصًا دون موافقتهم.":"I confirm we may use this photo and it shows no one without consent.";art.append(ok);
+  const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"⬆️ رفع الصورة":"⬆️ Upload photo";const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";art.append(b,msg);
+  const list=document.createElement("div");list.className="mediagrid";art.append(list);
+  const paint=()=>{list.innerHTML="";Object.entries(PHOTOS).filter(([,v])=>v.path).forEach(([k,v])=>{const [law,pid]=[k.split("-")[0],k.slice(k.indexOf("-")+1)];const pt=LAW_DATA[law]?.parts.find(z=>z.id===pid);
+    const c=document.createElement("figure");const im=document.createElement("img");signedUrl("media",v.path).then(u=>im.src=u).catch(()=>{});const cap=document.createElement("figcaption");cap.textContent=`${A?"القانون":"Law"} ${law} · ${pt?pt.title[lang]:pid}`;
+    const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=async()=>{if(!ask2(d,A?"مرة ثانية":"Again"))return;try{await photoRemoveSB(k);paint();fillP()}catch(e){alert(e.message)}};c.append(im,cap,d);list.append(c)})};
+  b.onclick=async()=>{const f=fi.files[0];if(!f){msg.textContent=A?"اختر صورة أولًا.":"Pick a photo first.";return}if(!cr.value.trim()){msg.textContent=A?"اكتب اسم المصوّر أو الجهة.":"Enter the photographer or owner.";return}if(!ok.querySelector("input").checked){msg.textContent=A?"أكّد حق الاستخدام.":"Confirm the right to use it.";return}
+    b.disabled=true;msg.textContent=A?"⏳ جارٍ الرفع…":"⏳ Uploading…";try{await photoSaveSB(`${sl.value}-${sp.value}`,f,{license:li.value,credit:cr.value.trim(),source:"",alt:"",law:+sl.value,part:sp.value});msg.textContent=A?"✓ رُفعت الصورة وتظهر للأعضاء.":"✓ Uploaded; members can see it.";fi.value="";paint();fillP()}
+    catch(e){msg.textContent=(A?"تعذّر الرفع: ":"Upload failed: ")+(/bucket/i.test(e.message)?(A?"شغّل ملف media.sql في Supabase أولًا.":"run media.sql in Supabase first."):e.message)}b.disabled=false};
+  paint();return art}
 function photoBlock(p){
   const key=`${cur}-${p.id}`,ph=PHOTOS[key],wrap=document.createElement("div");wrap.style.display="grid";wrap.style.gap="8px";
   if(ph){const f=document.createElement("figure");f.className="photo";
-    const img=document.createElement("img");img.src="/_blob/"+ph.asset;img.alt=ph.alt||p.title[lang];img.loading="lazy";f.append(img);
+    const img=document.createElement("img");if(ph.path){if(SB)signedUrl("media",ph.path).then(u=>img.src=u).catch(()=>{})}else img.src="/_blob/"+ph.asset;img.alt=ph.alt||p.title[lang];img.loading="lazy";f.append(img);
     const c=document.createElement("figcaption");const a=document.createElement("span");a.textContent="📷 "+(ph.credit||"");const l=document.createElement("span");l.textContent=(LIC[ph.license]||["",""])[ar()?0:1];c.append(a,l);
     if(ph.source){const s=document.createElement("a");s.href=ph.source;s.target="_blank";s.rel="noopener";s.textContent=ar()?"المصدر ↗":"Source ↗";c.append(s)}
-    if(ASSETS){const del=document.createElement("button");del.className="btn";del.style.fontSize=".8rem";del.style.marginInlineStart="auto";del.textContent=ar()?"حذف الصورة":"Remove photo";
+    if(ASSETS||(SB&&SBS.admin)){const del=document.createElement("button");del.className="btn";del.style.fontSize=".8rem";del.style.marginInlineStart="auto";del.textContent=ar()?"حذف الصورة":"Remove photo";
       del.onclick=async()=>{if(del.dataset.sure!=="1"){del.dataset.sure="1";del.textContent=ar()?"اضغط مرة أخرى للتأكيد":"Click again to confirm";return}
-        del.disabled=true;try{await DB.doc("photos/"+key).delete();await ASSETS.delete(ph.asset).catch(()=>{})}catch(e){del.textContent=ar()?"تعذّر الحذف":"Could not remove";del.disabled=false}};c.append(del)}
+        del.disabled=true;try{if(!ASSETS){await photoRemoveSB(key);return}await DB.doc("photos/"+key).delete();await ASSETS.delete(ph.asset).catch(()=>{})}catch(e){del.textContent=ar()?"تعذّر الحذف":"Could not remove";del.disabled=false}};c.append(del)}
     f.append(c);wrap.append(f)}
-  if(ASSETS&&DB){const term=encodeURIComponent(p.title.en+" football");const d=document.createElement("details");d.className="addphoto";
+  if((ASSETS&&DB)||(SB&&SBS.admin)){const term=encodeURIComponent(p.title.en+" football");const d=document.createElement("details");d.className="addphoto";
     d.innerHTML=`<summary>${ph?(ar()?"استبدال الصورة الحقيقية":"Replace the real photo"):(ar()?"＋ إضافة صورة حقيقية لهذا الجزء":"＋ Add a real photo for this part")}</summary>
     <div class="links" style="margin-block-start:10px"><span class="muted" style="font-size:.85rem">${ar()?"مجاني:":"Free:"}</span>
     <a class="btn" target="_blank" rel="noopener" href="https://commons.wikimedia.org/w/index.php?search=${term}&title=Special:MediaSearch&type=image">Wikimedia Commons ↗</a>
@@ -1860,6 +1888,8 @@ function photoBlock(p){
     const form=d.querySelector("form"),msg=d.querySelector(".phmsg");
     form.addEventListener("submit",async e=>{e.preventDefault();const file=form.querySelector("input[type=file]").files[0];if(!file)return;
       const btn=form.querySelector("button");btn.disabled=true;msg.hidden=false;msg.textContent=ar()?"جارٍ الرفع…":"Uploading…";
+      const meta={license:form.querySelector("select").value,credit:form.querySelector(`#ph-credit-${CSS.escape(key)}`).value.trim(),source:form.querySelector("input[type=url]").value.trim(),alt:form.querySelector(`#ph-alt-${CSS.escape(key)}`).value.trim(),law:cur,part:p.id};
+      if(!ASSETS){try{await photoSaveSB(key,file,meta)}catch(err){btn.disabled=false;msg.textContent=(ar()?"تعذّر الرفع: ":"Upload failed: ")+(err?.message||"")}return}
       try{const up=await ASSETS.upload(file);const old=ph?.asset;
         await DB.doc("photos/"+key).set({asset:up.id,license:form.querySelector("select").value,credit:form.querySelector(`#ph-credit-${CSS.escape(key)}`).value.trim(),
           source:form.querySelector("input[type=url]").value.trim(),alt:form.querySelector(`#ph-alt-${CSS.escape(key)}`).value.trim(),law:cur,part:p.id,at:new Date().toISOString()});
@@ -2121,7 +2151,7 @@ function asDemo(){const A=ar(),id="demo";const old=anList().filter(x=>x.id!==id)
 /* approval + protected content (public site): content loads from the server only for approved members */
 async function loadContent(){try{const {data,error}=await SB.from("content").select("key,data");if(error||!data||!data.length)return false;const m={};data.forEach(r=>m[r.key]=r.data);
   const L={};Object.keys(m).filter(k=>k.startsWith("law-")).forEach(k=>L[k.slice(4)]=m[k]);if(!Object.keys(L).length)return false;
-  LAW_DATA=L;if(m.new)NEW_DATA=m.new;if(m.matches)MATCH_DATA=m.matches;if(m.vcases)VC_DATA=m.vcases;if(m.clips)CLIP_DATA=m.clips;if(m.lectures)LECT_DATA=m.lectures;if(m.links)LINK_DATA=m.links;if(m.edits)EDITS=m.edits;CONTENT_LOADED=true;return true}catch(e){return false}}
+  LAW_DATA=L;if(m.new)NEW_DATA=m.new;if(m.matches)MATCH_DATA=m.matches;if(m.vcases)VC_DATA=m.vcases;if(m.clips)CLIP_DATA=m.clips;if(m.lectures)LECT_DATA=m.lectures;if(m.links)LINK_DATA=m.links;if(m.edits)EDITS=m.edits;if(m.photos)PHOTOS=m.photos;CONTENT_LOADED=true;return true}catch(e){return false}}
 function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){clearTimeout(window.__idleClr);window.__idleClr=setTimeout(()=>store.set("idleOut",0),4000);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 10 دقائق دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 10 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
   const [h,p]=!SBS.user?[A?"أهلًا بك في منصة الحكام":"Welcome to the referees' platform",A?"سجّل الدخول أو أنشئ حسابًا جديدًا. يراجع المشرف كل حساب جديد قبل فتح المنصة.":"Sign in or create an account. The admin reviews every new account before the platform opens."]
     :!SBS.member?(SBS.mstatus==="rejected"?[A?"❌ لم تتم الموافقة على حسابك":"❌ Your account was not approved",A?"تواصل مع إدارة المنصة إذا كنت ترى أن هناك خطأ.":"Contact the platform team if you think this is a mistake."]:[A?"⏳ حسابك بانتظار موافقة المشرف":"⏳ Your account is waiting for approval",A?"وصل طلبك للمشرف. أكمل بياناتك أدناه ليتعرّف عليك، وستُفتح المنصة بعد الموافقة.":"Your request reached the admin. Complete your details below so they know you; the platform opens once approved."])
@@ -2132,7 +2162,7 @@ function membersAdminEl(){const A=ar(),art=document.createElement("article");art
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"كل حساب جديد ينتظر موافقتك. المقبول يدخل المنصة، والمرفوض والموقوف لا يرى شيئًا.":"Every new account waits for your approval. Approved accounts enter; rejected or suspended ones see nothing.";
   const list=document.createElement("div");list.style.cssText="display:grid;gap:6px";art.append(h,tip,list);
   const ST={pending:A?"⏳ بانتظار الموافقة":"⏳ Pending",approved:A?"✅ مقبول":"✅ Approved",rejected:A?"❌ مرفوض":"❌ Rejected",admin:A?"🛡 مشرف":"🛡 Admin"};
-  const load=async()=>{list.innerHTML="";const {data,error}=await SB.rpc("members_admin_list");if(error){list.textContent=error.message;return}
+  const load=async()=>{list.innerHTML="";const {data:d0,error}=await SB.rpc("members_admin_list");if(error){list.textContent=error.message;return}const data=d0||[];
     const pend=data.filter(r=>r.status==="pending").length;h.textContent=(A?"👥 طلبات الانضمام والأعضاء":"👥 Join requests and members")+(pend?` (${pend})`:"");
     data.forEach(r=>{const row=document.createElement("div");row.className="evrow";row.style.gridTemplateColumns="1fr auto auto auto";const t=document.createElement("div");t.innerHTML="<b></b><small class='muted'></small>";
       t.querySelector("b").textContent=r.name||r.email;t.querySelector("small").textContent=[r.name?r.email:"",ST[r.status]||r.status,(r.created_at||"").slice(0,10)].filter(Boolean).join(" · ");row.append(t);
@@ -2149,7 +2179,7 @@ function contentAdminEl(){const A=ar(),art=document.createElement("article");art
   const st=document.createElement("p");st.className="muted";st.style.margin="0";const fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json";fi.hidden=true;
   const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"⬆️ رفع ملف المحتوى (qarar-content.json)":"⬆️ Upload the content file (qarar-content.json)";b.onclick=()=>fi.click();
   const msg=document.createElement("p");msg.style.margin="0";art.append(h,st,b,fi,msg);
-  const status=async()=>{const {data}=await SB.from("content").select("key,updated_at");st.textContent=data?.length?(A?`على الخادم: ${data.length} عنصر · آخر تحديث ${data.map(r=>r.updated_at).sort().pop().slice(0,16).replace("T"," ")}`:`On the server: ${data.length} items · last update ${data.map(r=>r.updated_at).sort().pop().slice(0,16).replace("T"," ")}`):(A?"لا يوجد محتوى على الخادم بعد.":"No content on the server yet.")};
+  const status=async()=>{const {data}=await SB.from("content").select("key,updated_at");st.textContent=data?.length?(A?`على الخادم: ${data.length} عنصر · آخر تحديث ${(data.map(r=>r.updated_at||"").sort().pop()||"").slice(0,16).replace("T"," ")}`:`On the server: ${data.length} items · last update ${(data.map(r=>r.updated_at||"").sort().pop()||"").slice(0,16).replace("T"," ")}`):(A?"لا يوجد محتوى على الخادم بعد.":"No content on the server yet.")};
   fi.onchange=async()=>{const f=fi.files[0];fi.value="";if(!f)return;let obj;try{obj=JSON.parse(await f.text())}catch(e){msg.textContent=A?"الملف غير صالح.":"Invalid file.";return}
     const keys=Object.keys(obj);if(!keys.some(k=>k.startsWith("law-"))){msg.textContent=A?"هذا ليس ملف محتوى المنصة.":"This is not the platform content file.";return}
     b.disabled=true;let n=0;for(const k of keys){msg.textContent=(A?"جارٍ الرفع… ":"Uploading… ")+`${++n}/${keys.length}`;const {error}=await SB.from("content").upsert({key:k,data:obj[k],updated_at:new Date().toISOString()});if(error){msg.textContent=(A?"تعذر الرفع: ":"Upload failed: ")+error.message;b.disabled=false;return}}
@@ -2195,7 +2225,8 @@ let HS=null,hostTick=null,HSF={law:"all",kind:"all",n:10,title:"",src:"bank",cli
 const ytFrame=(q,small)=>{if(q.vp)return clipMedia(q,small);const v=document.createElement("div");v.className="yt"+(small?" ytsm":"");v.innerHTML=`<iframe src="https://www.youtube.com/embed/${q.yt}?start=${q.start||0}&end=${q.end||""}&rel=0&playsinline=1${location.protocol.startsWith("http")?"&origin="+encodeURIComponent(location.origin):""}" title="clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;return v};
 const voteClips=()=>allClips().filter(c=>(c.yt||c.vp)&&Array.isArray(c.options)&&c.options.length>=2);
 const SIGNED={};
-async function clipUrl(path){const h=SIGNED[path];if(h&&h.until>Date.now())return h.url;const {data,error}=await SB.storage.from("clips").createSignedUrl(path,3600);if(error)throw error;SIGNED[path]={url:data.signedUrl,until:Date.now()+55*60e3};return data.signedUrl}
+async function signedUrl(bucket,path){const k=bucket+":"+path,h=SIGNED[k];if(h&&h.until>Date.now())return h.url;const {data,error}=await SB.storage.from(bucket).createSignedUrl(path,3600);if(error)throw error;SIGNED[k]={url:data.signedUrl,until:Date.now()+55*60e3};return data.signedUrl}
+const clipUrl=path=>signedUrl("clips",path);
 function clipMedia(c,small){if(!c.vp)return ytFrame(c,small);const w=document.createElement("div");w.className="yt vidbox"+(small?" ytsm":"");const v=document.createElement("video");v.controls=true;v.playsInline=true;v.preload="metadata";w.append(v);
   const st=+(c.start||0),en=+(c.end||0);v.addEventListener("loadedmetadata",()=>{if(st)v.currentTime=st});v.addEventListener("timeupdate",()=>{if(en>st&&v.currentTime>=en){v.pause();v.currentTime=en}});
   if(SB)clipUrl(c.vp).then(u=>v.src=u+(st?`#t=${st}`:"")).catch(()=>{w.insertAdjacentHTML("beforeend",`<p class="muted" style="margin:6px">${ar()?"تعذر تحميل الفيديو.":"Could not load the video."}</p>`)});return w}
