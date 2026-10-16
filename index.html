@@ -147,6 +147,10 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .vstage{position:relative;border-radius:var(--r);overflow:hidden;box-shadow:0 8px 24px #0004}.vstage svg{display:block;width:100%;height:auto;direction:ltr}
 .vbadge{position:absolute;top:8px;inset-inline-end:8px;background:#000b;color:#fff;padding:3px 10px;border-radius:8px;font-weight:700;font-size:.85rem}
 .yt{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:#000}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.poll{display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.pbar{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:8px;align-items:center}.pbar .t{position:relative;border-radius:10px;background:var(--bg);overflow:hidden;padding:8px 10px}
+.pbar .t i{position:absolute;inset-block:0;inset-inline-start:0;background:var(--pitch-soft)}.pbar .t span{position:relative}.pbar.ok .t i{background:#B2F2BB}.pbar.mine .t{outline:2px solid var(--card)}
+.cmt{display:grid;gap:2px;padding:8px 0;border-bottom:1px dashed var(--line)}.cmt b{font-size:.85rem}.cmt small{color:var(--muted)}
 .vclist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .vccard{display:grid;gap:6px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;font:inherit;color:var(--ink)}
 .vccard b{font-size:1rem}.vccard small{color:var(--muted)}
@@ -221,6 +225,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
         <button data-go="exam" aria-pressed="false" data-t="navExam">الاختبار</button>
     <button data-go="progress" aria-pressed="false" data-t="navProg">تقدّمي</button>
   </nav>
+  <button class="lang" id="acctBtn" aria-label="account">👤</button>
   <button class="lang" id="langBtn" aria-label="Switch language">EN</button>
 </div></div>
 
@@ -283,6 +288,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
   <section data-view="clips" id="v-clips" hidden><div id="clBox" style="display:grid;gap:16px"></div></section>
   <section data-view="library" id="v-library" hidden><div id="libBox" style="display:grid;gap:16px"></div></section>
   <section data-view="lectures" id="v-lectures" hidden><div id="lecBox" style="display:grid;gap:16px"></div></section>
+  <section data-view="account" id="v-account" hidden><div id="acBox" style="display:grid;gap:16px"></div></section>
   <section data-view="review" id="v-review" hidden><div id="reviewBox" style="display:grid;gap:16px"></div></section>
   <section data-view="exam" id="v-exam" hidden><div id="examBox" style="display:grid;gap:16px"></div></section>
 
@@ -296,6 +302,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
   </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const IFAB="https://theifab.com/laws/latest/";
 const LAWS=[
@@ -652,12 +659,12 @@ function applyLang(){
   document.querySelectorAll("[data-t]").forEach(el=>{const v=T[lang][el.dataset.t];if(typeof v==="string")el.textContent=v});
   document.querySelectorAll("[data-tp]").forEach(el=>el.placeholder=T[lang][el.dataset.tp]);
   $("#langBtn").textContent=ar()?"EN":"ع";
-  renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();if(!$("#v-vcases").hidden)renderVC();if(!$("#v-clips").hidden)renderClips();if(!$("#v-library").hidden)renderLibrary();if(!$("#v-lectures").hidden)renderLectures();if(!$("#v-analyze").hidden)renderAnalyze();if(!$("#v-assess").hidden)renderAssess();
+  renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();if(!$("#v-vcases").hidden)renderVC();if(!$("#v-account").hidden)renderAccount();if(!$("#v-clips").hidden)renderClips();if(!$("#v-library").hidden)renderLibrary();if(!$("#v-lectures").hidden)renderLectures();if(!$("#v-analyze").hidden)renderAnalyze();if(!$("#v-assess").hidden)renderAssess();
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
 function go(v){document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
-  if(v==="progress")renderProgress();if(v==="exam")renderExam();if(v==="news")renderNews();if(v==="review")renderReview();if(v==="signals")renderSignals();if(v==="myths")renderMyths();if(v==="match")renderMatch();if(v==="bank")renderBank();if(v==="vcases")renderVC();if(v==="clips")renderClips();if(v==="library")renderLibrary();if(v==="lectures")renderLectures();if(v==="analyze")renderAnalyze();if(v==="assess")renderAssess();if(v==="assistant")initChat();window.scrollTo(0,0)}
+  if(v==="progress")renderProgress();if(v==="exam")renderExam();if(v==="news")renderNews();if(v==="review")renderReview();if(v==="signals")renderSignals();if(v==="myths")renderMyths();if(v==="match")renderMatch();if(v==="bank")renderBank();if(v==="vcases")renderVC();if(v==="account")renderAccount();if(v==="clips")renderClips();if(v==="library")renderLibrary();if(v==="lectures")renderLectures();if(v==="analyze")renderAnalyze();if(v==="assess")renderAssess();if(v==="assistant")initChat();window.scrollTo(0,0)}
 
 /* index */
 const LAW_IDS=()=>Object.keys(LAW_DATA).map(Number).sort((a,b)=>a-b);
@@ -1258,7 +1265,7 @@ const VCDATA=()=>VC_DATA.cases;
 let CLi=null;
 function ytId(u){u=(u||"").trim();const m=u.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
 const toSec=v=>{v=String(v||"").trim();if(!v)return 0;const p=v.split(":").map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:+p[0]||0};
-const allClips=()=>[...CLIP_DATA.clips.map(c=>({...c,mine:false})),...store.get("myclips",[]).map(c=>({...c,mine:true}))];
+const allClips=()=>[...CLIP_DATA.clips.map(c=>({...c,mine:false})),...SBD.clips.map(c=>({...c,server:true})),...store.get("myclips",[]).map(c=>({...c,mine:true}))];
 function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.append(backBtn("library"));const C=allClips();
   if(CLi===null){const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🎥 مقاطع حقيقية":"🎥 Real clips";
     hd.querySelector("p").textContent=A?"لقطات من مباريات حقيقية تُعرض من يوتيوب مباشرة، من ثانية البداية إلى ثانية النهاية فقط. الفيديو يبقى على يوتيوب عند صاحبه، ولا نحمّله أو ننسخه.":"Real match moments played straight from YouTube, only between the start and end seconds. The video stays on YouTube with its owner; we don't download or copy it.";box.append(hd);
@@ -1273,8 +1280,15 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
     f.append(g);{const l=document.createElement("label");l.className="field";l.textContent=A?"القرار الصحيح والتعليل (يظهر بعد المشاهدة)":"Correct decision and reasoning (shown after watching)";const i=document.createElement("textarea");i.id="cl-w";i.rows=2;l.append(i);f.append(l)}
     const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";
     const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ المقطع":"Save clip";
-    add.onclick=()=>{const id=ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value);if(!id){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب.":"Invalid link. Paste a YouTube video link.";return}
+    let optsIn=null,ansIn=null;if(SBS.admin){const l=document.createElement("label");l.className="field";l.textContent=A?"خيارات التصويت (كل خيار في سطر)":"Poll options (one per line)";optsIn=document.createElement("textarea");optsIn.rows=4;optsIn.placeholder=A?"ركلة جزاء\nلا شيء\nإنذار\nطرد":"Penalty\nNothing\nCaution\nSending-off";l.append(optsIn);
+      const l2=document.createElement("label");l2.className="field";l2.textContent=A?"رقم الخيار الصحيح (1، 2، 3…) أو اتركه فارغًا للنقاش المفتوح":"Correct option number (1, 2, 3…) or empty for open debate";ansIn=document.createElement("input");ansIn.inputMode="numeric";l2.append(ansIn);f.append(l,l2);
+      const bd=document.createElement("p");bd.style.cssText="margin:0;font-weight:600;color:var(--pitch)";bd.textContent=A?"🛡 أنت مدير: المقطع يُنشر لكل المستخدمين.":"🛡 Admin: the clip is published to everyone.";f.append(bd)}
+    add.onclick=async()=>{const id=ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value);if(!id){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب.":"Invalid link. Paste a YouTube video link.";return}
       if(!(e>s)){msg.textContent=A?"يجب أن تكون النهاية بعد البداية.":"End must be after start.";return}
+      if(SBS.admin){const options=(optsIn.value||"").split("\n").map(x=>x.trim()).filter(Boolean).slice(0,10);const an=parseInt(ansIn.value,10);
+        const row={yt:id,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer:(an>=1&&an<=options.length)?an-1:null,why:$("#cl-w").value.trim()||null};
+        add.disabled=true;msg.textContent=A?"جارٍ النشر…":"Publishing…";const {error}=await SB.from("clips").insert(row);add.disabled=false;
+        if(error){msg.textContent=(A?"تعذر النشر: ":"Could not publish: ")+error.message;return}await sbLoad(true);CLi=null;renderClips();return}
       const l=store.get("myclips",[]);l.push({id:"m"+Date.now(),yt:id,start:s,end:e,title:$("#cl-t").value.trim(),law:+$("#cl-law").value||0,w:$("#cl-w").value.trim()});store.set("myclips",l);CLi=CLIP_DATA.clips.length+l.length-1;renderClips()};
     const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.8rem";tip.textContent=A?"المقطع يُحفظ في هذا الجهاز. لإظهاره لكل المستخدمين، أرسل الرابط والوقتين، فيُضاف إلى المنصة. استخدم مقاطع من قنوات رسمية أو مسموح بعرضها.":"Clips are saved on this device. To show one to everyone, send the link and times and it will be added to the platform. Use clips from official or permitted channels.";
     f.append(add,msg,tip);box.append(f);return}
@@ -1287,7 +1301,8 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
   const fb=document.createElement("p");fb.className="muted";fb.style.cssText="margin:0;font-size:.8rem";fb.textContent=A?`إذا لم يعمل المشغّل أعلاه (بعض الفيديوهات تمنع العرض خارج يوتيوب)، اضغط «شاهد اللقطة في يوتيوب»، فتفتح من الثانية ${fmtT(c.start)}، وأوقفها عند ${fmtT(c.end)}.`:`If the player doesn't work (some videos block embedding), tap Watch on YouTube: it opens at ${fmtT(c.start)}; stop at ${fmtT(c.end)}.`;setTimeout(()=>ctl.after(fb));
   const info=document.createElement("p");info.className="muted";info.style.margin="0";info.textContent=`${fmtT(c.start)} → ${fmtT(c.end)} (${c.end-c.start} ${A?"ثانية":"s"})`;
   box.append(hd,v,ctl,info);
-  if(c.w){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
+  if(c.server)box.append(pollEl(c),commentsEl(c));
+  if(c.w&&!c.server){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
   const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المقاطع":"All clips";all.onclick=()=>{CLi=null;renderClips()};nav.append(all);
   if(c.mine){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع":"🗑 Delete clip";del.onclick=()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;store.set("myclips",store.get("myclips",[]).filter(x=>x.id!==c.id));CLi=null;renderClips()};nav.append(del)}
   box.append(nav)}
@@ -1304,7 +1319,8 @@ function renderLibrary(){const box=$("#libBox");box.innerHTML="";const A=ar();bo
     const b=document.createElement("button");b.className="tile";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=`${ic} ${n}`;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;b.onclick=fn;g.append(b)});
   g.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";box.append(g)}
 let LECtab="rec",LECi=null;
-const lecAll=()=>{const m=store.get("mylect",{recorded:[],live:[]});return {recorded:[...LECT_DATA.recorded,...m.recorded.map(x=>({...x,mine:1}))],live:[...LECT_DATA.live,...m.live.map(x=>({...x,mine:1}))].sort((a,b)=>new Date(a.when)-new Date(b.when))}};
+const lecAll=()=>{const m=store.get("mylect",{recorded:[],live:[]});const sv=SBD.lect.map(x=>({id:"s"+x.id,sid:x.id,server:1,title:x.title,lecturer:x.lecturer||"",url:x.kind==="rec"?x.url:"",link:x.kind==="live"?x.url:"",when:x.when_at,date:(x.when_at||x.created_at||"").slice(0,10),desc:x.descr||"",kind:x.kind}));
+  return {recorded:[...LECT_DATA.recorded,...sv.filter(x=>x.kind==="rec"),...m.recorded.map(x=>({...x,mine:1}))],live:[...LECT_DATA.live,...sv.filter(x=>x.kind==="live"),...m.live.map(x=>({...x,mine:1}))].sort((a,b)=>new Date(a.when)-new Date(b.when))}};
 function videoEmbed(url){const y=ytId(url);if(y)return `<div class="yt"><iframe src="https://www.youtube.com/embed/${y}?rel=0&playsinline=1${location.protocol.startsWith("http")?"&origin="+encodeURIComponent(location.origin):""}" title="lecture" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
   const v=(url||"").match(/vimeo\.com\/(?:video\/)?(\d+)/);if(v)return `<div class="yt"><iframe src="https://player.vimeo.com/video/${v[1]}" title="lecture" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
   if(/\.(mp4|webm)(\?|$)/i.test(url||""))return `<video class="vid" controls playsinline src="${url.replace(/"/g,"")}"></video>`;return ""}
@@ -1330,6 +1346,7 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
     f.append(g);const ds=document.createElement("label");ds.className="field";ds.textContent=A?"وصف قصير":"Short description";const dt=document.createElement("textarea");dt.rows=2;ds.append(dt);f.append(ds);
     const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ المحاضرة":"Save lecture";
     add.onclick=()=>{if(!/^https?:\/\//.test(u.value.trim())||!t1.value.trim()){msg.textContent=A?"أدخل رابطًا يبدأ بـ https وعنوانًا.":"Enter an https link and a title.";return}
+      if(SBS.admin){SB.from("lectures").insert({kind:"rec",url:u.value.trim(),title:t1.value.trim(),lecturer:t2.value.trim()||null,when_at:t3.value?new Date(t3.value).toISOString():null,descr:dt.value.trim()||null}).then(async({error})=>{if(error){msg.textContent=error.message;return}await sbLoad(true);renderLectures()});return}
       const m=mine();m.recorded.push({id:"r"+Date.now(),url:u.value.trim(),title:t1.value.trim(),lecturer:t2.value.trim(),date:t3.value,desc:dt.value.trim()});saveMine(m);renderLectures()};
     const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.8rem;line-height:1.7";
     tip.textContent=A?"تسجيل زوم: ارفعه على يوتيوب كفيديو «غير مدرج» (Unlisted) ثم الصق رابطه هنا ليُعرض داخل المنصة. ويمكن لصق رابط مشاركة تسجيل زوم السحابي، فيُفتح في صفحة زوم. المحاضرة تُحفظ في هذا الجهاز؛ لإظهارها للجميع أرسل الرابط ليُضاف.":"Zoom recording: upload it to YouTube as Unlisted, then paste the link to play it inside the platform. A Zoom cloud-recording share link also works and opens on Zoom. Saved on this device; send the link to publish it for everyone.";
@@ -1354,12 +1371,95 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
   const g=document.createElement("div");g.className="anform";const t1=field(g,"ll-t",A?"عنوان المحاضرة":"Title");const t2=field(g,"ll-l",A?"المحاضر":"Lecturer");const t3=field(g,"ll-w",A?"الموعد":"When","","datetime-local");const t4=field(g,"ll-z",A?"رابط زوم (اختياري)":"Zoom link (optional)","https://zoom.us/j/…");
   f.append(g);const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ الموعد":"Save session";
   add.onclick=()=>{if(!t1.value.trim()||!t3.value){msg.textContent=A?"أدخل العنوان والموعد.":"Enter a title and time.";return}if(t4.value.trim()&&!/^https:\/\//.test(t4.value.trim())){msg.textContent=A?"رابط زوم يجب أن يبدأ بـ https.":"The Zoom link must start with https.";return}
+    if(SBS.admin){SB.from("lectures").insert({kind:"live",title:t1.value.trim(),lecturer:t2.value.trim()||null,when_at:new Date(t3.value).toISOString(),url:t4.value.trim()||null}).then(async({error})=>{if(error){msg.textContent=error.message;return}await sbLoad(true);renderLectures()});return}
     const m=mine();m.live.push({id:"l"+Date.now(),title:t1.value.trim(),lecturer:t2.value.trim(),when:new Date(t3.value).toISOString(),link:t4.value.trim()});saveMine(m);renderLectures()};
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.8rem";tip.textContent=A?"الموعد يُحفظ في هذا الجهاز؛ لنشره للحكام أرسل التفاصيل ليُضاف للمنصة.":"Saved on this device; send the details to publish it for referees.";
   f.append(add,msg,tip);box.append(f)}
 /* two-tap confirmation (browser confirm dialogs are blocked in some views) */
 function ask2(b,msg){if(b.dataset.arm)return true;b.dataset.arm=1;const old=b.textContent;b.textContent=msg;b.style.background="var(--red)";b.style.color="#fff";
   setTimeout(()=>{if(!b.isConnected)return;delete b.dataset.arm;b.textContent=old;b.style.background="";b.style.color=""},4000);return false}
+/* shared backend (Supabase): accounts, decision polls, comments, published clips and lectures */
+const SB_URL="https://lrjxrkbjllincxymlcys.supabase.co",SB_KEY="sb_publishable_CaNlrqXsLSqdXmMKdROiMw_eqPOTluQ";
+let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){SB=null}
+const SBS={user:null,profile:null,admin:false,ready:false};const SBD={clips:[],lect:[],at:0};
+async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
+  const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
+  if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
+  if(!l.error)SBD.lect=l.data;SBD.at=Date.now()}
+async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession();SBS.user=data.session?data.session.user:null;SBS.profile=null;SBS.admin=false;
+  if(SBS.user){const [p,a]=await Promise.all([SB.from("profiles").select("*").eq("id",SBS.user.id).maybeSingle(),SB.rpc("is_admin")]);SBS.profile=p.data||null;SBS.admin=!!a.data}
+  SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤"}
+function refreshOpen(){["clips","lectures","library","account"].forEach(v=>{if(!$("#v-"+v).hidden)({clips:renderClips,lectures:renderLectures,library:renderLibrary,account:renderAccount})[v]()})}
+if(SB){SB.auth.onAuthStateChange(()=>{sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
+const COUNTRIES=[["SA","السعودية","Saudi Arabia"],["AE","الإمارات","UAE"],["KW","الكويت","Kuwait"],["QA","قطر","Qatar"],["BH","البحرين","Bahrain"],["OM","عُمان","Oman"],["EG","مصر","Egypt"],["JO","الأردن","Jordan"],["MA","المغرب","Morocco"],["DZ","الجزائر","Algeria"],["TN","تونس","Tunisia"],["IQ","العراق","Iraq"],["GB","بريطانيا","United Kingdom"],["ES","إسبانيا","Spain"],["IT","إيطاليا","Italy"],["DE","ألمانيا","Germany"],["FR","فرنسا","France"],["PT","البرتغال","Portugal"],["BR","البرازيل","Brazil"],["AR","الأرجنتين","Argentina"],["US","الولايات المتحدة","United States"],["XX","أخرى","Other"]];
+const GRADES=[["new","حكم مستجد","New referee"],["g3","درجة ثالثة","Grade 3"],["g2","درجة ثانية","Grade 2"],["g1","درجة أولى","Grade 1"],["elite","نخبة","Elite"],["fifa","دولي (FIFA)","International (FIFA)"],["instr","محاضر","Instructor"],["assessor","مقيّم","Assessor"],["fan","مهتم","Enthusiast"]];
+const nm=(arr,k)=>{const r=arr.find(x=>x[0]===k);return r?r[ar()?1:2]:""};
+function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();box.append(backBtn("guide"));
+  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"👤 حسابي":"👤 My account";
+  hd.querySelector("p").textContent=A?"الحساب يتيح لك التصويت في «شاركنا قرارك» والتعليق والنقاش مع حكام من السعودية والعالم.":"An account lets you vote in “Your call”, comment and discuss with referees from Saudi Arabia and worldwide.";box.append(hd);
+  if(!SB){const p=document.createElement("p");p.className="tip";p.textContent=A?"الحسابات تعمل على رابط المنصة العام (github.io أو qararalhakam.com)، لا في هذا العرض.":"Accounts work on the public site (github.io or qararalhakam.com), not in this view.";box.append(p);return}
+  if(!SBS.ready){const p=document.createElement("p");p.className="muted";p.textContent=A?"جارٍ التحميل…":"Loading…";box.append(p);return}
+  if(SBS.user){const art=document.createElement("article");art.className="quiz";const P=SBS.profile;
+    art.innerHTML="<h2 style='margin:0'></h2><p class='muted' style='margin:0'></p><p style='margin:0'></p>";art.querySelector("h2").textContent=(P?P.name:SBS.user.email)+(SBS.admin?" 🛡":"");
+    art.querySelector(".muted").textContent=SBS.user.email;art.querySelectorAll("p")[1].textContent=P?[nm(COUNTRIES,P.country),nm(GRADES,P.grade)].filter(Boolean).join(" · "):"";
+    if(SBS.admin){const b=document.createElement("p");b.style.cssText="margin:0;font-weight:600;color:var(--pitch)";b.textContent=A?"🛡 مدير المنصة: تنشر المقاطع والمحاضرات لكل المستخدمين من المكتبة.":"🛡 Platform admin: publish clips and lectures to everyone from the library.";art.append(b)}
+    if(!P)art.append(profileForm());
+    const out=document.createElement("button");out.className="btn";out.style.justifySelf="start";out.textContent=A?"تسجيل الخروج":"Sign out";out.onclick=async()=>{await SB.auth.signOut();await sbSession();renderAccount()};art.append(out);box.append(art);return}
+  const art=document.createElement("article");art.className="quiz";let mode=store.get("acmode","up");
+  const tabs=document.createElement("div");tabs.className="lvl";[["up",A?"حساب جديد":"Sign up"],["in",A?"تسجيل الدخول":"Sign in"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",mode===k);b.onclick=()=>{store.set("acmode",k);renderAccount()};tabs.append(b)});art.append(tabs);
+  const g=document.createElement("div");g.className="anform";const fld=(id,n,type,ph)=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.id=id;i.type=type||"text";if(ph)i.placeholder=ph;l.append(i);g.append(l);return i};
+  const em=fld("ac-em",A?"البريد الإلكتروني":"Email","email","you@example.com");em.autocomplete="email";const pw=fld("ac-pw",A?"كلمة المرور (8 أحرف على الأقل)":"Password (8+ characters)","password");pw.autocomplete=mode==="up"?"new-password":"current-password";
+  art.append(g);let pf=null;if(mode==="up"){pf=profileForm(true);art.append(pf)}
+  const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";const go1=document.createElement("button");go1.className="btn primary";go1.style.justifySelf="start";go1.textContent=mode==="up"?(A?"إنشاء الحساب":"Create account"):(A?"دخول":"Sign in");
+  go1.onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!/^\S+@\S+\.\S+$/.test(e)||p.length<8){msg.textContent=A?"أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل.":"Enter a valid email and a password of 8+ characters.";return}
+    go1.disabled=true;msg.textContent=A?"لحظة…":"One moment…";
+    if(mode==="up"){const prof=pf.read();if(!prof){go1.disabled=false;msg.textContent=A?"اكتب اسمك (حرفان على الأقل).":"Enter your name (2+ characters).";return}
+      const {data,error}=await SB.auth.signUp({email:e,password:p,options:{data:{name:prof.name}}});
+      if(error){go1.disabled=false;msg.textContent=(A?"تعذر إنشاء الحساب: ":"Sign-up failed: ")+error.message;return}
+      if(data.session){await SB.from("profiles").upsert({id:data.user.id,...prof});await sbSession();renderAccount();return}
+      store.set("pendingProfile",prof);go1.disabled=false;msg.textContent=A?"تم إنشاء الحساب. افتح بريدك واضغط رابط التأكيد، ثم سجّل الدخول.":"Account created. Confirm from your email, then sign in.";return}
+    const {error}=await SB.auth.signInWithPassword({email:e,password:p});go1.disabled=false;
+    if(error){msg.textContent=(A?"تعذر الدخول: ":"Sign-in failed: ")+error.message;return}
+    await sbSession();const pend=store.get("pendingProfile",null);if(!SBS.profile&&pend){await SB.from("profiles").upsert({id:SBS.user.id,...pend});store.set("pendingProfile",null);await sbSession()}renderAccount()};
+  art.append(go1,msg);box.append(art)}
+function profileForm(embedded){const A=ar(),w=document.createElement("div");w.className="anform";
+  const l1=document.createElement("label");l1.textContent=A?"الاسم كما يظهر للآخرين":"Display name";const n=document.createElement("input");n.maxLength=60;l1.append(n);
+  const sel=(t,arr)=>{const l=document.createElement("label");l.textContent=t;const s=document.createElement("select");arr.forEach(([k,a,e])=>{const o=document.createElement("option");o.value=k;o.textContent=A?a:e;s.append(o)});l.append(s);return [l,s]};
+  const [l2,c]=sel(A?"الدولة":"Country",COUNTRIES),[l3,gr]=sel(A?"الدرجة التحكيمية":"Refereeing level",GRADES);w.append(l1,l2,l3);
+  w.read=()=>{const v=n.value.trim();return v.length>=2?{name:v,country:c.value,grade:gr.value}:null};
+  if(!embedded){const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"حفظ الملف":"Save profile";b.onclick=async()=>{const p=w.read();if(!p)return;await SB.from("profiles").upsert({id:SBS.user.id,...p});await sbSession();renderAccount()};w.append(b)}
+  return w}
+function pollEl(c){const A=ar(),art=document.createElement("article");art.className="poll";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"🗳 شاركنا قرارك":"🗳 Your call";art.append(h);
+  if(!c.options||!c.options.length){const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"لا يوجد تصويت لهذه اللقطة.":"No poll for this clip.";art.append(p);return art}
+  const body=document.createElement("div");body.style.cssText="display:grid;gap:8px";art.append(body);
+  const showResults=async(mine)=>{body.innerHTML="";const {data}=await SB.rpc("clip_results",{cid:c.sid});const cnt={};(data||[]).forEach(r=>cnt[r.choice]=Number(r.n));const tot=Object.values(cnt).reduce((a,b)=>a+b,0)||1;
+    const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?`${tot} صوتًا من الحكام`:`${tot} referees voted`;body.append(p);
+    c.options.forEach((o,i)=>{const r=document.createElement("div");r.className="pbar"+(c.answer===i?" ok":"")+(mine===i?" mine":"");const pct=Math.round((cnt[i]||0)/tot*100);
+      r.innerHTML=`<div class="t"><i style="width:${pct}%"></i><span></span></div><b>${pct}%</b>`;r.querySelector("span").textContent=(c.answer===i?"✓ ":"")+o+(mine===i?(A?" · صوتك":" · your vote"):"");body.append(r)});
+    if(c.answer!=null){const d=document.createElement("p");d.style.cssText="margin:0;font-weight:600;color:var(--pitch)";d.textContent=(A?"القرار الصحيح: ":"Correct decision: ")+c.options[c.answer];body.append(d)}
+    else{const d=document.createElement("p");d.className="muted";d.style.margin="0";d.textContent=A?"نقاش مفتوح: لا يوجد قرار معتمد بعد.":"Open debate: no official answer yet.";body.append(d)}
+    if(c.w){const w=document.createElement("p");w.style.cssText="margin:0;line-height:1.8";w.textContent=c.w;body.append(w)}};
+  if(!SB||!SBS.user){const p=document.createElement("p");p.style.margin="0";p.textContent=A?"سجّل الدخول لتصوّت وترى رأي بقية الحكام.":"Sign in to vote and see what other referees chose.";const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"👤 تسجيل الدخول":"👤 Sign in";b.onclick=()=>go("account");body.append(p,b);return art}
+  (async()=>{const {data}=await SB.from("votes").select("choice").eq("clip_id",c.sid).maybeSingle();if(data){showResults(data.choice);return}
+    const p=document.createElement("p");p.style.margin="0";p.textContent=A?"شاهد اللقطة ثم اختر قرارك. تظهر النتائج بعد تصويتك.":"Watch the clip, then make your call. Results appear after you vote.";body.append(p);
+    const o=document.createElement("div");o.className="opts";o.style.flexDirection="column";c.options.forEach((x,i)=>{const b=document.createElement("button");b.textContent=x;b.onclick=async()=>{[...o.children].forEach(z=>z.disabled=true);
+      const {error}=await SB.from("votes").insert({clip_id:c.sid,choice:i});if(error&&error.code!=="23505"){p.textContent=error.message;[...o.children].forEach(z=>z.disabled=false);return}showResults(i)};o.append(b)});body.append(o)})();
+  return art}
+function commentsEl(c){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"💬 النقاش":"💬 Discussion";art.append(h);
+  const list=document.createElement("div");art.append(list);
+  const load=async()=>{const {data}=await SB.from("comments").select("*").eq("clip_id",c.sid).order("created_at");list.innerHTML="";const ids=[...new Set((data||[]).map(x=>x.user_id))];
+    const {data:ps}=ids.length?await SB.from("profiles").select("id,name,country,grade").in("id",ids):{data:[]};const pm={};(ps||[]).forEach(p=>pm[p.id]=p);
+    if(!(data||[]).length){const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"لا توجد تعليقات بعد. كن أول من يناقش.":"No comments yet. Start the discussion.";list.append(p)}
+    (data||[]).forEach(x=>{const d=document.createElement("div");d.className="cmt";const p=pm[x.user_id];d.innerHTML="<b></b><div></div><small></small>";
+      d.querySelector("b").textContent=(p?p.name:(A?"حكم":"Referee"))+(p?` · ${[nm(COUNTRIES,p.country),nm(GRADES,p.grade)].filter(Boolean).join(" · ")}`:"");d.querySelector("div").textContent=x.body;
+      d.querySelector("small").textContent=new Date(x.created_at).toLocaleString(A?"ar":"en",{dateStyle:"medium",timeStyle:"short"});
+      if(SBS.user&&(x.user_id===SBS.user.id||SBS.admin)){const del=document.createElement("button");del.className="btn";del.style.cssText="justify-self:start;font-size:.75rem;padding:2px 10px";del.textContent="🗑";del.onclick=async()=>{if(!ask2(del,A?"اضغط مرة ثانية":"Tap again"))return;await SB.from("comments").delete().eq("id",x.id);load()};d.append(del)}
+      list.append(d)})};
+  if(SB)load();
+  if(SB&&SBS.user){const t=document.createElement("textarea");t.rows=2;t.maxLength=1000;t.placeholder=A?"اكتب رأيك واستشهد بالقانون…":"Share your view and cite the Law…";t.style.cssText="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:10px;font:inherit";
+    const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"إرسال":"Post";b.onclick=async()=>{const v=t.value.trim();if(!v)return;b.disabled=true;const {error}=await SB.from("comments").insert({clip_id:c.sid,body:v});b.disabled=false;if(!error){t.value="";load()}};art.append(t,b)}
+  else{const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"سجّل الدخول لتشارك في النقاش.":"Sign in to join the discussion.";art.append(p)}
+  return art}
 function renderTiles(){renderTrack();const box=$("#tiles");if(!box)return;box.innerHTML="";const A=ar(),m=mistakes().length;
   {const b=document.createElement("button");b.className="tile star";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="🏟";
    b.querySelector("span").textContent=A?"أدِر المباراة":"Referee the match";b.querySelector("small").textContent=A?"مباراة تفاعلية كاملة: قراراتك تُسجل وتؤثر على ما بعدها":"A full interactive match: your decisions are recorded and affect what follows";
@@ -1576,6 +1676,7 @@ $("#stopBtn").onclick=()=>ctl?.abort();
 
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 $("#backBtn").onclick=closeLaw;$("#q").addEventListener("input",renderSearch);
+$("#acctBtn").onclick=()=>go("account");
 $("#langBtn").onclick=()=>{lang=ar()?"en":"ar";store.set("lang",lang);applyLang()};
 lang=store.get("lang","ar");applyLang();
 </script>
