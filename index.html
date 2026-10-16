@@ -190,6 +190,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .trend{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer;font-size:.9rem}.trend .up{color:var(--pitch)}.trend .down{color:var(--red)}
 .bigboard svg{max-width:100%}.readbtn{justify-self:start}.readbtn[aria-pressed=true]{background:var(--pitch);color:#fff;border-color:var(--pitch)}
 .tabbar button span{font-size:.72rem}
+body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,body.locked #acctBtn{display:none!important}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -706,7 +707,7 @@ function applyLang(){
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
 const TABOF=v=>({guide:"guide",news:"guide",assistant:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress",assessor:"assessor",assess:"assessor",analyze:"assessor",ai:"assessor",refs:"assessor",board:"assessor"})[v]||"train";
-function go(v){if(v!=="analyze"&&v!=="assess"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
+function go(v){if(document.body.classList.contains("locked")&&v!=="account")v="account";if(v!=="analyze"&&v!=="assess"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===TABOF(v)));
   if(v==="train"){$("#trainH").textContent=ar()?"❓ الأسئلة":"❓ Questions";$("#trainP").textContent=ar()?"كل الأسئلة والاختبارات هنا فقط: البنك، الحالات، صح أم خطأ، المباراة التفاعلية، والاختبار الشامل.":"Every question and test lives here only: the bank, cases, true or false, the interactive match and the full exam.";renderTiles();renderDaily()}
@@ -1596,13 +1597,18 @@ async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)re
   if(!l.error)SBD.lect=l.data;SBD.at=Date.now()}
 async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession();SBS.user=data.session?data.session.user:null;SBS.profile=null;SBS.admin=false;
   if(SBS.user){const [p,a]=await Promise.all([SB.from("profiles").select("*").eq("id",SBS.user.id).maybeSingle(),SB.rpc("is_admin")]);SBS.profile=p.data||null;SBS.admin=!!a.data}
-  SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤"}
+  SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤";
+  const was=document.body.classList.contains("locked");document.body.classList.remove("pending");document.body.classList.toggle("locked",!SBS.user);
+  if(!SBS.user)go("account");else if(was)go("guide")}
 function refreshOpen(){["clips","lectures","library","account"].forEach(v=>{if(!$("#v-"+v).hidden)({clips:renderClips,lectures:renderLectures,library:renderLibrary,account:renderAccount})[v]()})}
-if(SB){SB.auth.onAuthStateChange(()=>{sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
+if(SB){document.body.classList.add("pending");setTimeout(()=>{if(document.body.classList.contains("pending")){document.body.classList.remove("pending");document.body.classList.add("locked");go("account")}},8000);SB.auth.onAuthStateChange(()=>{sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
 const COUNTRIES=[["SA","السعودية","Saudi Arabia"],["AE","الإمارات","UAE"],["KW","الكويت","Kuwait"],["QA","قطر","Qatar"],["BH","البحرين","Bahrain"],["OM","عُمان","Oman"],["EG","مصر","Egypt"],["JO","الأردن","Jordan"],["MA","المغرب","Morocco"],["DZ","الجزائر","Algeria"],["TN","تونس","Tunisia"],["IQ","العراق","Iraq"],["GB","بريطانيا","United Kingdom"],["ES","إسبانيا","Spain"],["IT","إيطاليا","Italy"],["DE","ألمانيا","Germany"],["FR","فرنسا","France"],["PT","البرتغال","Portugal"],["BR","البرازيل","Brazil"],["AR","الأرجنتين","Argentina"],["US","الولايات المتحدة","United States"],["XX","أخرى","Other"]];
 const GRADES=[["new","حكم مستجد","New referee"],["g3","درجة ثالثة","Grade 3"],["g2","درجة ثانية","Grade 2"],["g1","درجة أولى","Grade 1"],["elite","نخبة","Elite"],["fifa","دولي (FIFA)","International (FIFA)"],["instr","محاضر","Instructor"],["assessor","مقيّم","Assessor"],["fan","مهتم","Enthusiast"]];
 const nm=(arr,k)=>{const r=arr.find(x=>x[0]===k);return r?r[ar()?1:2]:""};
-function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();box.append(backBtn("guide"));
+function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
+  if(document.body.classList.contains("locked")){const w=document.createElement("div");w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
+    w.querySelector("h1").textContent=A?"أهلًا بك في منصة الحكام":"Welcome to the referees' platform";w.querySelector("p").textContent=A?"سجّل الدخول أو أنشئ حسابًا جديدًا للدخول إلى المنصة.":"Sign in or create a new account to enter the platform.";box.append(w)}
+  else box.append(backBtn("guide"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"👤 حسابي":"👤 My account";
   hd.querySelector("p").textContent=A?"الحساب يتيح لك التصويت في «شاركنا قرارك» والتعليق والنقاش مع حكام من السعودية والعالم.":"An account lets you vote in “Your call”, comment and discuss with referees from Saudi Arabia and worldwide.";box.append(hd);
   if(!SB){const p=document.createElement("p");p.className="tip";p.textContent=A?"الحسابات تعمل على رابط المنصة العام (github.io أو qararalhakam.com)، لا في هذا العرض.":"Accounts work on the public site (github.io or qararalhakam.com), not in this view.";box.append(p);return}
