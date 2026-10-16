@@ -141,6 +141,9 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .tele.on{pointer-events:auto;cursor:crosshair;outline:3px solid var(--card);outline-offset:-3px}
 .tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.tools .btn[aria-pressed="true"]{background:var(--card);color:#16231C}
 .sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer}.sw[aria-pressed="true"]{outline:3px solid var(--ink)}
+.mp{width:100%;max-width:520px;display:block;margin-inline:auto;direction:ltr;border-radius:10px;touch-action:manipulation}
+.livegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.livegrid button{font:inherit;font-weight:600;padding:14px 6px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--ink)}
+.livegrid button:active{transform:scale(.97)}.clock{font-family:"IBM Plex Mono",monospace;font-size:2.4rem;font-weight:700;text-align:center;margin:0}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -1009,7 +1012,56 @@ function renderBank(){const box=$("#bankBox");box.innerHTML="";const A=ar(),P=ba
     nx.onclick=()=>{BK.i++;BK.picked=false;renderBank();window.scrollTo(0,0)};card.append(nx)};o.append(b)});
   box.append(card)}
 /* referee analysis (video + incident log) and assessor page; everything stays on this device */
-let AN=null,anVideo=null,anShot=null;
+let AN=null,anVideo=null,anShot=null,anMode="video",anLoc=null,liveTick=null;
+/* mini pitch (metres: 105 x 68), location picker and referee heatmap */
+function miniPitch(inner){const L='fill="none" stroke="rgba(255,255,255,.8)" stroke-width=".35"';
+  return `<svg class="mp" viewBox="-3 -3 111 74"><rect x="-3" y="-3" width="111" height="74" fill="#1E6B45"/>${[0,1,2,3,4,5,6,7,8,9].map(i=>`<rect x="${i*10.5}" y="0" width="10.5" height="68" fill="${i%2?"#226F49":"#2A7D52"}"/>`).join("")}
+  <g ${L}><rect x="0" y="0" width="105" height="68"/><line x1="52.5" y1="0" x2="52.5" y2="68"/><circle cx="52.5" cy="34" r="9.15"/><rect x="0" y="13.84" width="16.5" height="40.32"/><rect x="88.5" y="13.84" width="16.5" height="40.32"/><rect x="0" y="24.84" width="5.5" height="18.32"/><rect x="99.5" y="24.84" width="5.5" height="18.32"/></g>${inner||""}</svg>`}
+const EVC={ok:"#51CF66",bad:"#FA5252",miss:"#FF922B",jd:"#FFD43B"};
+function pickerEl(get,set){const A=ar(),w=document.createElement("div");w.style.cssText="display:grid;gap:6px";
+  const tip=document.createElement("span");tip.className="muted";tip.style.fontSize=".8rem";const box=document.createElement("div");
+  const paint=()=>{const v=get()||{};tip.textContent=!v.i?(A?"① انقر مكان الحالة على الملعب":"① Tap where the incident happened"):!v.r?(A?"② انقر مكان الحكم لحظتها (اختياري)":"② Tap where the referee was (optional)"):(A?`المسافة: ${Math.round(Math.hypot(v.i.x-v.r.x,v.i.y-v.r.y))} م`:`Distance: ${Math.round(Math.hypot(v.i.x-v.r.x,v.i.y-v.r.y))} m`);
+    let s="";if(v.i&&v.r)s+=`<line x1="${v.i.x}" y1="${v.i.y}" x2="${v.r.x}" y2="${v.r.y}" stroke="#fff" stroke-width=".4" stroke-dasharray="1.2 1"/>`;
+    if(v.i)s+=`<circle cx="${v.i.x}" cy="${v.i.y}" r="1.8" fill="#FFD43B" stroke="#000" stroke-width=".3"/>`;if(v.r)s+=`<circle cx="${v.r.x}" cy="${v.r.y}" r="1.8" fill="#111" stroke="#FFD43B" stroke-width=".4"/><text x="${v.r.x}" y="${v.r.y+.9}" font-size="2.4" text-anchor="middle" fill="#FFD43B">R</text>`;
+    box.innerHTML=miniPitch(s);box.firstChild.onclick=e=>{const r=box.firstChild.getBoundingClientRect(),x=Math.max(0,Math.min(105,(e.clientX-r.left)/r.width*111-3)),y=Math.max(0,Math.min(68,(e.clientY-r.top)/r.height*74-3));
+      const c=Object.assign({},get()||{});if(!c.i)c.i={x,y};else if(!c.r)c.r={x,y};else{c.i={x,y};delete c.r}set(c);paint()}};
+  const rs=document.createElement("button");rs.className="btn";rs.style.justifySelf="start";rs.textContent=A?"مسح الموقع":"Clear location";rs.onclick=()=>{set(null);paint()};
+  w.append(tip,box,rs);paint();return w}
+function heatEl(inc){const A=ar(),pts=inc.filter(i=>i.loc&&i.loc.i);const art=document.createElement("article");art.className="quiz";
+  const h3=document.createElement("h3");h3.style.margin="0";h3.textContent=A?"🗺 الخريطة الحرارية للحكم":"🗺 Referee heatmap";art.append(h3);
+  if(!pts.length){const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"حدد مكان الحالات على الملعب عند تسجيلها لتظهر الخريطة.":"Mark incident locations on the pitch when logging to see the map.";art.append(p);return art}
+  let s=`<defs><radialGradient id="hg"><stop offset="0" stop-color="#FF3B30" stop-opacity=".75"/><stop offset=".5" stop-color="#FFB000" stop-opacity=".25"/><stop offset="1" stop-color="#FFB000" stop-opacity="0"/></radialGradient></defs>`;
+  pts.forEach(i=>s+=`<circle cx="${i.loc.i.x}" cy="${i.loc.i.y}" r="11" fill="url(#hg)"/>`);
+  pts.forEach(i=>{if(i.loc.r)s+=`<line x1="${i.loc.i.x}" y1="${i.loc.i.y}" x2="${i.loc.r.x}" y2="${i.loc.r.y}" stroke="#fff" stroke-width=".35" stroke-dasharray="1.2 1" opacity=".8"/><circle cx="${i.loc.r.x}" cy="${i.loc.r.y}" r="1.2" fill="#111" stroke="#fff" stroke-width=".3"/>`});
+  pts.forEach(i=>s+=`<circle cx="${i.loc.i.x}" cy="${i.loc.i.y}" r="1.7" fill="${EVC[i.ev]||"#fff"}" stroke="#000" stroke-width=".3"/>`);
+  const d=document.createElement("div");d.innerHTML=miniPitch(s);art.append(d);
+  const ds=pts.filter(i=>i.loc.r).map(i=>Math.hypot(i.loc.i.x-i.loc.r.x,i.loc.i.y-i.loc.r.y));
+  const lg=document.createElement("p");lg.style.cssText="margin:0;font-size:.85rem;display:flex;flex-wrap:wrap;gap:4px 12px";[...Object.keys(EVC).map(k=>[EVC[k],lbl2(INC_E,k)]),["#111",A?"الحكم":"Referee"]].forEach(([c,n])=>{const s=document.createElement("span");s.innerHTML=`<b style="color:${c};-webkit-text-stroke:.5px #000">●</b> `;s.append(n);lg.append(s)});art.append(lg);
+  if(ds.length){const st=document.createElement("p");st.style.cssText="margin:0;font-weight:600";const avg=ds.reduce((a,b)=>a+b,0)/ds.length,far=ds.filter(v=>v>25).length;
+    st.textContent=A?`متوسط بعد الحكم عن الحالات: ${avg.toFixed(0)} م · أبعد مسافة: ${Math.max(...ds).toFixed(0)} م · حالات أبعد من 25 م: ${far}`:`Average distance to incidents: ${avg.toFixed(0)} m · furthest: ${Math.max(...ds).toFixed(0)} m · over 25 m: ${far}`;art.append(st)}
+  return art}
+function livePanel(x){const A=ar(),art=document.createElement("article");art.className="quiz";const L=x.live||{run:null,acc:0,half:1};
+  const el=()=>L.acc+(L.run?Date.now()-L.run:0),minute=()=>(L.half===2?45:L.half===3?90:L.half===4?105:0)+Math.floor(el()/60000)+1;
+  const saveL=()=>anUpdate(a=>a.live=L);
+  const h3=document.createElement("h3");h3.style.margin="0";h3.textContent=A?"⚡ التقييم المباشر من المدرج":"⚡ Live assessment from the stand";
+  const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"شغّل ساعة المباراة مع صافرة الحكم. عند كل حالة اضغط نوعها، فتُسجل بدقيقتها، ثم قيّمها وحدد مكانها.":"Start the clock with the referee's whistle. Tap a type for each incident; it's logged with its minute. Then evaluate it and mark its location.";
+  const clock=document.createElement("p");clock.className="clock";const paint=()=>{const s=Math.floor(el()/1000);clock.textContent=`${String(Math.floor(s/60)+(L.half===2?45:L.half===3?90:L.half===4?105:0)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`};
+  clearInterval(liveTick);liveTick=setInterval(()=>{if(!document.body.contains(clock))return clearInterval(liveTick);paint()},1000);paint();
+  const ctl=document.createElement("div");ctl.className="lvl";ctl.style.justifyContent="center";
+  const sb=document.createElement("button");sb.className="btn primary";sb.textContent=L.run?(A?"⏸ إيقاف الساعة":"⏸ Pause"):(A?"▶ تشغيل الساعة":"▶ Start clock");sb.onclick=()=>{if(L.run){L.acc+=Date.now()-L.run;L.run=null}else L.run=Date.now();saveL();renderAnalyze()};
+  const hs=document.createElement("select");hs.style.cssText="padding:8px;border-radius:10px;border:1px solid var(--line);font:inherit";[[1,A?"الشوط الأول":"1st half"],[2,A?"الشوط الثاني":"2nd half"],[3,A?"إضافي 1":"ET 1"],[4,A?"إضافي 2":"ET 2"]].forEach(([v,n])=>{const o=document.createElement("option");o.value=v;o.textContent=n;hs.append(o)});
+  hs.value=L.half;hs.onchange=()=>{L.half=+hs.value;L.acc=0;L.run=null;saveL();renderAnalyze()};ctl.append(sb,hs);
+  const g=document.createElement("div");g.className="livegrid";
+  [["foul","🦶"],["hand","✋"],["off","🚩"],["yc","🟨"],["rc","🟥"],["pk","⚽"],["adv","➡️"],["goal","🥅"],["pos","📍"],["mgmt","🗣"],["other","…"]].forEach(([k,ic])=>{const b=document.createElement("button");b.textContent=`${ic} ${lbl2(INC_T,k)}`;
+    b.onclick=()=>{anUpdate(a=>{a.inc.push({t:Math.floor(el()/1000),min:String(minute()),type:k,ev:"ok",pos:"na",law:"",note:"",live:1})});renderAnalyze()};g.append(b)});
+  art.append(h3,tip,clock,ctl,g);
+  const last=x.inc.filter(i=>i.live).slice(-1)[0];
+  if(last){const idx=x.inc.lastIndexOf(last);const lw=document.createElement("div");lw.style.cssText="display:grid;gap:8px;border-top:1px dashed var(--line);padding-top:10px";
+    const lt=document.createElement("strong");lt.textContent=(A?"آخر حالة: ":"Last incident: ")+`${last.min}' · ${lbl2(INC_T,last.type)}`;
+    const ev=document.createElement("div");ev.className="lvl";Object.keys(INC_E).forEach(k=>{const b=document.createElement("button");b.className="btn";b.textContent=lbl2(INC_E,k);b.setAttribute("aria-pressed",last.ev===k);b.onclick=()=>{anUpdate(a=>a.inc[idx].ev=k);renderAnalyze()};ev.append(b)});
+    const nt=document.createElement("input");nt.placeholder=A?"ملاحظة سريعة…":"Quick note…";nt.value=last.note;nt.style.cssText="padding:8px;border:1px solid var(--line);border-radius:10px;font:inherit";nt.onchange=()=>anUpdate(a=>a.inc[idx].note=nt.value);
+    lw.append(lt,ev,nt,pickerEl(()=>(anCur().inc[idx]||{}).loc,v=>anUpdate(a=>{if(v)a.inc[idx].loc=v;else delete a.inc[idx].loc})));art.append(lw)}
+  return art}
 function renderShot(){const s=$("#in-shot");if(!s)return;s.innerHTML="";if(!anShot)return;const i=document.createElement("img");i.className="shot";i.src=anShot;const r=document.createElement("button");r.className="btn";r.textContent=ar()?"إزالة اللقطة":"Remove frame";r.onclick=()=>{anShot=null;renderShot()};s.append(i,r)}
 const INC_T={foul:["خطأ","Foul"],hand:["لمسة يد","Handball"],off:["تسلل","Offside"],pk:["ركلة جزاء","Penalty"],yc:["بطاقة صفراء","Yellow card"],rc:["بطاقة حمراء","Red card"],adv:["ميزة","Advantage"],goal:["هدف","Goal"],pos:["تمركز","Positioning"],mgmt:["إدارة وتواصل","Management"],other:["أخرى","Other"]};
 const INC_E={ok:["صحيح","Correct"],bad:["خاطئ","Wrong"],miss:["فائت (لم يُتخذ)","Missed"],jd:["تقديري","Judgement"]};
@@ -1041,6 +1093,8 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
   top.querySelector("h2").textContent=x.title;top.querySelector("p").textContent=[x.comp,x.date,x.ref&&(A?"الحكم: ":"Referee: ")+x.ref].filter(Boolean).join(" · ");
   const sw=document.createElement("div");sw.className="lvl";const bl=document.createElement("button");bl.className="btn";bl.textContent=A?"كل التحليلات":"All analyses";bl.onclick=()=>{AN=null;renderAnalyze()};
   const ba=document.createElement("button");ba.className="btn primary";ba.textContent=A?"📝 صفحة المقيّم لهذه المباراة":"📝 Assessor page for this match";ba.onclick=()=>go("assess");sw.append(bl,ba);top.append(sw);box.append(top);
+  {const tabs=document.createElement("div");tabs.className="lvl";[["video",A?"🎥 من الفيديو":"🎥 From video"],["live",A?"⚡ مباشر من الملعب":"⚡ Live at the ground"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",anMode===k);b.onclick=()=>{anMode=k;renderAnalyze()};tabs.append(b)});box.append(tabs)}
+  if(anMode==="live"){box.append(livePanel(x))}else{
   const vc=document.createElement("article");vc.className="quiz";
   const pick=document.createElement("label");pick.className="btn primary";pick.style.cssText="justify-self:start;cursor:pointer";pick.textContent=A?"🎥 صوّر أو اختر فيديو":"🎥 Record or choose a video";
   const fi=document.createElement("input");fi.type="file";fi.accept="video/*";fi.setAttribute("capture","environment");fi.hidden=true;pick.append(fi);
@@ -1088,12 +1142,13 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
   sel("in-type",A?"نوع الحالة":"Type",INC_T);sel("in-ev",A?"تقييم القرار":"Evaluation",INC_E);sel("in-pos",A?"التمركز":"Positioning",INC_P);
   {const l=document.createElement("label");l.textContent=A?"القانون":"Law";const s=document.createElement("select");s.id="in-law";s.innerHTML=`<option value="">—</option>`+LAWS.map(([n,a,e])=>`<option value="${n}">${n}. ${A?a:e}</option>`).join("");l.append(s);g.append(l)}
   form.append(g);
+  {const l=document.createElement("strong");l.style.fontSize=".85rem";l.textContent=A?"المكان على الملعب (للخريطة الحرارية)":"Location on the pitch (for the heatmap)";form.append(l,pickerEl(()=>anLoc,v=>{anLoc=v}))}
   {const s=document.createElement("div");s.id="in-shot";s.style.cssText="display:grid;gap:6px;justify-items:start";form.append(s)}
   {const l=document.createElement("label");l.className="field";l.textContent=A?"قرار الحكم وملاحظتك":"Referee's decision and your note";const i=document.createElement("textarea");i.id="in-note";i.rows=2;l.append(i);form.append(l)}
   const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ الحالة":"Save incident";
   add.onclick=()=>{const tv=$("#in-t").value.trim().split(":").map(Number);const secs=tv.length===2?tv[0]*60+tv[1]:(+tv[0]||0);
-    anUpdate(a=>{a.inc.push({t:secs,min:$("#in-min").value.trim(),type:$("#in-type").value,ev:$("#in-ev").value,pos:$("#in-pos").value,law:$("#in-law").value,note:$("#in-note").value.trim(),...(anShot?{img:anShot}:{})});a.inc.sort((p,q)=>p.t-q.t)});anShot=null;renderAnalyze()};
-  form.append(add);box.append(form);renderShot();
+    anUpdate(a=>{a.inc.push({t:secs,min:$("#in-min").value.trim(),type:$("#in-type").value,ev:$("#in-ev").value,pos:$("#in-pos").value,law:$("#in-law").value,note:$("#in-note").value.trim(),...(anShot?{img:anShot}:{}),...(anLoc?{loc:anLoc}:{})});a.inc.sort((p,q)=>p.t-q.t)});anShot=null;anLoc=null;renderAnalyze()};
+  form.append(add);box.append(form);renderShot();}
   const ls=document.createElement("article");ls.className="quiz";const lh=document.createElement("h3");lh.style.margin="0";
   const inc=x.inc,cnt=k=>inc.filter(i=>i.ev===k).length,judged=inc.filter(i=>i.ev!=="jd").length;
   lh.textContent=A?`الحالات (${inc.length})`:`Incidents (${inc.length})`;ls.append(lh);
@@ -1104,7 +1159,7 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
     mid.querySelector("b").textContent=(i.min?i.min+"' · ":"")+lbl2(INC_T,i.type);const ev=mid.querySelector(".ev");ev.classList.add(i.ev);ev.textContent=lbl2(INC_E,i.ev);
     mid.querySelector(".muted").textContent=[i.law&&(A?"القانون ":"Law ")+i.law,i.pos!=="na"&&lbl2(INC_P,i.pos)].filter(Boolean).join(" · ");mid.lastChild.textContent=i.note;if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;im.style.marginTop="6px";mid.append(im)}
     const del=document.createElement("button");del.className="btn";del.textContent="🗑";del.onclick=()=>{anUpdate(a=>a.inc.splice(k,1));renderAnalyze()};r.append(tb,mid,del);ls.append(r)});
-  box.append(ls)}
+  box.append(ls,heatEl(inc))}
 const AS_C=[["laws",["تطبيق القوانين","Application of the Laws"],30],["pos",["التمركز والحركة","Positioning and movement"],20],["fit",["اللياقة البدنية","Fitness"],10],["mgmt",["إدارة المباراة والشخصية","Match control and personality"],25],["team",["التعاون مع الحكام الآخرين","Teamwork with other officials"],10],["sig",["الإشارات والتواصل","Signals and communication"],5]];
 function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.append(backBtn("analyze"));const x=anCur();
   if(!x){const p=document.createElement("p");p.textContent=A?"افتح أو أنشئ تحليل مباراة أولًا من «تحليل الحكم».":"Open or create a match analysis first in Referee analysis.";const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";b.onclick=()=>go("analyze");box.append(p,b);return}
@@ -1125,7 +1180,7 @@ function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.
   ap.textContent=acc===null?(A?"لا توجد حالات مقيّمة بعد.":"No evaluated incidents yet."):(A?`دقة القرارات: ${acc}% (${cnt("ok")} من ${judged})`:`Decision accuracy: ${acc}% (${cnt("ok")} of ${judged})`);st.append(ap);
   const key=inc.filter(i=>i.ev==="bad"||i.ev==="miss"||["pk","rc","goal"].includes(i.type));
   if(key.length){const kh=document.createElement("strong");kh.textContent=A?"الحالات المهمة":"Key incidents";st.append(kh);key.forEach(i=>{const d=document.createElement("div");d.style.fontSize=".9rem";d.textContent=`${i.min?i.min+"'":fmtT(i.t)} · ${lbl2(INC_T,i.type)} · ${lbl2(INC_E,i.ev)}${i.law?" · "+(A?"القانون ":"Law ")+i.law:""}${i.note?" — "+i.note:""}`;st.append(d);if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;st.append(im)}})}
-  box.append(st);
+  box.append(st,heatEl(inc));
   const sc=document.createElement("article");sc.className="quiz";const ch=document.createElement("h3");ch.style.margin="0";ch.textContent=A?"المعايير (من 10)":"Criteria (out of 10)";sc.append(ch);
   const tot=document.createElement("p");tot.className="big";
   const calc=()=>{let s=0,w=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s+=S.sc[k]*wt;w+=wt}});const v=w?s/w:null;
