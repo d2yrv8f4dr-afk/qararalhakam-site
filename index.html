@@ -200,6 +200,8 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .handout{display:grid;gap:10px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}.handout h1{margin:0}.handout h2{margin:10px 0 0;font-size:1.15rem;color:var(--pitch)}
 .yt.ytsm{max-width:420px}
 .opt4{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:12px}.optrow{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center}.optrow b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--pitch);color:#fff;font-size:.85rem}.optrow input{font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;min-width:0}
+.srcpick{display:grid;grid-template-columns:1fr 1fr;gap:10px}.srcbtn{display:grid;justify-items:center;gap:4px;padding:14px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font:inherit;font-weight:700;cursor:pointer;color:inherit}.srcbtn b{font-size:1.8rem}.srcbtn[aria-pressed=true]{border-color:var(--pitch);background:color-mix(in srgb,var(--pitch) 10%,transparent)}
+.vidbox video{width:100%;height:100%;background:#000;display:block}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -1498,6 +1500,16 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
     else{const p=document.createElement("p");p.className="muted";p.textContent=A?"لا توجد مقاطع بعد. أضف أول مقطع من النموذج أدناه.":"No clips yet. Add the first one below.";box.append(p)}
     const f=document.createElement("article");f.className="quiz";const fh=document.createElement("h3");fh.style.margin="0";fh.textContent=A?"＋ إضافة مقطع":"＋ Add a clip";f.append(fh);
     const g=document.createElement("div");g.className="anform";const inp=(id,n,ph)=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.id=id;if(ph)i.placeholder=ph;l.append(i);g.append(l);return i};
+    let pickedVid=null,pickedDur=0;const canUp=!!(SB&&(SBS.admin||SBS.instr));
+    if(canUp){const src=document.createElement("div");src.className="srcpick";const fi=document.createElement("input");fi.type="file";fi.accept="video/*";fi.hidden=true;const info2=document.createElement("small");info2.className="muted";
+      const bY=document.createElement("button");bY.type="button";bY.className="srcbtn";bY.innerHTML="<b>▶️</b><span></span>";bY.querySelector("span").textContent=A?"رابط يوتيوب":"YouTube link";
+      const bP=document.createElement("button");bP.type="button";bP.className="srcbtn";bP.innerHTML="<b>📱</b><span></span>";bP.querySelector("span").textContent=A?"من مكتبة الصور":"From photo library";
+      const mode=m=>{bY.setAttribute("aria-pressed",m==="yt");bP.setAttribute("aria-pressed",m==="file");$("#cl-url").closest("label").hidden=m==="file"};
+      bY.onclick=()=>{pickedVid=null;info2.textContent="";mode("yt")};bP.onclick=()=>fi.click();
+      fi.onchange=()=>{const fl=fi.files[0];fi.value="";if(!fl)return;if(fl.size>50*1024*1024){info2.textContent=A?`الفيديو ${(fl.size/1048576).toFixed(0)} ميجا، والحد 50 ميجا. قصّه من تطبيق الصور (تعديل ← قص) ثم اختره مرة أخرى.`:`The video is ${(fl.size/1048576).toFixed(0)} MB; the limit is 50 MB. Trim it in Photos (Edit → trim) and pick it again.`;return}
+        pickedVid=fl;mode("file");const tv=document.createElement("video");tv.preload="metadata";tv.src=URL.createObjectURL(fl);tv.onloadedmetadata=()=>{pickedDur=Math.floor(tv.duration||0);URL.revokeObjectURL(tv.src);if(!$("#cl-e").value&&pickedDur)$("#cl-e").value=fmtT(pickedDur)};
+        info2.textContent=`🎞 ${fl.name} · ${(fl.size/1048576).toFixed(1)} ${A?"ميجا":"MB"}`};
+      src.append(bY,bP,fi);f.append(src,info2);setTimeout(()=>mode("yt"))}
     const u=inp("cl-url",A?"رابط يوتيوب":"YouTube link","https://youtu.be/…");inp("cl-s",A?"البداية (دقيقة:ثانية)":"Start (m:ss)","1:23");inp("cl-e",A?"النهاية (دقيقة:ثانية)":"End (m:ss)","1:35");inp("cl-t",A?"عنوان اللقطة":"Title");
     {const l=document.createElement("label");l.textContent=A?"القانون":"Law";const s=document.createElement("select");s.id="cl-law";s.innerHTML=`<option value="">—</option>`+LAWS.map(([n,a,e])=>`<option value="${n}">${n}. ${A?a:e}</option>`).join("");l.append(s);g.append(l)}
     f.append(g);{const l=document.createElement("label");l.className="field";l.textContent=A?"القرار الصحيح والتعليل (يظهر بعد المشاهدة)":"Correct decision and reasoning (shown after watching)";const i=document.createElement("textarea");i.id="cl-w";i.rows=2;l.append(i);f.append(l)}
@@ -1510,10 +1522,12 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
       [[0,"1"],[1,"2"],[2,"3"],[3,"4"],[null,A?"نقاش مفتوح":"Open debate"]].forEach(([v,t2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=t2;b.setAttribute("aria-pressed",v===ansSel);b.onclick=()=>{ansSel=v;ch.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z===b))};ch.append(b)});
       w.append(ah,ch);f.append(w);
       const bd=document.createElement("p");bd.style.cssText="margin:0;font-weight:600;color:var(--pitch)";bd.textContent=SBS.admin?(A?"🛡 أنت مدير: المقطع يُنشر لكل المستخدمين.":"🛡 Admin: the clip is published to everyone."):(A?"🎓 أنت محاضر: المقطع يُنشر لكل الأعضاء، وتستطيع حذف مقاطعك أنت فقط.":"🎓 Instructor: the clip is published to all members; you can delete only your own clips.");f.append(bd)}
-    add.onclick=async()=>{const id=ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value);if(!id){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب.":"Invalid link. Paste a YouTube video link.";return}
-      if(!(e>s)){msg.textContent=A?"يجب أن تكون النهاية بعد البداية.":"End must be after start.";return}
+    add.onclick=async()=>{const id=pickedVid?null:ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value)||(pickedVid?pickedDur:0);if(!id&&!pickedVid){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب أو اختر فيديو من مكتبة الصور.":"Invalid link. Paste a YouTube link or pick a video from your library.";return}
+      if(!(e>s)&&!(pickedVid&&!e)){msg.textContent=A?"يجب أن تكون النهاية بعد البداية.":"End must be after start.";return}
       if(SBS.admin||SBS.instr){const options=optsIn.map(i=>i.value.trim());if(options.some(o=>!o)){msg.textContent=A?"اكتب الخيارات الأربعة كلها.":"Fill in all four options.";return}
-        const row={yt:id,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer:ansSel,why:$("#cl-w").value.trim()||null};
+        let vpath=null;if(pickedVid){add.disabled=true;msg.textContent=A?"⏳ جارٍ رفع الفيديو… لا تغلق الصفحة.":"⏳ Uploading the video… keep this page open.";const ext=(pickedVid.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";vpath=`${SBS.user.id}/${Date.now()}.${ext}`;
+          const {error:ue}=await SB.storage.from("clips").upload(vpath,pickedVid,{contentType:pickedVid.type||"video/mp4",upsert:false});add.disabled=false;if(ue){msg.textContent=(A?"تعذر رفع الفيديو: ":"Video upload failed: ")+ue.message;return}}
+        const row={yt:id,video_path:vpath,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer:ansSel,why:$("#cl-w").value.trim()||null};
         add.disabled=true;msg.textContent=A?"جارٍ النشر…":"Publishing…";const {error}=await SB.from("clips").insert(row);add.disabled=false;
         if(error){msg.textContent=(A?"تعذر النشر: ":"Could not publish: ")+error.message;return}await sbLoad(true);CLi=null;renderClips();return}
       const l=store.get("myclips",[]);l.push({id:"m"+Date.now(),yt:id,start:s,end:e,title:$("#cl-t").value.trim(),law:+$("#cl-law").value||0,w:$("#cl-w").value.trim()});store.set("myclips",l);CLi=CLIP_DATA.clips.length+l.length-1;renderClips()};
@@ -1527,12 +1541,13 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
   const op=document.createElement("a");op.className="btn";op.target="_blank";op.rel="noopener";op.href=`https://www.youtube.com/watch?v=${c.yt}&t=${c.start}s`;op.textContent=A?"▶ شاهد اللقطة في يوتيوب ↗":"▶ Watch on YouTube ↗";op.className="btn primary";rp.className="btn";ctl.append(op,rp);
   const fb=document.createElement("p");fb.className="muted";fb.style.cssText="margin:0;font-size:.8rem";fb.textContent=A?`إذا لم يعمل المشغّل أعلاه (بعض الفيديوهات تمنع العرض خارج يوتيوب)، اضغط «شاهد اللقطة في يوتيوب»، فتفتح من الثانية ${fmtT(c.start)}، وأوقفها عند ${fmtT(c.end)}.`:`If the player doesn't work (some videos block embedding), tap Watch on YouTube: it opens at ${fmtT(c.start)}; stop at ${fmtT(c.end)}.`;setTimeout(()=>ctl.after(fb));
   const info=document.createElement("p");info.className="muted";info.style.margin="0";info.textContent=`${fmtT(c.start)} → ${fmtT(c.end)} (${c.end-c.start} ${A?"ثانية":"s"})`;
-  box.append(hd,v,ctl,info);
+  let vv=v;if(c.vp){vv=clipMedia(c);op.remove();setTimeout(()=>fb.remove());rp.className="btn primary";rp.onclick=()=>clipReplay(vv,c)}
+  box.append(hd,vv,ctl,info);
   if(c.server)box.append(pollEl(c),commentsEl(c));
   if(c.w&&!c.server){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
   const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المقاطع":"All clips";all.onclick=()=>{CLi=null;renderClips()};nav.append(all);
   if(c.server&&SB&&(SBS.admin||(SBS.instr&&c.by===SBS.user?.id))){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع للجميع":"🗑 Delete clip for everyone";
-    del.onclick=async()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;const {error}=await SB.from("clips").delete().eq("id",c.sid);if(error){alert(error.message);return}await sbLoad(true);CLi=null;renderClips()};box.append(del)}
+    del.onclick=async()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;const {error}=await SB.from("clips").delete().eq("id",c.sid);if(error){alert(error.message);return}if(c.vp)await SB.storage.from("clips").remove([c.vp]).catch(()=>{});await sbLoad(true);CLi=null;renderClips()};box.append(del)}
   if(c.mine){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع":"🗑 Delete clip";del.onclick=()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;store.set("myclips",store.get("myclips",[]).filter(x=>x.id!==c.id));CLi=null;renderClips()};nav.append(del)}
   box.append(nav)}
 /* video library hub and lectures (recorded + live) */
@@ -1618,7 +1633,7 @@ let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=wind
 const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const SBD={clips:[],lect:[],at:0};
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
   const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
-  if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
+  if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,vp:x.video_path||null,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
   if(!l.error)SBD.lect=l.data;SBD.at=Date.now()}
 async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession();SBS.user=data.session?data.session.user:null;SBS.profile=null;SBS.admin=false;
   if(SBS.user){const [p,a]=await Promise.all([SB.from("profiles").select("*").eq("id",SBS.user.id).maybeSingle(),SB.rpc("is_admin")]);SBS.profile=p.data||null;SBS.admin=!!a.data}
@@ -2176,8 +2191,14 @@ addEventListener("keydown",e=>{if($("#v-present")?.hidden||!PR)return;const rtl=
 
 /* live classroom quiz: host */
 let HS=null,hostTick=null,HSF={law:"all",kind:"all",n:10,title:"",src:"bank",clips:null};
-const ytFrame=(q,small)=>{const v=document.createElement("div");v.className="yt"+(small?" ytsm":"");v.innerHTML=`<iframe src="https://www.youtube.com/embed/${q.yt}?start=${q.start||0}&end=${q.end||""}&rel=0&playsinline=1${location.protocol.startsWith("http")?"&origin="+encodeURIComponent(location.origin):""}" title="clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;return v};
-const voteClips=()=>allClips().filter(c=>c.yt&&Array.isArray(c.options)&&c.options.length>=2);
+const ytFrame=(q,small)=>{if(q.vp)return clipMedia(q,small);const v=document.createElement("div");v.className="yt"+(small?" ytsm":"");v.innerHTML=`<iframe src="https://www.youtube.com/embed/${q.yt}?start=${q.start||0}&end=${q.end||""}&rel=0&playsinline=1${location.protocol.startsWith("http")?"&origin="+encodeURIComponent(location.origin):""}" title="clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;return v};
+const voteClips=()=>allClips().filter(c=>(c.yt||c.vp)&&Array.isArray(c.options)&&c.options.length>=2);
+const SIGNED={};
+async function clipUrl(path){const h=SIGNED[path];if(h&&h.until>Date.now())return h.url;const {data,error}=await SB.storage.from("clips").createSignedUrl(path,3600);if(error)throw error;SIGNED[path]={url:data.signedUrl,until:Date.now()+55*60e3};return data.signedUrl}
+function clipMedia(c,small){if(!c.vp)return ytFrame(c,small);const w=document.createElement("div");w.className="yt vidbox"+(small?" ytsm":"");const v=document.createElement("video");v.controls=true;v.playsInline=true;v.preload="metadata";w.append(v);
+  const st=+(c.start||0),en=+(c.end||0);v.addEventListener("loadedmetadata",()=>{if(st)v.currentTime=st});v.addEventListener("timeupdate",()=>{if(en>st&&v.currentTime>=en){v.pause();v.currentTime=en}});
+  if(SB)clipUrl(c.vp).then(u=>v.src=u).catch(()=>{w.insertAdjacentHTML("beforeend",`<p class="muted" style="margin:6px">${ar()?"تعذر تحميل الفيديو.":"Could not load the video."}</p>`)});return w}
+function clipReplay(box,c){const v=box.querySelector("video");if(v){v.currentTime=+(c.start||0);v.play().catch(()=>{});return}const f=box.querySelector("iframe");if(f)f.src=f.src.replace(/&autoplay=1/,"")+"&autoplay=1"}
 async function hostSave(patch){const {data,error}=await SB.from("class_sessions").update(patch).eq("code",HS.code).select().single();if(error){alert(error.message);return}HS=data;renderHost()}
 function renderHost(){const box=$("#hoBox");box.innerHTML="";const A=ar();clearInterval(hostTick);box.append(backBtn("instr"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1>";hd.querySelector("h1").textContent=A?"🧪 اختبار القاعة المباشر":"🧪 Live classroom quiz";box.append(hd);
@@ -2192,7 +2213,7 @@ function renderHost(){const box=$("#hoBox");box.innerHTML="";const A=ar();clearI
         cb.onchange=()=>{HSF.clips=cb.checked?[...HSF.clips,c.id]:HSF.clips.filter(z=>z!==c.id)};l.append(cb,document.createTextNode(`🎥 ${c.title||c.yt}${c.law?` · ${A?"القانون":"Law"} ${c.law}`:""}${c.answer==null?(A?" · نقاش مفتوح":" · open discussion"):""}`));w.append(l)})}
       f.append(w);
       const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"▶ أنشئ الجلسة":"▶ Create the session";
-      b.onclick=async()=>{const qs=voteClips().filter(c=>HSF.clips.includes(c.id)).map(c=>({q:c.title||(A?"ما القرار الصحيح؟":"What is the correct decision?"),o:c.options,a:c.answer??null,w:c.w||"",ref:c.law?`${A?"القانون":"Law"} ${c.law}`:"",law:c.law||0,yt:c.yt,start:c.start,end:c.end}));
+      b.onclick=async()=>{const qs=voteClips().filter(c=>HSF.clips.includes(c.id)).map(c=>({q:c.title||(A?"ما القرار الصحيح؟":"What is the correct decision?"),o:c.options,a:c.answer??null,w:c.w||"",ref:c.law?`${A?"القانون":"Law"} ${c.law}`:"",law:c.law||0,yt:c.yt||null,vp:c.vp||null,start:c.start,end:c.end}));
         if(!qs.length){msg.textContent=A?"اختر حالة واحدة على الأقل.":"Pick at least one case.";return}b.disabled=true;
         for(let t=0;t<3;t++){const code=String(Math.floor(10000+Math.random()*90000));const {data,error}=await SB.from("class_sessions").insert({code,owner:SBS.user.id,title:HSF.title||(A?"حالات فيديو":"Video cases"),questions:qs}).select().single();
           if(!error){HS=data;renderHost();return}if(!/duplicate|unique/i.test(error.message)){msg.textContent=error.message;break}}b.disabled=false};
@@ -2211,7 +2232,7 @@ function renderHost(){const box=$("#hoBox");box.innerHTML="";const A=ar();clearI
   const Q=HS.questions,A2=A;const art=document.createElement("article");art.className="quiz hostcard";
   const head=document.createElement("div");head.className="codebar";head.innerHTML="<div><small></small><b></b></div><small class='muted'></small>";head.querySelector("small").textContent=A?"رمز الجلسة":"Session code";head.querySelector("b").textContent=HS.code;
   head.querySelector(".muted").textContent=A?"المتدرب يدخل المنصة ← ❓ الأسئلة ← 📲 انضم لجلسة القاعة، ثم يكتب الرمز.":"Trainees open ❓ Questions → 📲 Join a classroom session, then enter the code.";art.append(head);
-  if(HS.cur>=0&&HS.cur<Q.length&&HS.active&&Q[HS.cur].yt){const rp=document.createElement("div");rp.className="lvl";const vf=ytFrame(Q[HS.cur]);const b=document.createElement("button");b.className="btn";b.textContent=A?"⟲ أعد اللقطة":"⟲ Replay";b.onclick=()=>{const f=vf.querySelector("iframe");f.src=f.src.replace(/&autoplay=1/,"")+"&autoplay=1"};rp.append(b);art.append(vf,rp)}
+  if(HS.cur>=0&&HS.cur<Q.length&&HS.active&&(Q[HS.cur].yt||Q[HS.cur].vp)){const rp=document.createElement("div");rp.className="lvl";const vf=clipMedia(Q[HS.cur]);const b=document.createElement("button");b.className="btn";b.textContent=A?"⟲ أعد اللقطة":"⟲ Replay";b.onclick=()=>clipReplay(vf,Q[HS.cur]);rp.append(b);art.append(vf,rp)}
   const live=document.createElement("div");live.className="hostlive";art.append(live);const ctl=document.createElement("div");ctl.className="lvl";art.append(ctl);box.append(art);
   const mk=(t2,fn,cls)=>{const b=document.createElement("button");b.className="btn "+(cls||"");b.textContent=t2;b.onclick=fn;ctl.append(b)};
   let ANS=[];const names={};
@@ -2252,7 +2273,7 @@ function renderJoin(){const box=$("#joBox");box.innerHTML="";const A=ar();clearI
   if(S.cur<0){const p=document.createElement("p");p.className="big";p.textContent=A?"⏳ بانتظار المحاضر…":"⏳ Waiting for the instructor…";art.append(p)}
   else if(S.cur>=Q.length||!S.active){const sc=Object.entries(JS.mine).filter(([qi,c])=>Q[qi]&&c===Q[qi].a).length;const p=document.createElement("p");p.className="big";p.textContent=A?`🏁 انتهت الجلسة · نتيجتك ${sc} من ${Q.length}`:`🏁 Session over · your score ${sc} of ${Q.length}`;art.append(p);
     const b=document.createElement("button");b.className="btn";b.style.justifySelf="start";b.textContent=A?"جلسة أخرى":"Another session";b.onclick=()=>{JS=null;renderJoin()};art.append(b)}
-  else{const q=Q[S.cur],my=JS.mine[S.cur];const n=document.createElement("small");n.className="muted";n.textContent=A?`السؤال ${S.cur+1} من ${Q.length}`:`Question ${S.cur+1} of ${Q.length}`;const qt=document.createElement("p");qt.className="hostq";qt.textContent=q.q;art.append(n);if(q.yt){const tip=document.createElement("small");tip.className="muted";tip.textContent=A?"شاهد اللقطة على شاشة القاعة أو هنا، ثم صوّت:":"Watch the clip on the room screen or here, then vote:";art.append(tip,ytFrame(q,true))}art.append(qt);
+  else{const q=Q[S.cur],my=JS.mine[S.cur];const n=document.createElement("small");n.className="muted";n.textContent=A?`السؤال ${S.cur+1} من ${Q.length}`:`Question ${S.cur+1} of ${Q.length}`;const qt=document.createElement("p");qt.className="hostq";qt.textContent=q.q;art.append(n);if(q.yt||q.vp){const tip=document.createElement("small");tip.className="muted";tip.textContent=A?"شاهد اللقطة على شاشة القاعة أو هنا، ثم صوّت:":"Watch the clip on the room screen or here, then vote:";art.append(tip,clipMedia(q,true))}art.append(qt);
     const o=document.createElement("div");o.className="opts";o.style.flexDirection="column";q.o.forEach((x,j)=>{const b=document.createElement("button");b.textContent=x;b.disabled=my!=null||S.reveal;
       if(S.reveal){if(j===q.a)b.classList.add("right");else if(j===my)b.classList.add("wrong")}else if(j===my)b.setAttribute("aria-pressed","true");
       b.onclick=async()=>{o.querySelectorAll("button").forEach(z=>z.disabled=true);const {error}=await SB.from("class_answers").insert({code:S.code,user_id:SBS.user.id,qi:S.cur,choice:j});if(!error){JS.mine[S.cur]=j}renderJoin()};o.append(b)});art.append(o);
