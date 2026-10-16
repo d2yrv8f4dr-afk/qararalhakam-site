@@ -165,6 +165,13 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .aithumbs{display:flex;gap:8px;flex-wrap:wrap}.aithumbs figure{margin:0;position:relative}.aithumbs img{width:110px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}.aithumbs button{position:absolute;top:2px;inset-inline-end:2px;padding:0 6px;border-radius:8px;border:0;background:#000a;color:#fff;cursor:pointer}
 .conf{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:700}.conf.high{background:#d3f0dc;color:#14532d}.conf.medium{background:#fdf0c8;color:#7a5200}.conf.low{background:#fbd5d5;color:#8a1c1c}
 .terms{display:grid;gap:6px}.terms div{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;padding:6px 10px;border-radius:10px;background:var(--soft,#f3f5f2)}.terms b{direction:ltr}
+.exrow{display:grid;gap:10px}@media(min-width:720px){.exrow.on{grid-template-columns:1.15fr 1fr;align-items:start}}
+.exbox{background:color-mix(in srgb,var(--pitch) 8%,transparent);border-inline-start:3px solid var(--pitch);border-radius:10px;padding:8px 12px;font-size:.88rem}.exbox p{margin:4px 0 0;line-height:1.8}.exbox b{color:var(--pitch);font-size:.8rem}
+.stbig{display:grid;justify-items:center;gap:2px;font-size:1.1rem;padding:14px}.stbig.on{background:var(--red);border-color:var(--red)}.stbig small{font-variant-numeric:tabular-nums;font-size:1rem}
+.detbox{display:grid;gap:8px;padding:10px;border:1px dashed var(--line);border-radius:12px}.detcam{width:100%;max-height:220px;border-radius:10px;background:#000;object-fit:cover}
+.meter{position:relative;height:14px;border-radius:99px;background:var(--line);overflow:hidden}.meter i{position:absolute;inset-block:0;inset-inline-start:0;width:0;background:var(--pitch);transition:width .2s}.meter i.calm{background:#E8A33D}.meter u{position:absolute;inset-block:0;width:2px;background:var(--ink)}
+.detsl{display:grid;gap:2px;font-size:.85rem}.stsum{display:grid;gap:4px;padding:10px;border:1px solid var(--line);border-radius:12px}.stsum .big2{font-weight:700;font-size:1.1rem}.stsum .vd{font-weight:600}
+.aiinc{margin-top:6px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,#1C7ED6 9%,transparent);font-size:.88rem;display:grid;gap:4px}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -678,7 +685,7 @@ function applyLang(){
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
 const TABOF=v=>({guide:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress"})[v]||"train";
-function go(v){document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
+function go(v){if(v!=="analyze"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===TABOF(v)));
   if(v==="train"){$("#trainH").textContent=ar()?"🎯 التدريب":"🎯 Training";$("#trainP").textContent=ar()?"كل أدوات التعلّم والتدريب والاختبار في مكان واحد.":"Every learning, practice and testing tool in one place.";renderTiles()}
@@ -1117,7 +1124,7 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
   top.querySelector("h2").textContent=x.title;top.querySelector("p").textContent=[x.comp,x.date,x.ref&&(A?"الحكم: ":"Referee: ")+x.ref].filter(Boolean).join(" · ");
   const sw=document.createElement("div");sw.className="lvl";const bl=document.createElement("button");bl.className="btn";bl.textContent=A?"كل التحليلات":"All analyses";bl.onclick=()=>{AN=null;renderAnalyze()};
   const ba=document.createElement("button");ba.className="btn primary";ba.textContent=A?"📝 صفحة المقيّم لهذه المباراة":"📝 Assessor page for this match";ba.onclick=()=>go("assess");sw.append(bl,ba);top.append(sw);box.append(top);
-  {const tabs=document.createElement("div");tabs.className="lvl";[["video",A?"🎥 من الفيديو":"🎥 From video"],["live",A?"⚡ مباشر من الملعب":"⚡ Live at the ground"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",anMode===k);b.onclick=()=>{anMode=k;renderAnalyze()};tabs.append(b)});box.append(tabs)}
+  {const tabs=document.createElement("div");tabs.className="lvl";[["video",A?"🎥 من الفيديو":"🎥 From video"],["live",A?"⚡ مباشر من الملعب":"⚡ Live at the ground"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",anMode===k);b.onclick=()=>{if(anDet.on)detStop();anMode=k;renderAnalyze()};tabs.append(b)});box.append(tabs)}
   if(anMode==="live"){box.append(livePanel(x))}else{
   const vc=document.createElement("article");vc.className="quiz";
   const pick=document.createElement("label");pick.className="btn primary";pick.style.cssText="justify-self:start;cursor:pointer";pick.textContent=A?"🎥 صوّر أو اختر فيديو":"🎥 Record or choose a video";
@@ -1142,6 +1149,7 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
     cv.onpointermove=e=>{if(!T.cur)return;const p=pt(e);T.cur.b=p;if(T.cur.tool==="free")T.cur.pts.push(p);draw()};
     cv.onpointerup=()=>{if(T.cur){T.shapes.push(T.cur);T.cur=null;draw()}};
     video.addEventListener("play",()=>{if(T.shapes.length){T.shapes=[];draw()}});
+    {let pt=0;video.addEventListener("timeupdate",()=>{const t=video.currentTime;if(anAutoPause&&!video.paused&&t>pt&&t-pt<2){const hit=x.inc.find(i=>i.t>pt&&i.t<=t);if(hit){video.pause();video.currentTime=hit.t}}pt=t})}
     const tools=document.createElement("div");tools.className="tools";const mk=(tx,fn,tip)=>{const b=document.createElement("button");b.className="btn";b.textContent=tx;if(tip)b.title=tip;b.onclick=fn;tools.append(b);return b};
     const pen=mk(A?"✏️ رسم":"✏️ Draw",()=>{T.on=!T.on;cv.classList.toggle("on",T.on);pen.setAttribute("aria-pressed",T.on);if(T.on)video.pause()});pen.setAttribute("aria-pressed","false");
     const tb={};[["arrow","➚",A?"سهم":"Arrow"],["line","┄",A?"خط تسلل":"Offside line"],["circle","◯",A?"دائرة":"Circle"],["free","〰",A?"حر":"Free"]].forEach(([k,ic,n])=>{tb[k]=mk(`${ic} ${n}`,()=>{T.tool=k;Object.entries(tb).forEach(([kk,b])=>b.setAttribute("aria-pressed",kk===k))})});tb.arrow.setAttribute("aria-pressed","true");
@@ -1173,16 +1181,22 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
   add.onclick=()=>{const tv=$("#in-t").value.trim().split(":").map(Number);const secs=tv.length===2?tv[0]*60+tv[1]:(+tv[0]||0);
     anUpdate(a=>{a.inc.push({t:secs,min:$("#in-min").value.trim(),type:$("#in-type").value,ev:$("#in-ev").value,pos:$("#in-pos").value,law:$("#in-law").value,note:$("#in-note").value.trim(),...(anShot?{img:anShot}:{}),...(anLoc?{loc:anLoc}:{})});a.inc.sort((p,q)=>p.t-q.t)});anShot=null;anLoc=null;renderAnalyze()};
   form.append(add);box.append(form);renderShot();}
+  box.append(stopPanel());
   const ls=document.createElement("article");ls.className="quiz";const lh=document.createElement("h3");lh.style.margin="0";
   const inc=x.inc,cnt=k=>inc.filter(i=>i.ev===k).length,judged=inc.filter(i=>i.ev!=="jd").length;
   lh.textContent=A?`الحالات (${inc.length})`:`Incidents (${inc.length})`;ls.append(lh);
-  if(inc.length){const s=document.createElement("p");s.className="muted";s.style.margin="0";s.textContent=(A?`صحيح ${cnt("ok")} · خاطئ ${cnt("bad")} · فائت ${cnt("miss")} · تقديري ${cnt("jd")}`:`Correct ${cnt("ok")} · Wrong ${cnt("bad")} · Missed ${cnt("miss")} · Judgement ${cnt("jd")}`)+(judged?` · ${A?"دقة القرارات":"Accuracy"} ${Math.round(cnt("ok")/judged*100)}%`:"");ls.append(s)}
+  if(inc.length){const s=document.createElement("p");s.className="muted";s.style.margin="0";s.textContent=(A?`صحيح ${cnt("ok")} · خاطئ ${cnt("bad")} · فائت ${cnt("miss")} · تقديري ${cnt("jd")}`:`Correct ${cnt("ok")} · Wrong ${cnt("bad")} · Missed ${cnt("miss")} · Judgement ${cnt("jd")}`)+(judged?` · ${A?"دقة القرارات":"Accuracy"} ${Math.round(cnt("ok")/judged*100)}%`:"");ls.append(s);
+    const sa=document.createElement("button");sa.className="btn primary";sa.style.justifySelf="start";sa.textContent=A?"📤 أرسل الأخطاء مع التحليل للحكم":"📤 Send errors and analysis to the referee";sa.onclick=()=>sendRef(x);ls.append(sa)}
   inc.forEach((i,k)=>{const r=document.createElement("div");r.className="inc";const tb=document.createElement("button");tb.className="tbtn";tb.textContent=fmtT(i.t);tb.title=A?"انتقل لهذا الوقت":"Jump to time";
     tb.onclick=()=>{const v=box.querySelector("video");if(v){v.currentTime=i.t;v.scrollIntoView({block:"center"})}};
     const mid=document.createElement("div");mid.innerHTML="<div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center'><b></b><span class='ev'></span><span class='muted' style='font-size:.8rem'></span></div><div style='font-size:.9rem'></div>";
     mid.querySelector("b").textContent=(i.min?i.min+"' · ":"")+lbl2(INC_T,i.type);const ev=mid.querySelector(".ev");ev.classList.add(i.ev);ev.textContent=lbl2(INC_E,i.ev);
     mid.querySelector(".muted").textContent=[i.law&&(A?"القانون ":"Law ")+i.law,i.pos!=="na"&&lbl2(INC_P,i.pos)].filter(Boolean).join(" · ");mid.lastChild.textContent=i.note;if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;im.style.marginTop="6px";mid.append(im)}
+    if(i.ai)mid.append(aiIncEl(i));{const ia=document.createElement("div");ia.className="lvl";ia.style.marginTop="6px";
+      const b1=document.createElement("button");b1.className="btn aib";b1.style.fontSize=".8rem";b1.textContent=i.ai?(A?"🧠 أعد التحليل":"🧠 Re-analyse"):(A?"🧠 حلّل بالذكاء":"🧠 AI review");b1.onclick=async()=>{b1.disabled=true;b1.textContent=A?"يحلّل…":"Analysing…";await aiIncident(k);b1.disabled=false};
+      const b2=document.createElement("button");b2.className="btn";b2.style.fontSize=".8rem";b2.textContent=A?"📤 أرسل للحكم":"📤 Send to referee";b2.onclick=()=>sendRef(x,k);ia.append(b1,b2);mid.append(ia)}
     const del=document.createElement("button");del.className="btn";del.textContent="🗑";del.onclick=()=>{anUpdate(a=>a.inc.splice(k,1));renderAnalyze()};r.append(tb,mid,del);ls.append(r)});
+  aiSample().then(sm=>{if(!sm)box.querySelectorAll(".aib").forEach(b=>b.remove())});
   box.append(ls,heatEl(inc))}
 const AS_C=[["laws",["تطبيق القوانين","Application of the Laws"],30],["pos",["التمركز والحركة","Positioning and movement"],20],["fit",["اللياقة البدنية","Fitness"],10],["mgmt",["إدارة المباراة والشخصية","Match control and personality"],25],["team",["التعاون مع الحكام الآخرين","Teamwork with other officials"],10],["sig",["الإشارات والتواصل","Signals and communication"],5]];
 function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.append(backBtn("analyze"));const x=anCur();
@@ -1190,6 +1204,7 @@ function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.
   const S=store.get("as:"+x.id,null)||{sc:{},diff:"mid",str:"",imp:"",who:"",date:new Date().toISOString().slice(0,10)};const save=()=>store.set("as:"+x.id,S);
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 تقرير المقيّم":"📝 Assessor's report";
   hd.querySelector("p").textContent=A?"نموذج تدريبي من «قرار الحكم» لتقييم أداء الحكم، وليس نموذجًا رسميًا لأي اتحاد. المعايير وأوزانها قابلة للمراجعة.":"A Qarar Al-Hakam training form for assessing a referee; not an official form of any federation. Criteria and weights are open to review.";box.append(hd);
+  {const tg=document.createElement("button");tg.className="btn noprint";tg.style.justifySelf="start";tg.setAttribute("aria-pressed",store.get("as:ex",true));tg.textContent=store.get("as:ex",true)?(A?"👁 إخفاء المثال":"👁 Hide the example"):(A?"👁 إظهار مثال بجانب كل خانة":"👁 Show an example beside each field");tg.onclick=()=>{store.set("as:ex",!store.get("as:ex",true));renderAssess()};box.append(tg)}
   const info=document.createElement("article");info.className="quiz";info.innerHTML="<h2 style='margin:0'></h2><p style='margin:0'></p>";info.querySelector("h2").textContent=x.title;
   info.querySelector("p").textContent=[x.comp,x.date,x.ref&&(A?"الحكم: ":"Referee: ")+x.ref].filter(Boolean).join(" · ");
   const g=document.createElement("div");g.className="anform";
@@ -1205,17 +1220,26 @@ function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.
   const key=inc.filter(i=>i.ev==="bad"||i.ev==="miss"||["pk","rc","goal"].includes(i.type));
   if(key.length){const kh=document.createElement("strong");kh.textContent=A?"الحالات المهمة":"Key incidents";st.append(kh);key.forEach(i=>{const d=document.createElement("div");d.style.fontSize=".9rem";d.textContent=`${i.min?i.min+"'":fmtT(i.t)} · ${lbl2(INC_T,i.type)} · ${lbl2(INC_E,i.ev)}${i.law?" · "+(A?"القانون ":"Law ")+i.law:""}${i.note?" — "+i.note:""}`;st.append(d);if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;st.append(im)}})}
   box.append(st,heatEl(inc));
+  {const tm=document.createElement("article");tm.className="quiz";const th=document.createElement("h3");th.style.margin="0";th.textContent=A?"⏱ إدارة الوقت والتعويض (القانون 7)":"⏱ Time management and added time (Law 7)";tm.append(th,exRow(stSummaryEl(x,true),exBox(AS_EX.time[A?0:1])));box.append(tm)}
   const sc=document.createElement("article");sc.className="quiz";const ch=document.createElement("h3");ch.style.margin="0";ch.textContent=A?"المعايير (من 10)":"Criteria (out of 10)";sc.append(ch);
   const tot=document.createElement("p");tot.className="big";
   const calc=()=>{let s=0,w=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s+=S.sc[k]*wt;w+=wt}});const v=w?s/w:null;
     tot.textContent=v===null?"—":`${v.toFixed(1)} / 10`;verdict.textContent=v===null?"":v>=8.5?(A?"أداء ممتاز":"Excellent"):v>=7.5?(A?"أداء جيد جدًا":"Very good"):v>=6.5?(A?"أداء جيد":"Good"):v>=5.5?(A?"مقبول":"Acceptable"):(A?"يحتاج تطوير":"Needs improvement")};
   const verdict=document.createElement("p");verdict.style.cssText="margin:0;font-weight:600";
-  AS_C.forEach(([k,n,wt])=>{const r=document.createElement("div");r.className="score";const l=document.createElement("span");l.textContent=`${n[A?0:1]} (${wt}%)`;
+  S.cm=S.cm||{};AS_C.forEach(([k,n,wt])=>{const r=document.createElement("div");r.className="score";const l=document.createElement("span");l.textContent=`${n[A?0:1]} (${wt}%)`;
     const i=document.createElement("input");i.type="range";i.min=1;i.max=10;i.step=0.5;i.value=S.sc[k]??7;const v=document.createElement("b");v.textContent=S.sc[k]??"—";
-    i.oninput=()=>{S.sc[k]=+i.value;v.textContent=i.value;save();calc()};r.append(l,i,v);sc.append(r)});
+    i.oninput=()=>{S.sc[k]=+i.value;v.textContent=i.value;save();calc()};r.append(l,i,v);
+    const mn=document.createElement("div");mn.style.cssText="display:grid;gap:6px";const cm=document.createElement("textarea");cm.rows=2;cm.value=S.cm[k]||"";cm.placeholder=A?"تعليقك على هذا المعيار…":"Your comment on this criterion…";cm.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box";
+    cm.oninput=()=>{S.cm[k]=cm.value;save()};mn.append(r,cm);const ex=AS_EX[k];sc.append(exRow(mn,exBox(ex[A?1:2],ex[0])))});
   sc.append(tot,verdict);calc();box.append(sc);
-  const tx=document.createElement("article");tx.className="quiz";[["str",A?"نقاط القوة":"Strengths"],["imp",A?"نقاط للتطوير":"Areas to improve"]].forEach(([k,n])=>{const l=document.createElement("label");l.className="field";l.textContent=n;const i=document.createElement("textarea");i.rows=3;i.value=S[k];i.oninput=()=>{S[k]=i.value;save()};l.append(i);tx.append(l)});box.append(tx);
-  const pr=document.createElement("button");pr.className="btn primary";pr.style.justifySelf="center";pr.textContent=A?"🖨 طباعة التقرير أو حفظه PDF":"🖨 Print or save as PDF";pr.onclick=()=>window.print();box.append(pr)}
+  const tx=document.createElement("article");tx.className="quiz";[["str",A?"نقاط القوة":"Strengths"],["imp",A?"نقاط للتطوير":"Areas to improve"],["goals",A?"أهداف التطوير للمباراة القادمة":"Development goals for the next match"]].forEach(([k,n])=>{const l=document.createElement("label");l.className="field";l.textContent=n;const i=document.createElement("textarea");i.rows=3;i.value=S[k]||"";i.oninput=()=>{S[k]=i.value;save()};l.append(i);tx.append(exRow(l,exBox(AS_EX[k][A?0:1])))});box.append(tx);
+  const pr=document.createElement("button");pr.className="btn primary";pr.style.justifySelf="center";pr.textContent=A?"🖨 طباعة التقرير أو حفظه PDF":"🖨 Print or save as PDF";pr.onclick=()=>window.print();
+  const sr=document.createElement("button");sr.className="btn noprint";sr.style.justifySelf="center";sr.textContent=A?"📤 أرسل التقرير للحكم":"📤 Send the report to the referee";
+  sr.onclick=()=>{let s2=0,w2=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s2+=S.sc[k]*wt;w2+=wt}});const L2=[];if(w2)L2.push((A?"التقدير العام: ":"Overall: ")+(s2/w2).toFixed(1)+" / 10");
+    AS_C.forEach(([k,n])=>{if(S.sc[k]!=null||S.cm[k])L2.push(`• ${n[A?0:1]}${S.sc[k]!=null?`: ${S.sc[k]}/10`:""}${S.cm[k]?` — ${S.cm[k]}`:""}`)});
+    [1,2,3,4].forEach(h=>{const m=stSummary(x,h);if(m.S.length||m.ann!=null)L2.push(`⏱ ${HALF_N(h)}: ${A?"الوقت الضائع":"time lost"} ${mmss2(m.lost)}${m.ann!=null?` · ${A?"المعلن":"announced"} ${m.ann}${A?" د":" min"}`:""}`)});
+    [["str",A?"نقاط القوة":"Strengths"],["imp",A?"للتطوير":"To improve"],["goals",A?"أهداف المباراة القادمة":"Next-match goals"]].forEach(([k,n])=>{if(S[k])L2.push(`${n}: ${S[k]}`)});sendRef(x,null,L2.join("\n"))};
+  box.append(pr,sr)}
 /* animated video cases: our own reconstructions (no third-party footage) */
 let VCi=null,VCrun=null;
 function renderVC(){const box=$("#vcBox");box.innerHTML="";const A=ar();if(VCrun){VCrun.stop();VCrun=null}
@@ -1653,6 +1677,134 @@ function renderProgress(){
 }
 $("#favLaw").onclick=()=>{const f=store.get("fav",{});f[cur]=!f[cur];store.set("fav",f);$("#favLaw").setAttribute("aria-pressed",!!f[cur])};
 
+/* match stoppages (Law 7.3): manual button or automatic motion detection from the camera / analysis video */
+const ST_R={sub:["التبديلات","Substitutions"],inj:["تقييم المصابين وإخراجهم","Injury assessment"],waste:["إضاعة الوقت","Time-wasting"],disc:["العقوبات الانضباطية","Disciplinary sanctions"],med:["استراحة شرب أو تبريد","Drinks/cooling break"],var:["مراجعة الفيديو (VAR)","VAR check/review"],goal:["الاحتفال بالأهداف","Goal celebrations"],other:["سبب آخر","Other cause"],norm:["توقف طبيعي، لا يُعوَّض","Normal stoppage, not added"],unk:["لم يُحدَّد السبب","Reason not set"]};
+const stComp=s=>s.e!=null&&!["norm","unk"].includes(s.r);
+const halfBase=h=>h===2?45:h===3?90:h===4?105:0;
+const HALF_N=h=>(ar()?["","الشوط الأول","الشوط الثاني","الإضافي الأول","الإضافي الثاني"]:["","1st half","2nd half","Extra time 1","Extra time 2"])[h];
+const mmss2=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}`;
+let anHalf=1,anAutoPause=false,stTick=null;
+const anDet={on:false,thr:12,quiet:6,lvl:0,q0:null,a0:null,cam:null,stream:null,timer:null,prev:null};
+function stNow(){const x=anCur();if(!x)return {t:0,h:1,ok:false};if(anMode==="live"){const L=x.live||{acc:0,run:null,half:1};return {t:Math.floor((L.acc+(L.run?Date.now()-L.run:0))/1000),h:L.half,ok:!!L.run}}
+  const v=$("#anBox video.vid");return {t:v?Math.floor(v.currentTime):0,h:anHalf,ok:!!v}}
+const stLabel=(s,t)=>s.src==="live"?`${String(Math.floor(t/60)+halfBase(s.h)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`:fmtT(t);
+const stOpen=()=>(anCur()?.stops||[]).find(s=>s.e==null);
+function stopStart(auto,back){const n=stNow();if(!n.ok)return false;anUpdate(a=>{(a.stops||(a.stops=[])).push({id:"s"+Date.now(),h:n.h,s:Math.max(0,n.t-(back||0)),e:null,r:"unk",auto:!!auto,src:anMode==="live"?"live":"video"})});paintStops();return true}
+function stopEnd(back){const n=stNow();anUpdate(a=>{const s=(a.stops||[]).find(z=>z.e==null);if(s)s.e=Math.max(s.s,n.t-(back||0))});paintStops()}
+function stSummary(x,h){const S=(x.stops||[]).filter(s=>s.h===h&&s.e!=null),lost=S.filter(stComp).reduce((n,s)=>n+s.e-s.s,0),by={};
+  S.filter(stComp).forEach(s=>by[s.r]=(by[s.r]||0)+s.e-s.s);const ann=x.added?.[h];return {S,lost,by,ann,unk:S.filter(s=>s.r==="unk").length}}
+function stVerdict(lost,ann){const A=ar();if(ann==null||ann==="")return lost?(A?`يعادل تقريبًا ${Math.ceil(lost/60)} د كحد أدنى`:`About ${Math.ceil(lost/60)} min minimum`):"";
+  const d=ann*60-lost;if(d<-30)return (A?"⚠ المعلن أقل من الوقت الضائع بـ ":"⚠ Announced is below time lost by ")+mmss2(-d);
+  if(d>120)return (A?"ℹ المعلن أكثر من المحسوب بـ ":"ℹ Announced exceeds the calculation by ")+mmss2(d)+(A?": تحقّق من توقفات لم تُسجَّل":": check for unlogged stoppages");return A?"✓ مناسب للوقت الضائع":"✓ In line with time lost"}
+function stSummaryEl(x,edit){const A=ar(),w=document.createElement("div");w.style.cssText="display:grid;gap:10px";
+  const hs=[...new Set((x.stops||[]).map(s=>s.h).concat(Object.keys(x.added||{}).map(Number)))].sort();if(!hs.length){const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"لا توجد توقفات مسجلة.":"No stoppages logged.";w.append(p);return w}
+  hs.forEach(h=>{const m=stSummary(x,h),d=document.createElement("div");d.className="stsum";d.innerHTML="<b></b><div class='big2'></div><div class='muted' style='font-size:.85rem'></div><div class='ann'></div><div class='vd'></div>";
+    d.querySelector("b").textContent=HALF_N(h);d.querySelector(".big2").textContent=(A?"الوقت الضائع: ":"Time lost: ")+mmss2(m.lost);
+    d.querySelector(".muted").textContent=Object.entries(m.by).map(([r,s])=>`${lbl2(ST_R,r)} ${mmss2(s)}`).join(" · ")+(m.unk?(A?` · ${m.unk} بلا سبب (لا تُحسب)`:` · ${m.unk} without a reason (not counted)`):"");
+    const an=d.querySelector(".ann");if(edit){const l=document.createElement("label");l.textContent=A?"الوقت الإضافي المعلن (دقائق): ":"Announced added time (min): ";const i=document.createElement("input");i.type="number";i.min=0;i.max=30;i.inputMode="numeric";i.value=m.ann??"";i.style.cssText="width:70px;padding:6px;border:1px solid var(--line);border-radius:8px;font:inherit";
+      i.onchange=()=>{anUpdate(a=>{a.added=a.added||{};if(i.value==="")delete a.added[h];else a.added[h]=+i.value});d.querySelector(".vd").textContent=stVerdict(m.lost,i.value===""?null:+i.value)};l.append(i);an.append(l)}
+    else if(m.ann!=null)an.textContent=(A?"المعلن: ":"Announced: ")+m.ann+(A?" د":" min");
+    d.querySelector(".vd").textContent=stVerdict(m.lost,m.ann);w.append(d)});return w}
+function stopPanel(){const art=document.createElement("article");art.className="quiz";art.id="stopsArt";setTimeout(paintStops);return art}
+function paintStops(){const art=$("#stopsArt"),x=anCur();if(!art||!x)return;const A=ar();art.innerHTML="";const open=stOpen(),n=stNow();
+  const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"⏸ توقفات المباراة والوقت الضائع (القانون 7)":"⏸ Stoppages and time lost (Law 7)";
+  const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"سجّل كل توقف يدويًا بالزر، أو فعّل الكشف الإلكتروني بالكاميرا. ثم حدّد سببه. التوقفات الطبيعية (رمية تماس، ركلة مرمى) لا تُعوَّض.":"Log each stoppage with the button, or turn on electronic detection from the camera. Then set its reason. Normal stoppages (throw-ins, goal kicks) are not added.";art.append(h,tip);
+  if(anMode!=="live"){const r=document.createElement("div");r.className="lvl";[1,2,3,4].forEach(k=>{const b=document.createElement("button");b.className="btn";b.textContent=HALF_N(k);b.setAttribute("aria-pressed",anHalf===k);b.onclick=()=>{anHalf=k;paintStops()};r.append(b)});art.append(r)}
+  const big=document.createElement("button");big.className="btn primary stbig"+(open?" on":"");
+  big.innerHTML="<span></span><small id='stopTimer'></small>";big.querySelector("span").textContent=open?(A?"▶ انتهى التوقف":"▶ Stoppage over"):(A?"⏸ بدء توقف":"⏸ Start stoppage");
+  big.onclick=()=>{if(open)stopEnd();else if(!stopStart(false))warn.textContent=anMode==="live"?(A?"شغّل ساعة المباراة أولًا.":"Start the match clock first."):(A?"اختر فيديو المباراة أولًا.":"Pick the match video first.")};
+  const warn=document.createElement("p");warn.className="muted";warn.style.cssText="margin:0;font-size:.85rem;color:var(--red)";art.append(big,warn);
+  const target=open||(x.stops||[]).filter(s=>s.r==="unk").slice(-1)[0];
+  if(target){const l=document.createElement("strong");l.style.fontSize=".85rem";l.textContent=open?(A?"سبب التوقف الحالي:":"Reason for this stoppage:"):(A?`سبب توقف ${stLabel(target,target.s)}:`:`Reason for stoppage at ${stLabel(target,target.s)}:`);
+    const ch=document.createElement("div");ch.className="lvl";Object.keys(ST_R).filter(k=>k!=="unk").forEach(k=>{const b=document.createElement("button");b.className="btn";b.style.fontSize=".85rem";b.textContent=lbl2(ST_R,k);b.setAttribute("aria-pressed",target.r===k);
+      b.onclick=()=>{anUpdate(a=>{const s=a.stops.find(z=>z.id===target.id);if(s)s.r=k});paintStops()};ch.append(b)});art.append(l,ch)}
+  /* electronic detection */
+  const det=document.createElement("div");det.className="detbox";const db=document.createElement("button");db.className="btn";db.setAttribute("aria-pressed",anDet.on);
+  db.textContent=anDet.on?(A?"📷 إيقاف الكشف الإلكتروني":"📷 Stop electronic detection"):(A?(anMode==="live"?"📷 كشف إلكتروني من الكاميرا (تجريبي)":"📷 كشف إلكتروني من الفيديو (تجريبي)"):(anMode==="live"?"📷 Electronic detection from the camera (beta)":"📷 Electronic detection from the video (beta)"));
+  db.onclick=async()=>{if(anDet.on)detStop();else await detStart();paintStops()};det.append(db);
+  if(anDet.on){if(anMode==="live"&&anDet.cam)det.append(anDet.cam);
+    const m=document.createElement("div");m.className="meter";m.innerHTML="<i id='detBar'></i><u></u>";m.querySelector("u").style.insetInlineStart=anDet.thr+"%";det.append(m);
+    const lv=document.createElement("small");lv.id="detLvl";lv.className="muted";det.append(lv);
+    const sl=(lab,min,max,key,step)=>{const l=document.createElement("label");l.className="detsl";const s=document.createElement("span");const i=document.createElement("input");i.type="range";i.min=min;i.max=max;i.step=step||1;i.value=anDet[key];
+      const put=()=>s.textContent=`${lab}: ${anDet[key]}`;put();i.oninput=()=>{anDet[key]=+i.value;put();m.querySelector("u").style.insetInlineStart=anDet.thr+"%"};l.append(s,i);det.append(l)};
+    sl(A?"حد الهدوء (الحساسية)":"Calm threshold (sensitivity)",2,40,"thr");sl(A?"ثوانٍ من الهدوء قبل تسجيل التوقف":"Seconds of calm before logging",3,20,"quiet");
+    const t2=document.createElement("p");t2.className="muted";t2.style.cssText="margin:0;font-size:.8rem";
+    t2.textContent=A?"ثبّت الجوال على حامل ليرى الملعب كله. عندما يهدأ اللعب عدة ثوانٍ يبدأ توقف تلقائي 🤖، وعندما تعود الحركة ينتهي. الشريط يوضح الحركة الآن، والخط هو حد الهدوء: اضبطه حتى يبقى الشريط فوقه أثناء اللعب. الصورة تُحلَّل على جهازك فقط ولا تُرفع أو تُحفظ.":"Mount the phone so it sees the whole pitch. When play is calm for a few seconds an automatic stoppage 🤖 starts, and it ends when movement returns. The bar shows movement now; the line is the calm threshold — set it so the bar stays above it during play. Frames are analysed on your device only and never uploaded or saved.";det.append(t2);
+    if(anMode==="live"&&!n.ok){const w2=document.createElement("p");w2.style.cssText="margin:0;font-size:.85rem;color:var(--red)";w2.textContent=A?"شغّل ساعة المباراة ليبدأ التسجيل.":"Start the match clock to begin logging.";det.append(w2)}}
+  art.append(det);
+  if(anMode!=="live"){const l=document.createElement("label");l.style.cssText="display:flex;gap:8px;align-items:center;font-size:.9rem";const c=document.createElement("input");c.type="checkbox";c.checked=anAutoPause;c.onchange=()=>anAutoPause=c.checked;
+    l.append(c,document.createTextNode(A?"⏯ أوقف الفيديو تلقائيًا عند كل حالة مسجلة للمراجعة":"⏯ Auto-pause the video at each logged incident for review"));art.append(l)}
+  const S=(x.stops||[]).slice().sort((a,b)=>a.h-b.h||a.s-b.s);
+  if(S.length){const lh=document.createElement("strong");lh.textContent=A?`التوقفات (${S.length})`:`Stoppages (${S.length})`;art.append(lh);
+    S.forEach(s=>{const r=document.createElement("div");r.className="inc";r.style.gridTemplateColumns="auto 1fr auto";const ic=document.createElement("span");ic.textContent=s.auto?"🤖":"✋";ic.title=s.auto?(A?"تلقائي":"Automatic"):(A?"يدوي":"Manual");
+      const mid=document.createElement("div");mid.style.cssText="display:grid;gap:4px";const tx=document.createElement("div");tx.style.fontSize=".9rem";
+      tx.textContent=`${HALF_N(s.h)} · ${stLabel(s,s.s)} → ${s.e==null?"…":stLabel(s,s.e)}${s.e==null?"":` · ${mmss2(s.e-s.s)}`}`;
+      const se=document.createElement("select");se.style.cssText="font:inherit;font-size:.85rem;padding:4px;border:1px solid var(--line);border-radius:8px";Object.keys(ST_R).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=lbl2(ST_R,k);se.append(o)});se.value=s.r;
+      se.onchange=()=>{anUpdate(a=>{const z=a.stops.find(q=>q.id===s.id);if(z)z.r=se.value});paintStops()};mid.append(tx,se);
+      const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{anUpdate(a=>a.stops=a.stops.filter(q=>q.id!==s.id));paintStops()};r.append(ic,mid,d);art.append(r)})}
+  const sh=document.createElement("strong");sh.textContent=A?"الحساب لكل شوط":"Per-half calculation";art.append(sh,stSummaryEl(x,true));
+  clearInterval(stTick);stTick=setInterval(()=>{const el=$("#stopTimer");if(!el)return clearInterval(stTick);const o=stOpen(),q=stNow();el.textContent=o?mmss2(Math.max(0,q.t-o.s)):""},500)}
+async function detStart(){const A=ar();if(anMode==="live"){try{anDet.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false})}catch(e){alert(A?"تعذّر فتح الكاميرا. اسمح للمتصفح باستخدامها ثم حاول مرة أخرى.":"Could not open the camera. Allow camera access and try again.");return}
+    const v=document.createElement("video");v.muted=true;v.playsInline=true;v.autoplay=true;v.className="detcam";v.srcObject=anDet.stream;anDet.cam=v;v.play().catch(()=>{})}
+  anDet.on=true;anDet.prev=null;anDet.q0=anDet.a0=null;const c=document.createElement("canvas");c.width=64;c.height=36;const g=c.getContext("2d",{willReadFrequently:true});
+  anDet.timer=setInterval(()=>{const src=anMode==="live"?anDet.cam:$("#anBox video.vid");if(!src||src.readyState<2||(anMode!=="live"&&src.paused)){anDet.prev=null;return}
+    try{g.drawImage(src,0,0,64,36)}catch(e){return}const d=g.getImageData(0,0,64,36).data;let sum=0;const p=anDet.prev;
+    if(p)for(let i=0;i<d.length;i+=4)sum+=Math.abs(d[i]-p[i])+Math.abs(d[i+1]-p[i+1])+Math.abs(d[i+2]-p[i+2]);anDet.prev=new Uint8ClampedArray(d);if(!p)return;
+    anDet.lvl=Math.min(100,sum/(64*36*3)*10);detStep()},250)}
+function detStop(){clearInterval(anDet.timer);anDet.stream?.getTracks().forEach(t=>t.stop());Object.assign(anDet,{on:false,cam:null,stream:null,timer:null,prev:null,q0:null,a0:null,lvl:0})}
+function detStep(){const b=$("#detBar"),l=$("#detLvl");if(b){b.style.width=anDet.lvl.toFixed(0)+"%";b.className=anDet.lvl<anDet.thr?"calm":""}
+  if(l)l.textContent=(ar()?"الحركة الآن: ":"Movement now: ")+anDet.lvl.toFixed(0)+(anDet.lvl<anDet.thr?(ar()?" · هادئ":" · calm"):"");
+  const n=stNow();if(!n.ok||!anCur())return;const open=stOpen();
+  if(anDet.lvl<anDet.thr){anDet.a0=null;if(anDet.q0==null||anDet.q0>n.t)anDet.q0=n.t;if(!open&&n.t-anDet.q0>=anDet.quiet)stopStart(true,n.t-anDet.q0)}
+  else{anDet.q0=null;if(open&&open.auto){if(anDet.a0==null||anDet.a0>n.t)anDet.a0=n.t;if(n.t-anDet.a0>=2){stopEnd(n.t-anDet.a0);anDet.a0=null}}}}
+
+/* worked example shown beside each field of the assessor's report (illustrative match, not a real one) */
+const AS_EX={
+ laws:[8,"طبّق القوانين بدقة في معظم الحالات. احتسب ركلة الجزاء في الدقيقة 34 بقرار صحيح، واكتفى بالإنذار لأن المدافع حاول لعب الكرة داخل منطقة الجزاء (القانون 12). أخطأ في الدقيقة 71 حين لم يحتسب لمسة يد واضحة لأن زاوية رؤيته كانت محجوبة.","Applied the Laws accurately in most situations. The 34th-minute penalty was correct, with only a caution because the defender attempted to play the ball inside the penalty area (Law 12). In the 71st minute he missed a clear handball because his view was blocked."],
+ pos:[7.5,"حافظ على المسار القطري وكان قريبًا من أغلب الحالات. في الهجمات المرتدة تأخر نحو 20 مترًا عن اللعب. يُنصح بالتحرك المبكر لحظة فقدان الكرة، والوقوف خارج مسار اللعب عند الركلات الركنية.","Kept a good diagonal and was close to most incidents. On counter-attacks he trailed play by about 20 metres. Move early when possession changes, and stand outside the line of play at corners."],
+ fit:[8,"لياقة جيدة طوال المباراة، وحافظ على سرعته في الدقائق الأخيرة دون علامات تعب.","Good fitness throughout; kept his pace in the closing minutes with no sign of fatigue."],
+ mgmt:[7.5,"شخصية هادئة وحضور واضح. أحسن التعامل مع تجمهر اللاعبين بعد ركلة الجزاء. كان عليه التدخل أبكر لإيقاف الاحتجاجات المتكررة من قائد الفريق الضيف.","Calm, with clear presence. Handled the mass confrontation after the penalty well. Should have stepped in earlier to stop the away captain's repeated protests."],
+ team:[8,"تواصل جيد مع المساعدين، واستعان بالمساعد الأول في حالة خروج الكرة من خط المرمى في الدقيقة 58.","Good communication with the assistants; used AR1 for the ball-out-of-play call on the goal line in the 58th minute."],
+ sig:[8.5,"إشارات واضحة وصحيحة، وإشارة الميزة جاءت في وقتها وبوضوح.","Clear, correct signals; the advantage signal was timely and visible."],
+ time:["الشوط الأول: الوقت الضائع المحسوب 2:10 (تبديل، إصابة)، وأُعلنت دقيقتان كحد أدنى، ثم لعب الحكم 2:15، وهو مناسب. الشوط الثاني: المحسوب 5:40 (3 تبديلات، احتفال بهدف، إصابة)، وأُعلنت 5 دقائق ولعب نحو 6 دقائق؛ والحد الأدنى المعلن يجوز زيادته لا إنقاصه (القانون 7).","1st half: time lost 2:10 (substitution, injury); 2 minutes announced as the minimum and 2:15 played — appropriate. 2nd half: 5:40 lost (3 substitutions, goal celebration, injury); 5 minutes announced and about 6 played; the announced minimum may be increased, not reduced (Law 7)."],
+ str:["اتخاذ القرار بسرعة وثقة · إشارات واضحة · لياقة ثابتة حتى النهاية · تعاون جيد مع المساعدين.","Quick, confident decisions · clear signals · steady fitness to the end · good teamwork with the assistants."],
+ imp:["التمركز في الهجمات المرتدة · زاوية الرؤية في الكرات العرضية داخل المنطقة · التعامل المبكر مع احتجاجات القائد.","Positioning on counter-attacks · viewing angle on crosses into the area · dealing early with the captain's protests."],
+ goals:["1) تمرين التحرك عند فقدان الكرة (30 دقيقة أسبوعيًا). 2) مراجعة 10 لقطات للمسة اليد مع الزوايا. 3) في المباراة القادمة: تحذير القائد مبكرًا عند أول احتجاج.","1) Transition-movement drill (30 min a week). 2) Review 10 handball clips with angles. 3) Next match: warn the captain early at the first protest."]};
+const exBox=(txt,score)=>{const d=document.createElement("div");d.className="exbox noprint";d.innerHTML="<b></b><p></p>";d.querySelector("b").textContent=(ar()?"مثال":"Example")+(score!=null?` · ${score}/10`:"");d.querySelector("p").textContent=txt;return d};
+const exRow=(main,ex)=>{const r=document.createElement("div");r.className="exrow"+(store.get("as:ex",true)?" on":"");r.append(main);if(store.get("as:ex",true))r.append(ex);return r};
+
+/* AI review of one incident from its captured frame, and the feedback message to the referee */
+async function aiIncident(k){const A=ar(),x=anCur(),i=x.inc[k];const s=await aiSample();if(!s){alert(A?"المحلل غير متاح في هذا العرض.":"The analyst is not available in this view.");return}
+  const imgs=[];if(i.img&&aiMaxImg()){try{imgs.push(await (await fetch(i.img)).blob())}catch(e){}}
+  const prompt=`${aiBase()}
+
+TASK: Review the referee's decision in ONE logged incident${imgs.length?" using the attached still frame from the match video (the coloured drawings on it are the assessor's annotations)":""}.
+Incident: minute ${i.min||"?"} | type: ${lbl2(INC_T,i.type)} | assessor's evaluation: ${lbl2(INC_E,i.ev)} | position: ${lbl2(INC_P,i.pos||"na")}${i.law?` | law: ${i.law}`:""}
+Referee's decision and assessor's note: ${i.note||"(none)"}
+Return ONLY a JSON object:
+{"verdict":"correct|wrong|unclear","correct":"the correct decision with restart and sanction","error":"what the referee got wrong, or empty","why":"2-3 sentences","tip":"one practical coaching tip for the referee","refs":["12.1"],"seen":"what the frame shows, or empty"}`;
+  const o={modelTier:"complex",cache:false};if(imgs.length)o.images=imgs;
+  try{const r=await s.json(prompt,o);anUpdate(a=>a.inc[k].ai={...r,at:Date.now()});renderAnalyze()}catch(e){alert(aiErr(e))}}
+function aiIncEl(i){const A=ar(),r=i.ai,d=document.createElement("div");d.className="aiinc";const v={correct:A?"✓ قرار صحيح":"✓ Correct",wrong:A?"✗ قرار خاطئ":"✗ Wrong",unclear:A?"؟ غير محسوم":"? Unclear"}[r.verdict]||"";
+  d.innerHTML="<b></b><div></div>";d.querySelector("b").textContent=`🧠 ${v}`;const body=d.querySelector("div");
+  [[A?"الصحيح":"Correct call",r.correct],[A?"الخطأ":"Error",r.error],[A?"لماذا":"Why",r.why],[A?"نصيحة":"Tip",r.tip],[A?"اللقطة":"Frame",r.seen]].forEach(([k,v2])=>{if(!v2)return;const p=document.createElement("p");p.style.margin="2px 0";p.innerHTML="<strong></strong> <span></span>";p.querySelector("strong").textContent=k+":";p.querySelector("span").textContent=v2;body.append(p)});
+  if(aiArr(r.refs).length)d.append(aiRefsEl(r.refs));return d}
+function refMsg(x,only,extra){const A=ar(),L=[];const errs=x.inc.map((i,k)=>({i,k})).filter(({i})=>only==null?(i.ev==="bad"||i.ev==="miss"||i.ai?.verdict==="wrong"):true).filter(({k})=>only==null||k===only);
+  L.push(A?`📋 ملاحظات تحكيمية: ${x.title}${x.date?` (${x.date})`:""}`:`📋 Refereeing feedback: ${x.title}${x.date?` (${x.date})`:""}`);if(x.ref)L.push((A?"إلى الحكم: ":"To referee: ")+x.ref);L.push("");
+  if(!errs.length)L.push(A?"لا توجد أخطاء مسجلة. عمل موفق 👏":"No errors logged. Well done 👏");
+  errs.forEach(({i},n)=>{L.push(`${n+1}) ${i.min?i.min+"' · ":""}${fmtT(i.t)} ${A?"في الفيديو":"in the video"} · ${lbl2(INC_T,i.type)} · ${lbl2(INC_E,i.ev)}`);if(i.note)L.push("   "+(A?"الملاحظة: ":"Note: ")+i.note);
+    if(i.ai){if(i.ai.correct)L.push("   "+(A?"القرار الصحيح: ":"Correct call: ")+i.ai.correct);if(i.ai.error)L.push("   "+(A?"الخطأ: ":"Error: ")+i.ai.error);if(i.ai.why)L.push("   "+(A?"التحليل: ":"Analysis: ")+i.ai.why);if(i.ai.tip)L.push("   "+(A?"نصيحة: ":"Tip: ")+i.ai.tip);if(aiArr(i.ai.refs).length)L.push("   "+(A?"المرجع: ":"Ref: ")+aiArr(i.ai.refs).join("، "))}L.push("")});
+  if(extra)L.push(extra,"");L.push(A?"— قرار الحكم · منصة تعليمية مستقلة":"— Qarar Al-Hakam · independent learning platform");return {text:L.join("\n"),imgs:errs.filter(({i})=>i.img).map(({i},n)=>[i.img,`incident-${n+1}.jpg`])}}
+async function sendRef(x,only,extra){const A=ar(),{text,imgs}=refMsg(x,only,extra);let files=[];try{files=await Promise.all(imgs.map(async([u,nm])=>new File([await (await fetch(u)).blob()],nm,{type:"image/jpeg"})))}catch(e){files=[]}
+  try{if(navigator.canShare&&files.length&&navigator.canShare({files})){await navigator.share({text,files});return}if(navigator.share){await navigator.share({text});return}}catch(e){if(e?.name==="AbortError")return}
+  const w=document.createElement("article");w.className="quiz";w.innerHTML="<h3 style='margin:0'></h3><textarea rows='10' readonly style='width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px'></textarea><div class='lvl'></div>";
+  w.querySelector("h3").textContent=A?"📤 رسالة للحكم":"📤 Message to the referee";const ta=w.querySelector("textarea");ta.value=text;const bar=w.querySelector(".lvl");
+  const cp=document.createElement("button");cp.className="btn primary";cp.textContent=A?"📋 نسخ":"📋 Copy";cp.onclick=async()=>{try{await navigator.clipboard.writeText(text);cp.textContent=A?"✓ نُسخت":"✓ Copied"}catch(e){ta.select()}};
+  const wa=document.createElement("a");wa.className="btn";wa.target="_blank";wa.rel="noopener";wa.href="https://wa.me/?text="+encodeURIComponent(text);wa.textContent=A?"واتساب":"WhatsApp";
+  const ml=document.createElement("a");ml.className="btn";ml.href="mailto:?subject="+encodeURIComponent(x.title)+"&body="+encodeURIComponent(text);ml.textContent=A?"بريد":"Email";bar.append(cp,wa,ml);
+  if(imgs.length){const p=document.createElement("p");p.className="muted";p.style.cssText="margin:0;font-size:.8rem";p.textContent=A?"اللقطات لا تُرسل عبر الرابط؛ احفظها من «تقرير المقيّم» أو أرسلها من الجوال.":"Frames are not sent via the link; send them from your phone or the printed report.";w.append(p)}
+  ($("#v-assess").hidden?$("#anBox"):$("#asBox")).append(w);w.scrollIntoView({behavior:"smooth"})}
+
 /* assistant */
 let sample=null,ctl=null,turns=[],chatReady=false,chatOff=false;
 const SUGGEST={ar:["لاعب داخل قوس الجزاء أثناء ركلة الجزاء، هل هو داخل المنطقة؟","انكسرت العارضة في الدقيقة 80 ولا يوجد بديل، ما القرار؟","مهاجم متقدم لحظة التمرير والكرة ارتدت من مدافع إليه، هل هو متسلل؟"],
@@ -1710,6 +1862,7 @@ TASK: Write a referee assessment report from the incidents an assessor logged du
 Match: ${x.title}${x.comp?` · ${x.comp}`:""}${x.ref?` · referee: ${x.ref}`:""}
 Incidents:
 ${rows||"(none)"}
+Time lost per half (Law 7): ${[1,2,3,4].map(h=>{const m=stSummary(x,h);return m.S.length||m.ann!=null?`${HALF_N(h)}: lost ${mmss2(m.lost)}${m.ann!=null?`, announced ${m.ann} min`:""}`:""}).filter(Boolean).join(" | ")||"(not logged)"}
 Return ONLY a JSON object:
 {"summary":"3-4 sentence overall view","strengths":["..."],"improve":["..."],"key":[{"n":1,"comment":"what the logged decision shows and the relevant law"}],"focus":["training focus for the next match"],"refs":["5.3"],"terms":[{"en":"","say":"","ar":""}]}
 "key": the 3-6 most important incidents by their number.`}
