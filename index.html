@@ -1503,16 +1503,16 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
     f.append(g);{const l=document.createElement("label");l.className="field";l.textContent=A?"القرار الصحيح والتعليل (يظهر بعد المشاهدة)":"Correct decision and reasoning (shown after watching)";const i=document.createElement("textarea");i.id="cl-w";i.rows=2;l.append(i);f.append(l)}
     const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";
     const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ المقطع":"Save clip";
-    let optsIn=null,ansSel=null;if(SBS.admin){const w=document.createElement("div");w.className="opt4";const h=document.createElement("strong");h.textContent=A?"خيارات التصويت الأربعة (عدّلها حسب الحالة)":"The four poll options (edit for the case)";w.append(h);
+    let optsIn=null,ansSel=null;if(SBS.admin||SBS.instr){const w=document.createElement("div");w.className="opt4";const h=document.createElement("strong");h.textContent=A?"خيارات التصويت الأربعة (عدّلها حسب الحالة)":"The four poll options (edit for the case)";w.append(h);
       const DEF=A?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"];
       optsIn=DEF.map((d,k)=>{const r=document.createElement("label");r.className="optrow";const n=document.createElement("b");n.textContent=k+1;const i=document.createElement("input");i.value=d;r.append(n,i);w.append(r);return i});
       const ah=document.createElement("strong");ah.textContent=A?"الإجابة الصحيحة":"Correct answer";const ch=document.createElement("div");ch.className="lvl";ansSel=null;
       [[0,"1"],[1,"2"],[2,"3"],[3,"4"],[null,A?"نقاش مفتوح":"Open debate"]].forEach(([v,t2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=t2;b.setAttribute("aria-pressed",v===ansSel);b.onclick=()=>{ansSel=v;ch.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z===b))};ch.append(b)});
       w.append(ah,ch);f.append(w);
-      const bd=document.createElement("p");bd.style.cssText="margin:0;font-weight:600;color:var(--pitch)";bd.textContent=A?"🛡 أنت مدير: المقطع يُنشر لكل المستخدمين.":"🛡 Admin: the clip is published to everyone.";f.append(bd)}
+      const bd=document.createElement("p");bd.style.cssText="margin:0;font-weight:600;color:var(--pitch)";bd.textContent=SBS.admin?(A?"🛡 أنت مدير: المقطع يُنشر لكل المستخدمين.":"🛡 Admin: the clip is published to everyone."):(A?"🎓 أنت محاضر: المقطع يُنشر لكل الأعضاء، وتستطيع حذف مقاطعك أنت فقط.":"🎓 Instructor: the clip is published to all members; you can delete only your own clips.");f.append(bd)}
     add.onclick=async()=>{const id=ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value);if(!id){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب.":"Invalid link. Paste a YouTube video link.";return}
       if(!(e>s)){msg.textContent=A?"يجب أن تكون النهاية بعد البداية.":"End must be after start.";return}
-      if(SBS.admin){const options=optsIn.map(i=>i.value.trim());if(options.some(o=>!o)){msg.textContent=A?"اكتب الخيارات الأربعة كلها.":"Fill in all four options.";return}
+      if(SBS.admin||SBS.instr){const options=optsIn.map(i=>i.value.trim());if(options.some(o=>!o)){msg.textContent=A?"اكتب الخيارات الأربعة كلها.":"Fill in all four options.";return}
         const row={yt:id,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer:ansSel,why:$("#cl-w").value.trim()||null};
         add.disabled=true;msg.textContent=A?"جارٍ النشر…":"Publishing…";const {error}=await SB.from("clips").insert(row);add.disabled=false;
         if(error){msg.textContent=(A?"تعذر النشر: ":"Could not publish: ")+error.message;return}await sbLoad(true);CLi=null;renderClips();return}
@@ -1531,6 +1531,8 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
   if(c.server)box.append(pollEl(c),commentsEl(c));
   if(c.w&&!c.server){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
   const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المقاطع":"All clips";all.onclick=()=>{CLi=null;renderClips()};nav.append(all);
+  if(c.server&&SB&&(SBS.admin||(SBS.instr&&c.by===SBS.user?.id))){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع للجميع":"🗑 Delete clip for everyone";
+    del.onclick=async()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;const {error}=await SB.from("clips").delete().eq("id",c.sid);if(error){alert(error.message);return}await sbLoad(true);CLi=null;renderClips()};box.append(del)}
   if(c.mine){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع":"🗑 Delete clip";del.onclick=()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;store.set("myclips",store.get("myclips",[]).filter(x=>x.id!==c.id));CLi=null;renderClips()};nav.append(del)}
   box.append(nav)}
 /* video library hub and lectures (recorded + live) */
@@ -1616,7 +1618,7 @@ let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=wind
 const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const SBD={clips:[],lect:[],at:0};
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
   const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
-  if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
+  if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
   if(!l.error)SBD.lect=l.data;SBD.at=Date.now()}
 async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession();SBS.user=data.session?data.session.user:null;SBS.profile=null;SBS.admin=false;
   if(SBS.user){const [p,a]=await Promise.all([SB.from("profiles").select("*").eq("id",SBS.user.id).maybeSingle(),SB.rpc("is_admin")]);SBS.profile=p.data||null;SBS.admin=!!a.data}
@@ -2148,6 +2150,7 @@ function renderInstr(){const box=$("#inBox");box.innerHTML="";const A=ar();box.a
   g.append(mkTile("🎤",A?"وضع العرض":"Presentation mode",A?"شرائح القوانين بملء الشاشة للبروجكتر":"Full-screen Law slides for the projector",()=>{PR=null;go("present")}),
     mkTile("🧪",A?"اختبار القاعة المباشر":"Live classroom quiz",A?"المتدربون يجيبون من جوالاتهم وترى النتائج فورًا":"Trainees answer on their phones; you see results live",()=>go("host")),
     mkTile("📋",A?"خطة المحاضرة والملزمة":"Lecture plan & handout",A?"اختر الأجزاء والأهداف واطبع للمتدربين":"Pick parts and goals, print for trainees",()=>go("plan")),
+    mkTile("➕",A?"أضف حالة فيديو":"Add a video case",A?"لقطة يوتيوب بأربعة خيارات وإجابة":"A YouTube clip with four options and an answer",()=>{CLi=null;go("clips")}),
     mkTile("🎬",A?"حالات فيديو للتصويت":"Video cases to vote on",A?"اعرض لقطة حقيقية والقاعة تصوّت على القرار":"Show a real clip; the room votes on the decision",()=>{HSF.src="video";HSF.clips=null;HS=null;go("host")}),
     mkTile("📲",A?"تجربة كمتدرب":"Try as a trainee",A?"ادخل جلسة برمزها":"Join a session with its code",()=>go("join")));box.append(g)}
 
