@@ -371,7 +371,7 @@ const LAWS=[
 
 const T={
  ar:{brand:"REF.LAB",navGuide:"الدليل",navAsk:"المساعد",navExam:"الاختبار",navProg:"تقدّمي",
-  credit:"© جميع الحقوق محفوظة لصاحبها الأستاذ خالد السناني، المشرف العام على المنصة.",proto:"نسخة مراجعة خاصة، يُرجى عدم نشرها. نموذج أولي للعرض. المحتوى ملخص تعليمي من إعداد «REF.LAB» ولم يُراجع تحكيميًا بعد، وليس نص القانون. الرسوم من إنتاج المنصة. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
+  credit:"© جميع الحقوق محفوظة لصاحبها الأستاذ خالد السناني، المشرف العام على المنصة.",proto:"نسخة مراجعة خاصة، يُرجى عدم نشرها. نموذج أولي للعرض. المحتوى ملخص تعليمي من إعداد «قرار الحكم» ولم يُراجع تحكيميًا بعد، وليس نص القانون. الرسوم من إنتاج المنصة. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
   searchPh:"ابحث بمصطلح أو رقم قانون… مثل: منطقة الجزاء، 7.32، تسلل",lawsTitle:"قوانين اللعبة 2026/27 — بالترتيب",
   back:"→ كل القوانين",chipSrc:"المرجع: قوانين اللعبة 2026/27 — IFAB",chipDraft:"مسودة — بانتظار المراجعة التحكيمية",
   lawN:n=>`القانون ${n}`,parts:n=>`${n} أجزاء`,soon:"قيد الإعداد",part:"الجزء",
@@ -391,7 +391,7 @@ const T={
   declined:"",limited:"وصلت حد الاستخدام مؤقتًا. حاول لاحقًا.",failed:"تعذّر الحصول على إجابة. حاول مرة أخرى.",
   hello:"أهلًا. صف لي حالة من القوانين المغطاة، وسأوضح القرار مع رقم الفقرة."},
  en:{brand:"REF.LAB",navGuide:"Guide",navAsk:"Assistant",navExam:"Exam",navProg:"My progress",
-  credit:"© All rights reserved to Mr. Khalid Al-Sanani, General Supervisor of the platform.",proto:"Private review copy, please do not share. Prototype for review. The content is an educational summary written by REF.LAB, not yet reviewed by a referee, and is not the text of the Law. Illustrations are our own. The platform is independent and not affiliated with IFAB or FIFA.",
+  credit:"© All rights reserved to Mr. Khalid Al-Sanani, General Supervisor of the platform.",proto:"Private review copy, please do not share. Prototype for review. The content is an educational summary written by Qarar Al-Hakam, not yet reviewed by a referee, and is not the text of the Law. Illustrations are our own. The platform is independent and not affiliated with IFAB or FIFA.",
   searchPh:"Search a term or Law number… e.g. penalty area, 7.32, offside",lawsTitle:"Laws of the Game 2026/27 — in order",
   back:"← All Laws",chipSrc:"Source: Laws of the Game 2026/27 — IFAB",chipDraft:"Draft — awaiting referee review",
   lawN:n=>`Law ${n}`,parts:n=>`${n} parts`,soon:"In preparation",part:"Part",
@@ -1286,7 +1286,7 @@ function evDesc(x,i){const A=ar();const who=i.team?`${tName(x,i.team)}${i.pl?` #
 
 function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.innerHTML="";const A=ar();box.append(backBtn("assessor"));clearInterval(asTick);
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 صفحة المقيّم":"📝 Assessor's page";
-  hd.querySelector("p").textContent=A?"ورقة مباراة كاملة: المعلومات، التشكيلتان، الساعة وتسجيل الأحداث يدويًا، الطاقم، الوقت الضائع، ثم تقدير الحكم. نموذج تدريبي من «REF.LAB» وليس نموذجًا رسميًا لأي اتحاد.":"A full match sheet: information, line-ups, clock and manual event logging, officials, time lost, then the referee's rating. A REF.LAB training form, not an official form of any federation.";box.append(hd);
+  hd.querySelector("p").textContent=A?"ورقة مباراة كاملة: المعلومات، التشكيلتان، الساعة وتسجيل الأحداث يدويًا، الطاقم، الوقت الضائع، ثم تقدير الحكم. نموذج تدريبي من «قرار الحكم» وليس نموذجًا رسميًا لأي اتحاد.":"A full match sheet: information, line-ups, clock and manual event logging, officials, time lost, then the referee's rating. A Qarar Al-Hakam training form, not an official form of any federation.";box.append(hd);
   let x=anCur();const L0=anList();
   if(!x){const art=document.createElement("article");art.className="quiz";art.innerHTML="<h2 style='margin:0'></h2><div class='anform'></div>";art.querySelector("h2").textContent=A?"مباراة جديدة":"New match";
     const f=art.querySelector(".anform");[["home",A?"الفريق المضيف":"Home team"],["away",A?"الفريق الضيف":"Away team"],["date",A?"التاريخ":"Date","date"]].forEach(([k,n,ty])=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.type=ty||"text";i.id="nm-"+k;l.append(i);f.append(l)});
@@ -1802,7 +1802,7 @@ function addQuestion(key){const d=document.createElement("details");d.className=
 
 /* real photos: stored per part, with credit and licence */
 let ASSETS=null,DB=null,PHOTOS={};
-const LIC={own:["تصوير REF.LAB","REF.LAB photo"],cc0:["ملكية عامة / CC0","Public domain / CC0"],ccby:["رخصة CC BY","CC BY licence"],ccbysa:["رخصة CC BY-SA","CC BY-SA licence"],free:["رخصة مجانية (Unsplash / Pexels)","Free licence (Unsplash / Pexels)"],paid:["ترخيص مدفوع","Paid licence"]};
+const LIC={own:["تصوير قرار الحكم","Qarar Al-Hakam photo"],cc0:["ملكية عامة / CC0","Public domain / CC0"],ccby:["رخصة CC BY","CC BY licence"],ccbysa:["رخصة CC BY-SA","CC BY-SA licence"],free:["رخصة مجانية (Unsplash / Pexels)","Free licence (Unsplash / Pexels)"],paid:["ترخيص مدفوع","Paid licence"]};
 function photoBlock(p){
   const key=`${cur}-${p.id}`,ph=PHOTOS[key],wrap=document.createElement("div");wrap.style.display="grid";wrap.style.gap="8px";
   if(ph){const f=document.createElement("figure");f.className="photo";
@@ -1985,7 +1985,7 @@ function refMsg(x,only,extra){const A=ar(),L=[];const errs=x.inc.map((i,k)=>({i,
   if(!errs.length)L.push(A?"لا توجد أخطاء مسجلة. عمل موفق 👏":"No errors logged. Well done 👏");
   errs.forEach(({i},n)=>{L.push(`${n+1}) ${evDesc(x,i)}${i.live?"":` · ${fmtT(i.t)} ${A?"في الفيديو":"in the video"}`} · ${lbl2(INC_E,i.ev)}`);if(i.note)L.push("   "+(A?"الملاحظة: ":"Note: ")+i.note);
     if(i.ai){if(i.ai.correct)L.push("   "+(A?"القرار الصحيح: ":"Correct call: ")+i.ai.correct);if(i.ai.error)L.push("   "+(A?"الخطأ: ":"Error: ")+i.ai.error);if(i.ai.why)L.push("   "+(A?"التحليل: ":"Analysis: ")+i.ai.why);if(i.ai.tip)L.push("   "+(A?"نصيحة: ":"Tip: ")+i.ai.tip);if(aiArr(i.ai.refs).length)L.push("   "+(A?"المرجع: ":"Ref: ")+aiArr(i.ai.refs).join("، "))}L.push("")});
-  if(extra)L.push(extra,"");L.push(A?"— REF.LAB · منصة تعليمية مستقلة":"— REF.LAB · independent learning platform");return {text:L.join("\n"),imgs:errs.filter(({i})=>i.img).map(({i},n)=>[i.img,`incident-${n+1}.jpg`])}}
+  if(extra)L.push(extra,"");L.push(A?"— قرار الحكم · منصة تعليمية مستقلة":"— Qarar Al-Hakam · independent learning platform");return {text:L.join("\n"),imgs:errs.filter(({i})=>i.img).map(({i},n)=>[i.img,`incident-${n+1}.jpg`])}}
 async function sendRef(x,only,extra){const A=ar(),{text,imgs}=refMsg(x,only,extra);let files=[];try{files=await Promise.all(imgs.map(async([u,nm])=>new File([await (await fetch(u)).blob()],nm,{type:"image/jpeg"})))}catch(e){files=[]}
   try{if(navigator.canShare&&files.length&&navigator.canShare({files})){await navigator.share({text,files});return}if(navigator.share){await navigator.share({text});return}}catch(e){if(e?.name==="AbortError")return}
   const w=document.createElement("article");w.className="quiz";w.innerHTML="<h3 style='margin:0'></h3><textarea rows='10' readonly style='width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px'></textarea><div class='lvl'></div>";
@@ -2096,7 +2096,7 @@ function asDemo(){const A=ar(),id="demo";const old=anList().filter(x=>x.id!==id)
 async function loadContent(){try{const {data,error}=await SB.from("content").select("key,data");if(error||!data||!data.length)return false;const m={};data.forEach(r=>m[r.key]=r.data);
   const L={};Object.keys(m).filter(k=>k.startsWith("law-")).forEach(k=>L[k.slice(4)]=m[k]);if(!Object.keys(L).length)return false;
   LAW_DATA=L;if(m.new)NEW_DATA=m.new;if(m.matches)MATCH_DATA=m.matches;if(m.vcases)VC_DATA=m.vcases;if(m.clips)CLIP_DATA=m.clips;if(m.lectures)LECT_DATA=m.lectures;if(m.links)LINK_DATA=m.links;if(m.edits)EDITS=m.edits;CONTENT_LOADED=true;return true}catch(e){return false}}
-function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){store.set("idleOut",0);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 30 دقيقة دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 30 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"REF.LAB":"REF.LAB";
+function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){store.set("idleOut",0);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 30 دقيقة دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 30 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
   const [h,p]=!SBS.user?[A?"أهلًا بك في منصة الحكام":"Welcome to the referees' platform",A?"سجّل الدخول أو أنشئ حسابًا جديدًا. يراجع المشرف كل حساب جديد قبل فتح المنصة.":"Sign in or create an account. The admin reviews every new account before the platform opens."]
     :!SBS.member?(SBS.mstatus==="rejected"?[A?"❌ لم تتم الموافقة على حسابك":"❌ Your account was not approved",A?"تواصل مع إدارة المنصة إذا كنت ترى أن هناك خطأ.":"Contact the platform team if you think this is a mistake."]:[A?"⏳ حسابك بانتظار موافقة المشرف":"⏳ Your account is waiting for approval",A?"وصل طلبك للمشرف. أكمل بياناتك أدناه ليتعرّف عليك، وستُفتح المنصة بعد الموافقة.":"Your request reached the admin. Complete your details below so they know you; the platform opens once approved."])
     :SBS.admin?[A?"📦 ارفع محتوى المنصة":"📦 Upload the platform content",A?"المحتوى لم يُرفع للخادم بعد. ارفع ملف المحتوى من الأسفل لتفتح المنصة للأعضاء.":"The content is not on the server yet. Upload the content file below to open the platform for members."]
@@ -2263,7 +2263,7 @@ function renderSuggest(){const box=$("#suggest");box.innerHTML="";SUGGEST[lang].
 function addMsg(c,x){const d=document.createElement("div");d.className="msg "+c;d.textContent=x;$("#log").append(d);$("#log").scrollTop=1e9;return d}
 function knowledge(){const tmp=document.createElement("div");let out="";
   for(const n in LAW_DATA){out+=`\n\n### القانون ${n} — ${LAWS[n-1][1]}\n`;LAW_DATA[n].parts.forEach(p=>{tmp.innerHTML=(EDITS[`${n}-${p.id}`]?.body?.ar)||p.body.ar;out+=`\n[${p.ref}] ${p.title.ar}: ${tmp.textContent.replace(/\s+/g," ").trim()}\n`})}return out}
-function rules(){return `You are the study assistant of "REF.LAB", an independent educational platform for football referees, not affiliated with IFAB or FIFA.
+function rules(){return `You are the study assistant of "Qarar Al-Hakam", an independent educational platform for football referees, not affiliated with IFAB or FIFA.
 Answer ONLY from the approved-summary knowledge below (Laws of the Game 2026/27, Laws ${LAW_IDS().join(', ')}). Do not use outside knowledge.
 If the question is outside these Laws or the knowledge does not settle it, say so briefly and suggest asking a qualified referee instructor. Never invent rules.
 Reply in ${ar()?"Arabic":"English"}. Keep it short: the decision, the restart or sanction if any, why, and the section reference like (1.6) or (11.2). Say when a point depends on the referee's judgement or competition rules. Plain text.
@@ -2304,7 +2304,7 @@ function sbAI(){if(!SB)return null;const call=async(input,o={})=>{
     const d=await Promise.race([run,stop]);return aiParse(d.text)};
   const f=async(input,o)=>({text:JSON.stringify(await call(input,o))});f.json=call;
   f.limits=async()=>({images:{maxCount:4,maxInputBytes:8e6,mediaTypes:["image/jpeg","image/png","image/webp"]}});return f}
-function aiBase(){return `You are the senior match-incident analyst of "REF.LAB", an independent educational platform for football referees (not affiliated with IFAB or FIFA).
+function aiBase(){return `You are the senior match-incident analyst of "Qarar Al-Hakam", an independent educational platform for football referees (not affiliated with IFAB or FIFA).
 Base every decision ONLY on the approved-summary knowledge below (Laws of the Game 2026/27). Never use outside rules or invent any. When the knowledge does not settle a point, say so in "missing".
 Write every prose field in ${ar()?"Arabic":"English"}. Section references look like "12.2" and must exist in the knowledge.
 "terms": 2 to 5 English refereeing terms you relied on (e.g. DOGSO, SPA, advantage), each with "say" = its pronunciation written in Arabic letters and "ar" = its Arabic meaning.
