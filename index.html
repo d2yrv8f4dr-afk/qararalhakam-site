@@ -877,7 +877,7 @@ function startMyths(){let pool=allMyths().filter(([l])=>!myLaw||l===myLaw);for(l
   MY={deck:pool.slice(0,10),i:0,ok:0,picked:false};renderMyths()}
 function renderMyths(){const box=$("#mythBox");box.innerHTML="";const A=ar();
   const back=document.createElement("button");back.className="btn";back.style.justifySelf="start";back.textContent=t("back");back.onclick=()=>go("guide");
-  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"خرافة أم حقيقة؟":"Myth or fact?";
+  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"خطأ أم حقيقة؟":"True or false?";
   hd.querySelector("p").textContent=A?"عبارات يرددها اللاعبون والجمهور. هل هي صحيحة وفق قوانين 2026/27؟":"Things players and fans say. Are they true under the 2026/27 Laws?";box.append(back,hd);
   if(!allMyths().length){const p=document.createElement("p");p.className="muted";p.textContent=A?"قريبًا.":"Coming soon.";box.append(p);return}
   if(!MY||MY.i>=MY.deck.length){
@@ -892,9 +892,9 @@ function renderMyths(){const box=$("#mythBox");box.innerHTML="";const A=ar();
   card.innerHTML=`<div style="display:flex;justify-content:space-between;font-weight:600"><span></span><span class="muted" style="font-weight:400;font-size:.85rem"></span></div><p style="margin:0;font-size:1.15rem;font-weight:600;line-height:1.8"></p><div class="opts"></div><p class="why" hidden></p>`;
   const sp=card.querySelectorAll("div span");sp[0].textContent=`${MY.i+1}/${MY.deck.length}`;sp[1].textContent=`${A?"القانون":"Law"} ${l} · ${m.ref}`;card.querySelector("p").textContent=`«${L.s}»`;
   const o=card.querySelector(".opts"),w=card.querySelector(".why");
-  [[true,A?"✓ حقيقة":"✓ Fact"],[false,A?"✗ خرافة":"✗ Myth"]].forEach(([v,tx])=>{const b=document.createElement("button");b.textContent=tx;b.onclick=()=>{if(MY.picked)return;MY.picked=true;if(v===m.t)MY.ok++;
+  [[true,A?"✓ حقيقة":"✓ True"],[false,A?"✗ خطأ":"✗ False"]].forEach(([v,tx])=>{const b=document.createElement("button");b.textContent=tx;b.onclick=()=>{if(MY.picked)return;MY.picked=true;if(v===m.t)MY.ok++;
     [...o.children].forEach((bb,k)=>{bb.disabled=true;const val=k===0;if(val===m.t)bb.classList.add("right");else if(val===v)bb.classList.add("wrong")});
-    w.textContent=(m.t?(A?"حقيقة. ":"Fact. "):(A?"خرافة. ":"Myth. "))+L.w;w.hidden=false;
+    w.textContent=(m.t?(A?"حقيقة. ":"True. "):(A?"خطأ. ":"False. "))+L.w;w.hidden=false;
     const nx=document.createElement("button");nx.className="btn primary";nx.style.justifySelf="center";nx.textContent=MY.i<MY.deck.length-1?(A?"التالي ←":"Next →"):(A?"النتيجة":"Result");
     nx.onclick=()=>{MY.i++;MY.picked=false;renderMyths();window.scrollTo(0,0)};card.append(nx)};o.append(b)});
   box.append(card)}
@@ -903,7 +903,7 @@ function renderTiles(){renderTrack();const box=$("#tiles");if(!box)return;box.in
    ["",m,A?"راجع أخطاءك":"Review mistakes",m?(A?"أسئلة أخطأت فيها":"Questions you missed"):(A?"لا أخطاء حتى الآن":"No mistakes yet"),m?()=>go("review"):null],
    ["","⏱",A?"الاختبار الشامل":"Full exam",A?"بوقت محدد":"Timed",()=>go("exam")],
    ["","🚩",A?"مدرّب الإشارات":"Signals trainer",A?"الحكم والمساعد":"Referee & assistant",()=>{SG=null;go("signals")}],
-   ["","❓",A?"خرافة أم حقيقة؟":"Myth or fact?",A?"أخطاء شائعة":"Common mistakes",()=>{MY=null;go("myths")}]].forEach(([cls,n,tt,sub,fn])=>{
+   ["","❓",A?"خطأ أم حقيقة؟":"True or false?",A?"أخطاء شائعة":"Common mistakes",()=>{MY=null;go("myths")}]].forEach(([cls,n,tt,sub,fn])=>{
     const b=document.createElement("button");b.className="tile "+cls;b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=n;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;
     if(fn)b.onclick=fn;else b.disabled=true;box.append(b)})}
 function renderDaily(){const box=$("#daily");if(!box)return;box.innerHTML="";const all=[];LAW_IDS().forEach(l=>casesOf(l).forEach(c=>all.push([l,c])));if(!all.length)return;
