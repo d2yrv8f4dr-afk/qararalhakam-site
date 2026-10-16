@@ -172,6 +172,17 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .meter{position:relative;height:14px;border-radius:99px;background:var(--line);overflow:hidden}.meter i{position:absolute;inset-block:0;inset-inline-start:0;width:0;background:var(--pitch);transition:width .2s}.meter i.calm{background:#E8A33D}.meter u{position:absolute;inset-block:0;width:2px;background:var(--ink)}
 .detsl{display:grid;gap:2px;font-size:.85rem}.stsum{display:grid;gap:4px;padding:10px;border:1px solid var(--line);border-radius:12px}.stsum .big2{font-weight:700;font-size:1.1rem}.stsum .vd{font-weight:600}
 .aiinc{margin-top:6px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,#1C7ED6 9%,transparent);font-size:.88rem;display:grid;gap:4px}
+.asnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;position:sticky;top:0;z-index:5;background:var(--bg)}.asnav .btn{white-space:nowrap;font-size:.8rem}
+.assec{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:12px 14px}.assec>summary{font-weight:700;font-size:1.1rem;cursor:pointer;padding:4px 0}.asbody{display:grid;gap:12px;margin-top:10px}
+.lineups{display:grid;gap:12px}@media(min-width:720px){.lineups{grid-template-columns:1fr 1fr}}.team{display:grid;gap:6px;align-content:start;padding:10px;border:1px solid var(--line);border-radius:12px}
+.plr{display:grid;grid-template-columns:44px 1fr auto auto;gap:6px;align-items:center;font-size:.9rem;border-bottom:1px dashed var(--line);padding:3px 0}.pladd{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.pladd input,.plmore textarea{font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;min-width:0}.pladd input:nth-child(2){flex:1}.plmore{display:grid;gap:6px}.plmore textarea{width:100%;box-sizing:border-box}
+.asclock{display:grid;gap:8px}.played{display:grid;gap:4px;font-size:.85rem;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--pitch) 8%,transparent)}
+.crew{display:grid;gap:8px;padding:10px 0;border-bottom:1px dashed var(--line)}.evedit{display:grid;gap:8px;padding:12px;border:2px solid var(--pitch);border-radius:12px}
+.plchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.plchips button{min-width:40px;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:inherit;font-weight:700;cursor:pointer}.plchips button.sub{opacity:.7;border-style:dashed}.plchips button[aria-pressed=true]{background:var(--pitch);color:#fff;border-color:var(--pitch)}
+.evstats table{width:100%;border-collapse:collapse;font-size:.9rem;text-align:center}.evstats th,.evstats td{padding:4px;border-bottom:1px solid var(--line)}.evstats tbody th{text-align:start}
+.evrow{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}.evrow b{font-weight:600;font-size:.92rem}.evrow small{display:block}.evrow.err b{color:var(--red)}
+@media print{.assec{border:0;padding:0}.asnav{display:none}}
+.board{display:grid;gap:6px}.btools{display:flex;gap:6px;flex-wrap:wrap}.btools .btn{font-size:.8rem;padding:6px 10px}.btools .dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--line);vertical-align:middle}.board svg{cursor:crosshair}.bview{max-width:420px}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -685,7 +696,7 @@ function applyLang(){
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
 const TABOF=v=>({guide:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress"})[v]||"train";
-function go(v){if(v!=="analyze"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
+function go(v){if(v!=="analyze"&&v!=="assess"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===TABOF(v)));
   if(v==="train"){$("#trainH").textContent=ar()?"🎯 التدريب":"🎯 Training";$("#trainP").textContent=ar()?"كل أدوات التعلّم والتدريب والاختبار في مكان واحد.":"Every learning, practice and testing tool in one place.";renderTiles()}
@@ -1049,15 +1060,35 @@ function miniPitch(inner){const L='fill="none" stroke="rgba(255,255,255,.8)" str
   return `<svg class="mp" viewBox="-3 -3 111 74"><rect x="-3" y="-3" width="111" height="74" fill="#1E6B45"/>${[0,1,2,3,4,5,6,7,8,9].map(i=>`<rect x="${i*10.5}" y="0" width="10.5" height="68" fill="${i%2?"#226F49":"#2A7D52"}"/>`).join("")}
   <g ${L}><rect x="0" y="0" width="105" height="68"/><line x1="52.5" y1="0" x2="52.5" y2="68"/><circle cx="52.5" cy="34" r="9.15"/><rect x="0" y="13.84" width="16.5" height="40.32"/><rect x="88.5" y="13.84" width="16.5" height="40.32"/><rect x="0" y="24.84" width="5.5" height="18.32"/><rect x="99.5" y="24.84" width="5.5" height="18.32"/></g>${inner||""}</svg>`}
 const EVC={ok:"#51CF66",bad:"#FA5252",miss:"#FF922B",jd:"#FFD43B"};
-function pickerEl(get,set){const A=ar(),w=document.createElement("div");w.style.cssText="display:grid;gap:6px";
-  const tip=document.createElement("span");tip.className="muted";tip.style.fontSize=".8rem";const box=document.createElement("div");
-  const paint=()=>{const v=get()||{};tip.textContent=!v.i?(A?"① انقر مكان الحالة على الملعب":"① Tap where the incident happened"):!v.r?(A?"② انقر مكان الحكم لحظتها (اختياري)":"② Tap where the referee was (optional)"):(A?`المسافة: ${Math.round(Math.hypot(v.i.x-v.r.x,v.i.y-v.r.y))} م`:`Distance: ${Math.round(Math.hypot(v.i.x-v.r.x,v.i.y-v.r.y))} m`);
-    let s="";if(v.i&&v.r)s+=`<line x1="${v.i.x}" y1="${v.i.y}" x2="${v.r.x}" y2="${v.r.y}" stroke="#fff" stroke-width=".4" stroke-dasharray="1.2 1"/>`;
-    if(v.i)s+=`<circle cx="${v.i.x}" cy="${v.i.y}" r="1.8" fill="#FFD43B" stroke="#000" stroke-width=".3"/>`;if(v.r)s+=`<circle cx="${v.r.x}" cy="${v.r.y}" r="1.8" fill="#111" stroke="#FFD43B" stroke-width=".4"/><text x="${v.r.x}" y="${v.r.y+.9}" font-size="2.4" text-anchor="middle" fill="#FFD43B">R</text>`;
-    box.innerHTML=miniPitch(s);box.firstChild.onclick=e=>{const r=box.firstChild.getBoundingClientRect(),x=Math.max(0,Math.min(105,(e.clientX-r.left)/r.width*111-3)),y=Math.max(0,Math.min(68,(e.clientY-r.top)/r.height*74-3));
-      const c=Object.assign({},get()||{});if(!c.i)c.i={x,y};else if(!c.r)c.r={x,y};else{c.i={x,y};delete c.r}set(c);paint()}};
-  const rs=document.createElement("button");rs.className="btn";rs.style.justifySelf="start";rs.textContent=A?"مسح الموقع":"Clear location";rs.onclick=()=>{set(null);paint()};
-  w.append(tip,box,rs);paint();return w}
+/* smart pitch / tactics board: incident (ball), referee in black, both teams in their kit colours, assistants; drag to move */
+const teamCol=x=>({h:x?.info?.colH||"#1C7ED6",a:x?.info?.colA||"#E03131"});
+function boardInner(v,col){v=v||{};let s="";
+  if(v.i&&v.r)s+=`<line x1="${v.i.x}" y1="${v.i.y}" x2="${v.r.x}" y2="${v.r.y}" stroke="#fff" stroke-width=".4" stroke-dasharray="1.2 1"/>`;
+  (v.p||[]).forEach(p=>{if(p.t==="ar")s+=`<g><circle cx="${p.x}" cy="${p.y}" r="2" fill="#111" stroke="#FFD43B" stroke-width=".4"/><text x="${p.x}" y="${p.y+.9}" font-size="2.4" text-anchor="middle" fill="#FFD43B" font-weight="700">A</text></g>`;
+    else s+=`<circle cx="${p.x}" cy="${p.y}" r="2.1" fill="${col[p.t]||"#888"}" stroke="#fff" stroke-width=".35"/>`});
+  if(v.i)s+=`<circle cx="${v.i.x}" cy="${v.i.y}" r="1.2" fill="#fff" stroke="#000" stroke-width=".35"/><circle cx="${v.i.x}" cy="${v.i.y}" r="2.6" fill="none" stroke="#FFD43B" stroke-width=".4"/>`;
+  if(v.r)s+=`<circle cx="${v.r.x}" cy="${v.r.y}" r="2.4" fill="#000" stroke="#fff" stroke-width=".45"/><text x="${v.r.x}" y="${v.r.y+1}" font-size="2.8" text-anchor="middle" fill="#fff" font-weight="700">R</text>`;
+  return s}
+const boardSvg=(v,x)=>miniPitch(boardInner(v,teamCol(x)));
+function pickerEl(get,set){const A=ar(),x0=anCur(),col=teamCol(x0),w=document.createElement("div");w.className="board";let tool="i",c=JSON.parse(JSON.stringify(get()||{})),drag=null;
+  const tb=document.createElement("div");tb.className="btools";
+  const T=[["i",A?"⚽ مكان الحالة":"⚽ Incident"],["r",A?"⚫ الحكم":"⚫ Referee"],["h",tName(x0,"h")],["a",tName(x0,"a")],["ar",A?"🚩 مساعد":"🚩 Assistant"],["del",A?"🧽 حذف":"🧽 Remove"]];
+  T.forEach(([k,n])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.dataset.k=k;if(k==="h"||k==="a"){const d=document.createElement("i");d.className="dot";d.style.background=col[k];b.append(d," "+n)}else b.textContent=n;
+    b.setAttribute("aria-pressed",k===tool);b.onclick=()=>{tool=k;tb.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z.dataset.k===k))};tb.append(b)});
+  const tip=document.createElement("span");tip.className="muted";tip.style.fontSize=".8rem";const holder=document.createElement("div");holder.innerHTML=miniPitch('<g class="tok"></g>');const svg=holder.firstChild;svg.style.touchAction="none";const g=svg.querySelector(".tok");
+  const paint=()=>{g.innerHTML=boardInner(c,col);const nH=(c.p||[]).filter(p=>p.t==="h").length,nA=(c.p||[]).filter(p=>p.t==="a").length;
+    tip.textContent=(!c.i?(A?"اختر أداة ثم انقر على الملعب، واسحب أي قطعة لتحريكها.":"Pick a tool, tap the pitch, and drag any piece to move it."):c.r?(A?`مسافة الحكم عن الحالة: ${Math.round(Math.hypot(c.i.x-c.r.x,c.i.y-c.r.y))} م`:`Referee distance: ${Math.round(Math.hypot(c.i.x-c.r.x,c.i.y-c.r.y))} m`):(A?"أضف مكان الحكم ⚫ لحساب المسافة.":"Add the referee ⚫ to get the distance."))+(nH||nA?` · ${tName(x0,"h")} ${nH} · ${tName(x0,"a")} ${nA}`:"")};
+  const pt=e=>{const r=svg.getBoundingClientRect();return {x:Math.max(0,Math.min(105,(e.clientX-r.left)/r.width*111-3)),y:Math.max(0,Math.min(68,(e.clientY-r.top)/r.height*74-3))}};
+  const near=p=>{const all=[];if(c.i)all.push(["i",-1,c.i]);if(c.r)all.push(["r",-1,c.r]);(c.p||[]).forEach((q,k)=>all.push(["p",k,q]));let best=null,bd=2;all.forEach(z=>{const d=Math.hypot(z[2].x-p.x,z[2].y-p.y);if(d<bd){bd=d;best=z}});return best};
+  const commit=()=>set(c.i||c.r||(c.p||[]).length?JSON.parse(JSON.stringify(c)):null);
+  svg.onpointerdown=e=>{e.preventDefault();const p=pt(e),hit=near(p);
+    if(tool==="del"){if(hit){if(hit[0]==="p")c.p.splice(hit[1],1);else delete c[hit[0]];paint();commit()}return}
+    if(hit){drag=hit;svg.setPointerCapture(e.pointerId);return}
+    if(tool==="i"||tool==="r")c[tool]={x:p.x,y:p.y};else{c.p=c.p||[];c.p.push({t:tool,x:p.x,y:p.y})}paint();commit()};
+  svg.onpointermove=e=>{if(!drag)return;const p=pt(e);if(drag[0]==="p")Object.assign(c.p[drag[1]],p);else c[drag[0]]=p;paint()};
+  svg.onpointerup=svg.onpointercancel=()=>{if(drag){drag=null;commit()}};
+  const rs=document.createElement("button");rs.type="button";rs.className="btn";rs.style.justifySelf="start";rs.textContent=A?"مسح اللوحة":"Clear board";rs.onclick=()=>{c={};paint();set(null)};
+  w.append(tb,svg,tip,rs);paint();return w}
 function heatEl(inc){const A=ar(),pts=inc.filter(i=>i.loc&&i.loc.i);const art=document.createElement("article");art.className="quiz";
   const h3=document.createElement("h3");h3.style.margin="0";h3.textContent=A?"🗺 الخريطة الحرارية للحكم":"🗺 Referee heatmap";art.append(h3);
   if(!pts.length){const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"حدد مكان الحالات على الملعب عند تسجيلها لتظهر الخريطة.":"Mark incident locations on the pitch when logging to see the map.";art.append(p);return art}
@@ -1094,7 +1125,7 @@ function livePanel(x){const A=ar(),art=document.createElement("article");art.cla
     lw.append(lt,ev,nt,pickerEl(()=>(anCur().inc[idx]||{}).loc,v=>anUpdate(a=>{if(v)a.inc[idx].loc=v;else delete a.inc[idx].loc})));art.append(lw)}
   return art}
 function renderShot(){const s=$("#in-shot");if(!s)return;s.innerHTML="";if(!anShot)return;const i=document.createElement("img");i.className="shot";i.src=anShot;const r=document.createElement("button");r.className="btn";r.textContent=ar()?"إزالة اللقطة":"Remove frame";r.onclick=()=>{anShot=null;renderShot()};s.append(i,r)}
-const INC_T={foul:["خطأ","Foul"],hand:["لمسة يد","Handball"],off:["تسلل","Offside"],pk:["ركلة جزاء","Penalty"],yc:["بطاقة صفراء","Yellow card"],rc:["بطاقة حمراء","Red card"],adv:["ميزة","Advantage"],goal:["هدف","Goal"],pos:["تمركز","Positioning"],mgmt:["إدارة وتواصل","Management"],other:["أخرى","Other"]};
+const INC_T={foul:["خطأ","Foul"],hand:["لمسة يد","Handball"],off:["تسلل","Offside"],pk:["ركلة جزاء","Penalty"],yc:["بطاقة صفراء","Yellow card"],rc:["بطاقة حمراء","Red card"],adv:["ميزة","Advantage"],goal:["هدف","Goal"],pos:["تمركز","Positioning"],mgmt:["إدارة وتواصل","Management"],sub:["تبديل","Substitution"],other:["أخرى","Other"]};
 const INC_E={ok:["صحيح","Correct"],bad:["خاطئ","Wrong"],miss:["فائت (لم يُتخذ)","Missed"],jd:["تقديري","Judgement"]};
 const INC_P={good:["قريب وزاوية جيدة","Close, good angle"],far:["بعيد","Too far"],blind:["زاوية محجوبة","Blocked view"],na:["—","—"]};
 const anList=()=>store.get("an:list",[]);const anSave=l=>store.set("an:list",l);
@@ -1103,7 +1134,7 @@ const lbl2=(o,k)=>(o[k]||["",""])[ar()?0:1];
 function anCur(){return anList().find(x=>x.id===AN)}
 function anUpdate(fn){const l=anList(),i=l.findIndex(x=>x.id===AN);if(i<0)return;fn(l[i]);anSave(l)}
 function backBtn(to){const b=document.createElement("button");b.className="btn noprint";b.style.justifySelf="start";b.textContent=t("back");b.onclick=()=>go(to);return b}
-function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box.append(backBtn("guide"));
+function renderAnalyze(){const box=$("#anBox");box.innerHTML="";$("#asBox").innerHTML="";const A=ar();box.append(backBtn("guide"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";
   hd.querySelector("p").textContent=A?"صوّر المباراة بالجوال أو اختر فيديو، وسجّل كل حالة بوقتها وتقييمها. الفيديو يبقى على جهازك ولا يُرفع لأي مكان، والتحليل يُحفظ في هذا المتصفح. احصل على إذن من يظهر في التصوير.":"Record with your phone or pick a video, and log each incident with its time and evaluation. The video stays on your device and is never uploaded; the analysis is saved in this browser. Get consent from people you film.";box.append(hd);
   if(!AN||!anCur()){const L=anList();const art=document.createElement("article");art.className="quiz";
@@ -1199,47 +1230,176 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
   aiSample().then(sm=>{if(!sm)box.querySelectorAll(".aib").forEach(b=>b.remove())});
   box.append(ls,heatEl(inc))}
 const AS_C=[["laws",["تطبيق القوانين","Application of the Laws"],30],["pos",["التمركز والحركة","Positioning and movement"],20],["fit",["اللياقة البدنية","Fitness"],10],["mgmt",["إدارة المباراة والشخصية","Match control and personality"],25],["team",["التعاون مع الحكام الآخرين","Teamwork with other officials"],10],["sig",["الإشارات والتواصل","Signals and communication"],5]];
-function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.append(backBtn("analyze"));const x=anCur();
-  if(!x){const p=document.createElement("p");p.textContent=A?"افتح أو أنشئ تحليل مباراة أولًا من «تحليل الحكم».":"Open or create a match analysis first in Referee analysis.";const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";b.onclick=()=>go("analyze");box.append(p,b);return}
-  const S=store.get("as:"+x.id,null)||{sc:{},diff:"mid",str:"",imp:"",who:"",date:new Date().toISOString().slice(0,10)};const save=()=>store.set("as:"+x.id,S);
-  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 تقرير المقيّم":"📝 Assessor's report";
-  hd.querySelector("p").textContent=A?"نموذج تدريبي من «قرار الحكم» لتقييم أداء الحكم، وليس نموذجًا رسميًا لأي اتحاد. المعايير وأوزانها قابلة للمراجعة.":"A Qarar Al-Hakam training form for assessing a referee; not an official form of any federation. Criteria and weights are open to review.";box.append(hd);
-  {const tg=document.createElement("button");tg.className="btn noprint";tg.style.justifySelf="start";tg.setAttribute("aria-pressed",store.get("as:ex",true));tg.textContent=store.get("as:ex",true)?(A?"👁 إخفاء المثال":"👁 Hide the example"):(A?"👁 إظهار مثال بجانب كل خانة":"👁 Show an example beside each field");tg.onclick=()=>{store.set("as:ex",!store.get("as:ex",true));renderAssess()};box.append(tg)}
-  const info=document.createElement("article");info.className="quiz";info.innerHTML="<h2 style='margin:0'></h2><p style='margin:0'></p>";info.querySelector("h2").textContent=x.title;
-  info.querySelector("p").textContent=[x.comp,x.date,x.ref&&(A?"الحكم: ":"Referee: ")+x.ref].filter(Boolean).join(" · ");
-  const g=document.createElement("div");g.className="anform";
-  {const l=document.createElement("label");l.textContent=A?"اسم المقيّم":"Assessor";const i=document.createElement("input");i.value=S.who;i.oninput=()=>{S.who=i.value;save()};l.append(i);g.append(l)}
-  {const l=document.createElement("label");l.textContent=A?"تاريخ التقييم":"Date";const i=document.createElement("input");i.type="date";i.value=S.date;i.oninput=()=>{S.date=i.value;save()};l.append(i);g.append(l)}
-  {const l=document.createElement("label");l.textContent=A?"صعوبة المباراة":"Match difficulty";const s=document.createElement("select");[["easy",A?"سهلة":"Easy"],["mid",A?"متوسطة":"Normal"],["hard",A?"صعبة":"Difficult"]].forEach(([k,n])=>{const o=document.createElement("option");o.value=k;o.textContent=n;s.append(o)});s.value=S.diff;s.onchange=()=>{S.diff=s.value;save()};l.append(s);g.append(l)}
-  info.append(g);box.append(info);
-  const inc=x.inc,cnt=k=>inc.filter(i=>i.ev===k).length,judged=inc.filter(i=>i.ev!=="jd").length;
-  const st=document.createElement("article");st.className="quiz";const sh=document.createElement("h3");sh.style.margin="0";sh.textContent=A?"ملخص الحالات من التحليل":"Incidents from the analysis";st.append(sh);
-  const bx=document.createElement("div");bx.className="topics";bars(bx,[[A?"صحيح":"Correct",cnt("ok"),inc.length],[A?"خاطئ":"Wrong",cnt("bad"),inc.length],[A?"فائت":"Missed",cnt("miss"),inc.length],[A?"تقديري":"Judgement",cnt("jd"),inc.length]]);st.append(bx);
-  const acc=judged?Math.round(cnt("ok")/judged*100):null;const ap=document.createElement("p");ap.style.margin="0";ap.style.fontWeight="600";
-  ap.textContent=acc===null?(A?"لا توجد حالات مقيّمة بعد.":"No evaluated incidents yet."):(A?`دقة القرارات: ${acc}% (${cnt("ok")} من ${judged})`:`Decision accuracy: ${acc}% (${cnt("ok")} of ${judged})`);st.append(ap);
-  const key=inc.filter(i=>i.ev==="bad"||i.ev==="miss"||["pk","rc","goal"].includes(i.type));
-  if(key.length){const kh=document.createElement("strong");kh.textContent=A?"الحالات المهمة":"Key incidents";st.append(kh);key.forEach(i=>{const d=document.createElement("div");d.style.fontSize=".9rem";d.textContent=`${i.min?i.min+"'":fmtT(i.t)} · ${lbl2(INC_T,i.type)} · ${lbl2(INC_E,i.ev)}${i.law?" · "+(A?"القانون ":"Law ")+i.law:""}${i.note?" — "+i.note:""}`;st.append(d);if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;st.append(im)}})}
-  box.append(st,heatEl(inc));
-  {const tm=document.createElement("article");tm.className="quiz";const th=document.createElement("h3");th.style.margin="0";th.textContent=A?"⏱ إدارة الوقت والتعويض (القانون 7)":"⏱ Time management and added time (Law 7)";tm.append(th,exRow(stSummaryEl(x,true),exBox(AS_EX.time[A?0:1])));box.append(tm)}
-  const sc=document.createElement("article");sc.className="quiz";const ch=document.createElement("h3");ch.style.margin="0";ch.textContent=A?"المعايير (من 10)":"Criteria (out of 10)";sc.append(ch);
-  const tot=document.createElement("p");tot.className="big";
-  const calc=()=>{let s=0,w=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s+=S.sc[k]*wt;w+=wt}});const v=w?s/w:null;
-    tot.textContent=v===null?"—":`${v.toFixed(1)} / 10`;verdict.textContent=v===null?"":v>=8.5?(A?"أداء ممتاز":"Excellent"):v>=7.5?(A?"أداء جيد جدًا":"Very good"):v>=6.5?(A?"أداء جيد":"Good"):v>=5.5?(A?"مقبول":"Acceptable"):(A?"يحتاج تطوير":"Needs improvement")};
-  const verdict=document.createElement("p");verdict.style.cssText="margin:0;font-weight:600";
-  S.cm=S.cm||{};AS_C.forEach(([k,n,wt])=>{const r=document.createElement("div");r.className="score";const l=document.createElement("span");l.textContent=`${n[A?0:1]} (${wt}%)`;
-    const i=document.createElement("input");i.type="range";i.min=1;i.max=10;i.step=0.5;i.value=S.sc[k]??7;const v=document.createElement("b");v.textContent=S.sc[k]??"—";
-    i.oninput=()=>{S.sc[k]=+i.value;v.textContent=i.value;save();calc()};r.append(l,i,v);
-    const mn=document.createElement("div");mn.style.cssText="display:grid;gap:6px";const cm=document.createElement("textarea");cm.rows=2;cm.value=S.cm[k]||"";cm.placeholder=A?"تعليقك على هذا المعيار…":"Your comment on this criterion…";cm.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box";
-    cm.oninput=()=>{S.cm[k]=cm.value;save()};mn.append(r,cm);const ex=AS_EX[k];sc.append(exRow(mn,exBox(ex[A?1:2],ex[0])))});
-  sc.append(tot,verdict);calc();box.append(sc);
-  const tx=document.createElement("article");tx.className="quiz";[["str",A?"نقاط القوة":"Strengths"],["imp",A?"نقاط للتطوير":"Areas to improve"],["goals",A?"أهداف التطوير للمباراة القادمة":"Development goals for the next match"]].forEach(([k,n])=>{const l=document.createElement("label");l.className="field";l.textContent=n;const i=document.createElement("textarea");i.rows=3;i.value=S[k]||"";i.oninput=()=>{S[k]=i.value;save()};l.append(i);tx.append(exRow(l,exBox(AS_EX[k][A?0:1])))});box.append(tx);
-  const pr=document.createElement("button");pr.className="btn primary";pr.style.justifySelf="center";pr.textContent=A?"🖨 طباعة التقرير أو حفظه PDF":"🖨 Print or save as PDF";pr.onclick=()=>window.print();
-  const sr=document.createElement("button");sr.className="btn noprint";sr.style.justifySelf="center";sr.textContent=A?"📤 أرسل التقرير للحكم":"📤 Send the report to the referee";
-  sr.onclick=()=>{let s2=0,w2=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s2+=S.sc[k]*wt;w2+=wt}});const L2=[];if(w2)L2.push((A?"التقدير العام: ":"Overall: ")+(s2/w2).toFixed(1)+" / 10");
-    AS_C.forEach(([k,n])=>{if(S.sc[k]!=null||S.cm[k])L2.push(`• ${n[A?0:1]}${S.sc[k]!=null?`: ${S.sc[k]}/10`:""}${S.cm[k]?` — ${S.cm[k]}`:""}`)});
-    [1,2,3,4].forEach(h=>{const m=stSummary(x,h);if(m.S.length||m.ann!=null)L2.push(`⏱ ${HALF_N(h)}: ${A?"الوقت الضائع":"time lost"} ${mmss2(m.lost)}${m.ann!=null?` · ${A?"المعلن":"announced"} ${m.ann}${A?" د":" min"}`:""}`)});
-    [["str",A?"نقاط القوة":"Strengths"],["imp",A?"للتطوير":"To improve"],["goals",A?"أهداف المباراة القادمة":"Next-match goals"]].forEach(([k,n])=>{if(S[k])L2.push(`${n}: ${S[k]}`)});sendRef(x,null,L2.join("\n"))};
-  box.append(pr,sr)}
+const REF_LV=[["intl",["دولي","International"]],["elite",["نخبة","Elite"]],["d1",["درجة أولى","Class 1"]],["d2",["درجة ثانية","Class 2"]],["d3",["درجة ثالثة","Class 3"]],["new",["مستجد","Trainee"]]];
+const CREW=[["ref",["الحكم","Referee"]],["ar1",["المساعد الأول","Assistant referee 1"]],["ar2",["المساعد الثاني","Assistant referee 2"]],["fo",["الحكم الرابع","Fourth official"]],["var",["حكم الفيديو (VAR)","Video assistant referee (VAR)"]],["avar",["مساعد حكم الفيديو (AVAR)","Assistant VAR (AVAR)"]]];
+const EV_Q=[["off","🚩"],["foul","🦶"],["yc","🟨"],["rc","🟥"],["goal","⚽"],["hand","✋"],["pk","🎯"],["sub","🔁"],["other","…"]];
+const EV_LAW={off:"11",foul:"12",yc:"12",rc:"12",hand:"12",pk:"14",goal:"10",sub:"3"};
+const EV_IC=Object.fromEntries(EV_Q);
+const CREW_EX={ar:[8,"تمركز ثابت على خط آخر مدافع، ورفع الراية في الوقت الصحيح في حالتي تسلل دقيقتين (القانون 11). ساعد الحكم في حالة خروج الكرة في الدقيقة 58. يحتاج إلى التحرك أسرع مع الهجمات المرتدة.","Steady on the second-last defender's line and flagged two tight offsides at the right time (Law 11). Helped the referee on the ball-out call in the 58th minute. Needs to move faster on counter-attacks."],
+ fo:[8,"أدار منطقة الفنيين بهدوء، ونفّذ التبديلات بسرعة، وأعلن الوقت الإضافي في نهاية الدقيقة الأخيرة من كل شوط.","Managed the technical areas calmly, ran substitutions quickly and showed the added time at the end of the last minute of each half."],
+ var:[8,"تحقق سريع من حالة ركلة الجزاء، ولم يتدخل إلا في خطأ واضح وجلي.","Quick check of the penalty incident; intervened only for a clear and obvious error."]};
+let asEdit=null,asTick=null;
+const tName=(x,t)=>t==="h"?(x.info?.home||(ar()?"المضيف":"Home")):t==="a"?(x.info?.away||(ar()?"الضيف":"Away")):"";
+const clkSecs=L=>Math.floor(((L.acc||0)+(L.run?Date.now()-L.run:0))/1000);
+const HALF_END={1:45,2:90,3:105,4:120},HALF_LEN={1:2700,2:2700,3:900,4:900};
+function clockMin(L){const m=Math.floor(clkSecs(L)/60)+1,end=HALF_END[L.half],M=halfBase(L.half)+m;return M>end?`${end}+${M-end}`:String(M)}
+function clockTxt(L){const s=clkSecs(L),M=halfBase(L.half)+Math.floor(s/60);return `${String(M).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`}
+const mNum=s=>{const m=String(s||"").match(/^(\d+)(?:\s*\+\s*(\d+))?/);return m?+m[1]+(m[2]?+m[2]/100:0):999};
+const evKey=i=>(i.h||1)*1000+mNum(i.min);
+function parseLineup(txt){const out=[];let subMode=false;const isSub=t=>/^(sub|subs|s|احتياط|الاحتياط|بديل|البدلاء|بدلاء)$/i.test(t);
+  String(txt).split(/\r?\n/).forEach(l=>{const tk=l.replace(/[,;\t|"]/g," ").replace(/\s+/g," ").trim().split(" ").filter(Boolean);if(!tk.length)return;
+    const ni=tk.findIndex(t=>/^\d{1,3}[-.)]?$/.test(t));
+    if(ni<0){if(tk.some(isSub))subMode=true;else if(/^(أساسي|الأساسيون|الأساسي|starters?|xi)$/i.test(tk[0]))subMode=false;return}
+    out.push({n:tk[ni].replace(/\D/g,""),name:tk.filter((t,i)=>i!==ni&&!isSub(t)&&t!=="-").join(" "),sub:subMode||tk.some(isSub)})});return out}
+function plName(x,team,n){const p=(x.teams?.[team]||[]).find(q=>q.n===String(n));return p?.name||""}
+function evDesc(x,i){const A=ar();const who=i.team?`${tName(x,i.team)}${i.pl?` #${i.pl}${plName(x,i.team,i.pl)?" "+plName(x,i.team,i.pl):""}`:""}`:"";
+  const sub=i.type==="sub"&&i.pl2?` ← #${i.pl2}${plName(x,i.team,i.pl2)?" "+plName(x,i.team,i.pl2):""}`:"";return `${i.min?i.min+"' · ":""}${EV_IC[i.type]||""} ${lbl2(INC_T,i.type)}${who?" · "+who:""}${sub}`}
+
+function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.innerHTML="";const A=ar();box.append(backBtn("train"));clearInterval(asTick);
+  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 صفحة المقيّم":"📝 Assessor's page";
+  hd.querySelector("p").textContent=A?"ورقة مباراة كاملة: المعلومات، التشكيلتان، الساعة وتسجيل الأحداث يدويًا، الطاقم، الوقت الضائع، ثم تقدير الحكم. نموذج تدريبي من «قرار الحكم» وليس نموذجًا رسميًا لأي اتحاد.":"A full match sheet: information, line-ups, clock and manual event logging, officials, time lost, then the referee's rating. A Qarar Al-Hakam training form, not an official form of any federation.";box.append(hd);
+  let x=anCur();const L0=anList();
+  if(!x){const art=document.createElement("article");art.className="quiz";art.innerHTML="<h2 style='margin:0'></h2><div class='anform'></div>";art.querySelector("h2").textContent=A?"مباراة جديدة":"New match";
+    const f=art.querySelector(".anform");[["home",A?"الفريق المضيف":"Home team"],["away",A?"الفريق الضيف":"Away team"],["date",A?"التاريخ":"Date","date"]].forEach(([k,n,ty])=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.type=ty||"text";i.id="nm-"+k;l.append(i);f.append(l)});
+    const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"إنشاء ورقة المباراة":"Create match sheet";
+    b.onclick=()=>{const v=k=>$("#nm-"+k).value.trim(),h=v("home"),w=v("away");const it={id:"a"+Date.now(),title:h&&w?`${h} × ${w}`:(h||w||(A?"مباراة بلا اسم":"Untitled match")),comp:"",date:v("date"),ref:"",inc:[],at:Date.now(),info:{home:h,away:w,date:v("date")}};const l=anList();l.unshift(it);anSave(l);AN=it.id;renderAssess()};
+    art.append(b);box.append(art);
+    if(L0.length){const ls=document.createElement("article");ls.className="quiz";const h3=document.createElement("h3");h3.style.margin="0";h3.textContent=A?"أو افتح مباراة محفوظة":"Or open a saved match";ls.append(h3);
+      L0.forEach(m=>{const o=document.createElement("button");o.className="btn";o.style.justifySelf="start";o.textContent=`${m.title}${m.date?" · "+m.date:""}`;o.onclick=()=>{AN=m.id;renderAssess()};ls.append(o)});box.append(ls)}
+    return}
+  const S=store.get("as:"+x.id,null)||{sc:{},diff:"mid",str:"",imp:"",who:"",date:new Date().toISOString().slice(0,10)};S.cm=S.cm||{};const save=()=>store.set("as:"+x.id,S);
+  {const bar=document.createElement("div");bar.className="lvl noprint";const sw=document.createElement("button");sw.className="btn";sw.textContent=A?"↔ مباراة أخرى":"↔ Another match";sw.onclick=()=>{AN=null;renderAssess()};
+    const tg=document.createElement("button");tg.className="btn";tg.setAttribute("aria-pressed",store.get("as:ex",true));tg.textContent=store.get("as:ex",true)?(A?"👁 إخفاء الأمثلة":"👁 Hide examples"):(A?"👁 إظهار الأمثلة":"👁 Show examples");tg.onclick=()=>{store.set("as:ex",!store.get("as:ex",true));renderAssess()};bar.append(sw,tg);box.append(bar)}
+  const SECS=[["info",A?"🏟 معلومات المباراة":"🏟 Match information"],["teams",A?"👥 تشكيلة الفريقين":"👥 Line-ups"],["clock",A?"⏱ الساعة وتسجيل الأحداث":"⏱ Clock and event log"],["crew",A?"🧑‍⚖️ الحكم ومساعدوه":"🧑‍⚖️ Referee and assistants"],["time",A?"⌛ الوقت الضائع والتعويض":"⌛ Time lost and added time"],["rate",A?"⭐ تقدير الحكم":"⭐ Referee's rating"]];
+  {const nav=document.createElement("div");nav.className="asnav noprint";SECS.forEach(([k,n],i)=>{const b=document.createElement("button");b.className="btn";b.textContent=`${i+1}. ${n.replace(/^\S+\s/,"")}`;b.onclick=()=>{const d=$("#as-"+k);d.open=true;d.scrollIntoView({behavior:"smooth",block:"start"})};nav.append(b)});box.append(nav)}
+  const sec=(k,open)=>{const [_,n]=SECS.find(z=>z[0]===k);const d=document.createElement("details");d.className="assec";d.id="as-"+k;d.open=store.get("as:open:"+k,open);d.ontoggle=()=>store.set("as:open:"+k,d.open);
+    const s=document.createElement("summary");s.textContent=`${SECS.findIndex(z=>z[0]===k)+1}. ${n}`;const body=document.createElement("div");body.className="asbody";d.append(s,body);box.append(d);return body};
+  const field=(wrap,label,val,onv,ty)=>{const l=document.createElement("label");l.textContent=label;const i=document.createElement("input");i.type=ty||"text";if(ty==="number"){i.min=0;i.inputMode="numeric"}i.value=val??"";i.oninput=()=>onv(i.value);l.append(i);wrap.append(l);return i};
+
+  /* 1. match information */
+  {const b=sec("info",true),g=document.createElement("div");g.className="anform";const I=x.info||{};
+    const setI=(k,v)=>anUpdate(a=>{a.info=a.info||{};a.info[k]=v;if(k==="home"||k==="away"){const h=a.info.home||"",w=a.info.away||"";if(h||w)a.title=`${h||"?"} × ${w||"?"}`}if(k==="comp")a.comp=v;if(k==="date")a.date=v});
+    [["home",A?"الفريق المضيف":"Home team"],["away",A?"الفريق الضيف":"Away team"],["comp",A?"المسابقة":"Competition"],["round",A?"الجولة / الدور":"Round"],["stadium",A?"الملعب":"Stadium"],["city",A?"المدينة":"City"],["date",A?"التاريخ":"Date","date"],["time",A?"وقت البداية":"Kick-off","time"]].forEach(([k,n,ty])=>field(g,n,k==="comp"?(I.comp??x.comp):k==="date"?(I.date??x.date):I[k],v=>setI(k,v),ty));
+    b.append(g);const sc=document.createElement("div");sc.className="anform";
+    [["htH",A?`الشوط الأول: ${tName(x,"h")}`:`Half-time: ${tName(x,"h")}`],["htA",A?`الشوط الأول: ${tName(x,"a")}`:`Half-time: ${tName(x,"a")}`],["ftH",A?`النهائية: ${tName(x,"h")}`:`Full-time: ${tName(x,"h")}`],["ftA",A?`النهائية: ${tName(x,"a")}`:`Full-time: ${tName(x,"a")}`]].forEach(([k,n])=>field(sc,n,I[k],v=>setI(k,v),"number"));
+    const sh=document.createElement("strong");sh.textContent=A?"النتيجة":"Score";b.append(sh,sc);
+    const g2=document.createElement("div");g2.className="anform";field(g2,A?`لون قميص ${tName(x,"h")}`:`${tName(x,"h")} kit colour`,I.colH||"#1C7ED6",v=>setI("colH",v),"color");field(g2,A?`لون قميص ${tName(x,"a")}`:`${tName(x,"a")} kit colour`,I.colA||"#E03131",v=>setI("colA",v),"color");field(g2,A?"حالة الأرضية والطقس":"Pitch and weather",I.cond,v=>setI("cond",v));field(g2,A?"الحضور الجماهيري":"Attendance",I.att,v=>setI("att",v));b.append(g2)}
+
+  /* 2. line-ups */
+  {const b=sec("teams",true);const wrap=document.createElement("div");wrap.className="lineups";b.append(wrap);
+    const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"أضف اللاعبين يدويًا، أو الصق القائمة، أو نزّل ملف CSV أو نص (من Excel: «حفظ باسم» CSV). كل سطر: الرقم ثم الاسم، واكتب «احتياط» بجانب البديل أو سطرًا «احتياط» قبل قائمة البدلاء.":"Add players by hand, paste a list, or load a CSV or text file (from Excel: Save As CSV). Each line: number then name; write \"sub\" next to a substitute, or a line \"subs\" before the bench.";b.prepend(tip);
+    const paint=()=>{wrap.innerHTML="";x=anCur();["h","a"].forEach(t=>{const P=(x.teams?.[t]||[]).slice().sort((p,q)=>(p.sub-q.sub)||(+p.n-+q.n));const c=document.createElement("div");c.className="team";
+      const st=P.filter(p=>!p.sub).length,sb=P.length-st;const h=document.createElement("h3");h.style.margin="0";h.textContent=tName(x,t);const cnt=document.createElement("small");cnt.className="muted";cnt.textContent=(A?`أساسي ${st} · احتياط ${sb}`:`Starting ${st} · Subs ${sb}`)+(st&&st!==11?(A?" ⚠ الأساسيون ليسوا 11":" ⚠ starters are not 11"):"");c.append(h,cnt);
+      const upd=fn=>{anUpdate(a=>{a.teams=a.teams||{h:[],a:[]};a.teams[t]=a.teams[t]||[];fn(a.teams[t])});paint();paintEvents()};
+      const addList=list=>upd(arr=>list.forEach(p=>{const k=arr.findIndex(q=>q.n===p.n);if(k>=0)arr[k]=p;else arr.push(p)}));
+      P.forEach(p=>{const r=document.createElement("div");r.className="plr";r.innerHTML="<b></b><span></span>";r.querySelector("b").textContent="#"+p.n;r.querySelector("span").textContent=p.name;
+        const s=document.createElement("button");s.className="btn";s.style.fontSize=".75rem";s.textContent=p.sub?(A?"احتياط":"Sub"):(A?"أساسي":"Starter");s.onclick=()=>upd(arr=>{const q=arr.find(z=>z.n===p.n);if(q)q.sub=!q.sub});
+        const d=document.createElement("button");d.className="btn";d.style.fontSize=".75rem";d.textContent="✕";d.setAttribute("aria-label",A?"حذف":"Remove");d.onclick=()=>upd(arr=>arr.splice(arr.findIndex(z=>z.n===p.n),1));r.append(s,d);c.append(r)});
+      const add=document.createElement("div");add.className="pladd";const n=document.createElement("input");n.placeholder="#";n.inputMode="numeric";n.style.width="56px";const nm=document.createElement("input");nm.placeholder=A?"اسم اللاعب":"Player name";
+      const sbx=document.createElement("label");sbx.style.cssText="display:flex;gap:4px;align-items:center;font-size:.8rem";const cb=document.createElement("input");cb.type="checkbox";sbx.append(cb,document.createTextNode(A?"احتياط":"Sub"));
+      const ab=document.createElement("button");ab.className="btn primary";ab.textContent="＋";ab.onclick=()=>{const v=n.value.replace(/\D/g,"");if(!v)return;addList([{n:v,name:nm.value.trim(),sub:cb.checked}])};add.append(n,nm,sbx,ab);c.append(add);
+      const more=document.createElement("details");more.className="plmore";const ms=document.createElement("summary");ms.textContent=A?"📋 لصق قائمة أو تنزيل ملف":"📋 Paste a list or load a file";more.append(ms);
+      const ta=document.createElement("textarea");ta.rows=5;ta.placeholder=A?"1 محمد العويس\n4 علي البليهي\n…\nاحتياط\n22 …":"1 Goalkeeper Name\n4 Defender Name\n…\nsubs\n22 …";
+      const pb=document.createElement("button");pb.className="btn";pb.textContent=A?"إضافة القائمة":"Add the list";pb.onclick=()=>{const l=parseLineup(ta.value);if(l.length)addList(l)};
+      const fi=document.createElement("input");fi.type="file";fi.accept=".csv,.txt,text/csv,text/plain";fi.hidden=true;fi.onchange=async()=>{const f=fi.files[0];if(!f)return;const l=parseLineup(await f.text());fi.value="";if(l.length)addList(l);else alert(A?"لم أجد لاعبين في الملف. كل سطر: الرقم ثم الاسم.":"No players found. Each line: number then name.")};
+      const fb=document.createElement("button");fb.className="btn";fb.textContent=A?"📂 تنزيل ملف":"📂 Load a file";fb.onclick=()=>fi.click();
+      const cl=document.createElement("button");cl.className="btn";cl.textContent=A?"🗑 مسح القائمة":"🗑 Clear list";cl.onclick=()=>{if(ask2(cl,A?"اضغط مرة ثانية للمسح":"Tap again to clear"))upd(arr=>arr.splice(0))};
+      const row=document.createElement("div");row.className="lvl";row.append(pb,fb,fi,cl);more.append(ta,row);c.append(more);wrap.append(c)})};paint()}
+
+  /* 3. clock and events */
+  {const b=sec("clock",true);const ck=document.createElement("div");ck.className="asclock";b.append(ck);
+    const ev=document.createElement("div");ev.id="asEv";ev.style.cssText="display:grid;gap:10px";
+    const L=()=>{const l=anCur().live||{run:null,acc:0,half:1};l.played=l.played||{};return l};const saveL=l=>anUpdate(a=>a.live=l);
+    const paintClock=()=>{ck.innerHTML="";const l=L();const big=document.createElement("p");big.className="clock";big.id="asClk";big.textContent=clockTxt(l);
+      const hs=document.createElement("div");hs.className="lvl";hs.style.justifyContent="center";[1,2,3,4].forEach(h=>{const bt=document.createElement("button");bt.className="btn";bt.textContent=HALF_N(h);bt.setAttribute("aria-pressed",l.half===h);bt.onclick=()=>{if(l.half===h)return;if(l.run){l.acc+=Date.now()-l.run;l.run=null}l.half=h;l.acc=l.played[h]||0;saveL(l);paintClock();paintStops()};hs.append(bt)});
+      const ct=document.createElement("div");ct.className="lvl";ct.style.justifyContent="center";const mk=(t2,cls,fn)=>{const bt=document.createElement("button");bt.className="btn "+cls;bt.textContent=t2;bt.onclick=fn;ct.append(bt)};
+      if(l.run)mk(A?"⏸ إيقاف الساعة":"⏸ Pause clock","",()=>{l.acc+=Date.now()-l.run;l.run=null;saveL(l);paintClock();paintStops()});
+      else mk(l.acc?(A?"▶ استئناف":"▶ Resume"):(A?`▶ بدء ${HALF_N(l.half)}`:`▶ Start ${HALF_N(l.half)}`),"primary",()=>{l.run=Date.now();saveL(l);paintClock();paintStops()});
+      if(l.acc||l.run)mk(A?"⏹ نهاية الشوط":"⏹ End of half","",()=>{if(l.run){l.acc+=Date.now()-l.run;l.run=null}l.played[l.half]=l.acc;if(l.half<4){l.half++;l.acc=l.played[l.half]||0}saveL(l);paintClock();paintStops()});
+      const st=document.createElement("p");st.className="muted";st.style.cssText="margin:0;text-align:center;font-size:.85rem";st.textContent=l.run?(A?"الساعة تعمل":"Clock running"):(l.acc?(A?"الساعة متوقفة":"Clock paused"):(A?"اضغط البدء مع صافرة الحكم":"Start with the referee's whistle"));
+      ck.append(big,hs,ct,st);
+      const P=Object.entries(l.played).filter(([,v])=>v);if(P.length){const t=document.createElement("div");t.className="played";P.forEach(([h,v])=>{h=+h;const s=Math.round(v/1000),extra=Math.max(0,s-HALF_LEN[h]),m=stSummary(anCur(),h),allStops=m.S.reduce((n2,z)=>n2+z.e-z.s,0);
+        const r=document.createElement("div");r.textContent=`${HALF_N(h)}: ${A?"المدة":"length"} ${mmss2(s)} · ${A?"الوقت بدل الضائع الملعوب":"added time played"} ${mmss2(extra)}${allStops?` · ${A?"التوقفات المسجلة":"logged stoppages"} ${mmss2(allStops)} · ${A?"اللعب الفعلي ≈":"effective play ≈"} ${mmss2(Math.max(0,s-allStops))}`:""}`;t.append(r)});ck.append(t)}};
+    paintClock();asTick=setInterval(()=>{const c=$("#asClk");if(!c)return clearInterval(asTick);c.textContent=clockTxt(L())},1000);
+    const qh=document.createElement("strong");qh.textContent=A?"سجّل حدثًا (يُسجَّل بدقيقة الساعة، وتعدّلها إن احتجت):":"Log an event (stamped with the clock minute; edit if needed):";
+    const q=document.createElement("div");q.className="livegrid";EV_Q.forEach(([k,ic])=>{const bt=document.createElement("button");bt.textContent=`${ic} ${lbl2(INC_T,k)}`;bt.onclick=()=>{const l=L(),on=!!l.run||l.acc>0;anUpdate(a=>a.inc.push({t:clkSecs(l),h:l.half,min:on?clockMin(l):"",type:k,ev:"ok",pos:"na",law:EV_LAW[k]||"",note:"",team:"",pl:"",live:1}));asEdit=anCur().inc.length-1;paintEvents()};q.append(bt)});
+    b.append(qh,q,ev,stopPanel())}
+
+  /* 4. officials */
+  {const b=sec("crew",false);const C=x.crew||{};const setC=(r,k,v)=>anUpdate(a=>{a.crew=a.crew||{};a.crew[r]=a.crew[r]||{};a.crew[r][k]=v;if(r==="ref"&&k==="name")a.ref=v});
+    CREW.forEach(([r,n])=>{const c=C[r]||{};const box2=document.createElement("div");box2.className="crew";const h=document.createElement("strong");h.textContent=n[A?0:1];box2.append(h);const g=document.createElement("div");g.className="anform";
+      field(g,A?"الاسم":"Name",r==="ref"?(c.name??x.ref):c.name,v=>setC(r,"name",v));
+      {const l=document.createElement("label");l.textContent=A?"الدرجة":"Level";const s=document.createElement("select");s.innerHTML="<option value=''>—</option>";REF_LV.forEach(([k,nn])=>{const o=document.createElement("option");o.value=k;o.textContent=nn[A?0:1];s.append(o)});s.value=c.lv||"";s.onchange=()=>setC(r,"lv",s.value);l.append(s);g.append(l)}
+      field(g,A?"المدينة / الاتحاد":"City / association",c.city,v=>setC(r,"city",v));box2.append(g);
+      if(r!=="ref"){const main=document.createElement("div");main.style.cssText="display:grid;gap:6px";const sr=document.createElement("div");sr.className="score";const sl=document.createElement("span");sl.textContent=A?"التقييم":"Rating";const i=document.createElement("input");i.type="range";i.min=1;i.max=10;i.step=0.5;i.value=c.sc??7;const v=document.createElement("b");v.textContent=c.sc??"—";
+        i.oninput=()=>{v.textContent=i.value;setC(r,"sc",+i.value)};sr.append(sl,i,v);const nt=document.createElement("textarea");nt.rows=2;nt.value=c.note||"";nt.placeholder=A?"ملاحظاتك على أدائه…":"Your notes on their performance…";nt.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box";nt.oninput=()=>setC(r,"note",nt.value);main.append(sr,nt);
+        const ex=CREW_EX[r.startsWith("ar")?"ar":r==="fo"?"fo":"var"];box2.append(exRow(main,exBox(ex[A?1:2],ex[0])))}
+      b.append(box2)})}
+
+  /* 5. time lost */
+  {const b=sec("time",false);b.append(exRow(stSummaryEl(x,true),exBox(AS_EX.time[A?0:1])))}
+
+  /* 6. rating */
+  {const b=sec("rate",true);const g=document.createElement("div");g.className="anform";
+    {const l=document.createElement("label");l.textContent=A?"اسم المقيّم":"Assessor";const i=document.createElement("input");i.value=S.who;i.oninput=()=>{S.who=i.value;save()};l.append(i);g.append(l)}
+    {const l=document.createElement("label");l.textContent=A?"تاريخ التقييم":"Date";const i=document.createElement("input");i.type="date";i.value=S.date;i.oninput=()=>{S.date=i.value;save()};l.append(i);g.append(l)}
+    {const l=document.createElement("label");l.textContent=A?"صعوبة المباراة":"Match difficulty";const s=document.createElement("select");[["easy",A?"سهلة":"Easy"],["mid",A?"متوسطة":"Normal"],["hard",A?"صعبة":"Difficult"]].forEach(([k,n])=>{const o=document.createElement("option");o.value=k;o.textContent=n;s.append(o)});s.value=S.diff;s.onchange=()=>{S.diff=s.value;save()};l.append(s);g.append(l)}
+    b.append(g);
+    const inc=x.inc,cnt=k=>inc.filter(i=>i.ev===k).length,judged=inc.filter(i=>i.ev!=="jd").length;
+    if(inc.length){const sh=document.createElement("strong");sh.textContent=A?"قرارات الحكم في الأحداث المسجلة":"Referee's decisions in the logged events";const bx=document.createElement("div");bx.className="topics";
+      bars(bx,[[A?"صحيح":"Correct",cnt("ok"),inc.length],[A?"خاطئ":"Wrong",cnt("bad"),inc.length],[A?"فائت":"Missed",cnt("miss"),inc.length],[A?"تقديري":"Judgement",cnt("jd"),inc.length]]);
+      const ap=document.createElement("p");ap.style.cssText="margin:0;font-weight:600";ap.textContent=judged?(A?`دقة القرارات: ${Math.round(cnt("ok")/judged*100)}% (${cnt("ok")} من ${judged})`:`Decision accuracy: ${Math.round(cnt("ok")/judged*100)}% (${cnt("ok")} of ${judged})`):"";b.append(sh,bx,ap);
+      const key=inc.filter(i=>i.ev==="bad"||i.ev==="miss");if(key.length){const kh=document.createElement("strong");kh.textContent=A?"الأخطاء":"Errors";b.append(kh);key.forEach(i=>{const d=document.createElement("div");d.style.fontSize=".9rem";d.textContent=`${evDesc(x,i)} · ${lbl2(INC_E,i.ev)}${i.note?" — "+i.note:""}`;b.append(d);if(i.loc){const m=document.createElement("div");m.className="bview";m.innerHTML=boardSvg(i.loc,x);b.append(m)}if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;b.append(im)}})}
+      b.append(heatEl(inc))}
+    const ch=document.createElement("strong");ch.textContent=A?"المعايير (من 10)":"Criteria (out of 10)";b.append(ch);
+    const tot=document.createElement("p");tot.className="big";const verdict=document.createElement("p");verdict.style.cssText="margin:0;font-weight:600";
+    const calc=()=>{let s=0,w=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s+=S.sc[k]*wt;w+=wt}});const v=w?s/w:null;
+      tot.textContent=v===null?"—":`${v.toFixed(1)} / 10`;verdict.textContent=v===null?"":v>=8.5?(A?"تقدير الحكم: ممتاز":"Rating: Excellent"):v>=7.5?(A?"تقدير الحكم: جيد جدًا":"Rating: Very good"):v>=6.5?(A?"تقدير الحكم: جيد":"Rating: Good"):v>=5.5?(A?"تقدير الحكم: مقبول":"Rating: Acceptable"):(A?"تقدير الحكم: يحتاج تطوير":"Rating: Needs improvement")};
+    AS_C.forEach(([k,n,wt])=>{const r=document.createElement("div");r.className="score";const l=document.createElement("span");l.textContent=`${n[A?0:1]} (${wt}%)`;
+      const i=document.createElement("input");i.type="range";i.min=1;i.max=10;i.step=0.5;i.value=S.sc[k]??7;const v=document.createElement("b");v.textContent=S.sc[k]??"—";
+      i.oninput=()=>{S.sc[k]=+i.value;v.textContent=i.value;save();calc()};r.append(l,i,v);
+      const mn=document.createElement("div");mn.style.cssText="display:grid;gap:6px";const cm=document.createElement("textarea");cm.rows=2;cm.value=S.cm[k]||"";cm.placeholder=A?"تعليقك على هذا المعيار…":"Your comment on this criterion…";cm.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box";
+      cm.oninput=()=>{S.cm[k]=cm.value;save()};mn.append(r,cm);const ex=AS_EX[k];b.append(exRow(mn,exBox(ex[A?1:2],ex[0])))});
+    b.append(tot,verdict);calc();
+    [["str",A?"نقاط القوة":"Strengths"],["imp",A?"نقاط للتطوير":"Areas to improve"],["goals",A?"أهداف التطوير للمباراة القادمة":"Development goals for the next match"]].forEach(([k,n])=>{const l=document.createElement("label");l.className="field";l.textContent=n;const i=document.createElement("textarea");i.rows=3;i.value=S[k]||"";i.oninput=()=>{S[k]=i.value;save()};l.append(i);b.append(exRow(l,exBox(AS_EX[k][A?0:1])))});
+    const pr=document.createElement("button");pr.className="btn primary";pr.style.justifySelf="center";pr.textContent=A?"🖨 طباعة التقرير أو حفظه PDF":"🖨 Print or save as PDF";pr.onclick=()=>{document.querySelectorAll("#asBox details").forEach(d=>d.open=true);setTimeout(()=>window.print(),50)};
+    const sr=document.createElement("button");sr.className="btn noprint";sr.style.justifySelf="center";sr.textContent=A?"📤 أرسل التقرير للحكم":"📤 Send the report to the referee";
+    sr.onclick=()=>{const x2=anCur();let s2=0,w2=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s2+=S.sc[k]*wt;w2+=wt}});const L2=[],I=x2.info||{};
+      if(I.ftH!=null&&I.ftH!==""&&I.ftA!=null&&I.ftA!=="")L2.push(`${A?"النتيجة":"Score"}: ${tName(x2,"h")} ${I.ftH} - ${I.ftA} ${tName(x2,"a")}`);if(w2)L2.push((A?"تقدير الحكم: ":"Rating: ")+(s2/w2).toFixed(1)+" / 10");
+      AS_C.forEach(([k,n])=>{if(S.sc[k]!=null||S.cm[k])L2.push(`• ${n[A?0:1]}${S.sc[k]!=null?`: ${S.sc[k]}/10`:""}${S.cm[k]?` — ${S.cm[k]}`:""}`)});
+      [1,2,3,4].forEach(h=>{const m=stSummary(x2,h);if(m.S.length||m.ann!=null)L2.push(`⏱ ${HALF_N(h)}: ${A?"الوقت الضائع":"time lost"} ${mmss2(m.lost)}${m.ann!=null?` · ${A?"المعلن":"announced"} ${m.ann}${A?" د":" min"}`:""}`)});
+      [["str",A?"نقاط القوة":"Strengths"],["imp",A?"للتطوير":"To improve"],["goals",A?"أهداف المباراة القادمة":"Next-match goals"]].forEach(([k,n])=>{if(S[k])L2.push(`${n}: ${S[k]}`)});sendRef(x2,null,L2.join("\n"))};
+    b.append(pr,sr)}
+  paintEvents()}
+
+function paintEvents(){const box=$("#asEv"),x=anCur();if(!box||!x)return;const A=ar();box.innerHTML="";
+  if(asEdit!=null&&x.inc[asEdit]){const i=x.inc[asEdit],k=asEdit,E=document.createElement("div");E.className="evedit";const up=fn=>{anUpdate(a=>fn(a.inc[k]));paintEvents()};
+    const h=document.createElement("strong");h.textContent=(A?"✏️ ":"✏️ ")+evDesc(x,i);E.append(h);
+    const r1=document.createElement("div");r1.className="lvl";const mi=document.createElement("input");mi.value=i.min;mi.placeholder=A?"الدقيقة (مثل 45+2)":"Minute (e.g. 45+2)";mi.style.cssText="width:120px;padding:6px;border:1px solid var(--line);border-radius:8px;font:inherit";mi.onchange=()=>up(e=>e.min=mi.value.trim());r1.append(mi);
+    ["h","a"].forEach(t=>{const b=document.createElement("button");b.className="btn";b.textContent=tName(x,t);b.setAttribute("aria-pressed",i.team===t);b.onclick=()=>up(e=>{e.team=t;e.pl="";e.pl2=""});r1.append(b)});E.append(r1);
+    const chips=(label,key,list)=>{const w=document.createElement("div");w.style.cssText="display:grid;gap:4px";const l=document.createElement("small");l.className="muted";l.textContent=label;const g=document.createElement("div");g.className="plchips";
+      list.forEach(p=>{const b=document.createElement("button");b.textContent=p.n;b.title=p.name;b.className=p.sub?"sub":"";b.setAttribute("aria-pressed",i[key]===p.n);b.onclick=()=>up(e=>e[key]=e[key]===p.n?"":p.n);g.append(b)});
+      const o=document.createElement("input");o.placeholder=A?"رقم آخر":"Other #";o.inputMode="numeric";o.value=list.some(p=>p.n===i[key])?"":(i[key]||"");o.style.cssText="width:80px;padding:4px;border:1px solid var(--line);border-radius:8px;font:inherit";o.onchange=()=>up(e=>e[key]=o.value.replace(/\D/g,""));g.append(o);w.append(l,g);E.append(w)};
+    if(i.team){const P=(x.teams?.[i.team]||[]).slice().sort((p,q)=>(p.sub-q.sub)||(+p.n-+q.n));
+      if(i.type==="sub"){chips(A?"اللاعب الخارج":"Player off","pl",P.filter(p=>!p.sub));chips(A?"اللاعب الداخل":"Player on","pl2",P.filter(p=>p.sub))}
+      else chips(i.type==="off"?(A?"اللاعب المتسلل":"Offside player"):i.type==="goal"?(A?"المسجل":"Scorer"):(A?"رقم اللاعب":"Player number"),"pl",P)}
+    else{const t=document.createElement("small");t.className="muted";t.textContent=A?"اختر الفريق لتظهر أرقام لاعبيه.":"Pick the team to see its player numbers.";E.append(t)}
+    if(i.type!=="sub"&&i.type!=="goal"){const w=document.createElement("div");w.className="lvl";const l=document.createElement("small");l.className="muted";l.textContent=A?"قرار الحكم:":"Referee's call:";w.append(l);
+      Object.keys(INC_E).forEach(e2=>{const b=document.createElement("button");b.className="btn";b.style.fontSize=".8rem";b.textContent=lbl2(INC_E,e2);b.setAttribute("aria-pressed",i.ev===e2);b.onclick=()=>up(e=>e.ev=e2);w.append(b)});E.append(w)}
+    {const bd=document.createElement("details");bd.className="plmore";bd.open=!!i.loc;const bs=document.createElement("summary");bs.textContent=A?"📍 الملعب الذكي: أين الحالة واللاعبون والحكم":"📍 Smart pitch: incident, players and referee";bd.append(bs,pickerEl(()=>anCur().inc[k]?.loc,v=>anUpdate(a=>{if(v)a.inc[k].loc=v;else delete a.inc[k].loc})));E.append(bd)}
+    const nt=document.createElement("input");nt.placeholder=A?"ملاحظة (مثال: تدخل متهور من الخلف)":"Note (e.g. reckless challenge from behind)";nt.value=i.note||"";nt.style.cssText="padding:8px;border:1px solid var(--line);border-radius:10px;font:inherit";nt.onchange=()=>anUpdate(a=>a.inc[k].note=nt.value);E.append(nt);
+    const dn=document.createElement("button");dn.className="btn primary";dn.style.justifySelf="start";dn.textContent=A?"تم ✓":"Done ✓";dn.onclick=()=>{anUpdate(a=>a.inc[k].note=nt.value);asEdit=null;paintEvents()};E.append(dn);box.append(E)}
+  const ev=x.inc.map((i,k)=>({i,k})).sort((p,q)=>evKey(p.i)-evKey(q.i));
+  const st=document.createElement("div");st.className="evstats";const cats=[["goal","⚽"],["off","🚩"],["foul","🦶"],["yc","🟨"],["rc","🟥"],["pk","🎯"],["sub","🔁"]];
+  const cnt=(t,c)=>x.inc.filter(i=>i.team===t&&i.type===c).length;const tb=document.createElement("table");
+  tb.innerHTML="<thead><tr><th></th>"+cats.map(([,ic])=>`<th>${ic}</th>`).join("")+"</tr></thead><tbody></tbody>";["h","a"].forEach(t=>{const tr=document.createElement("tr");const th=document.createElement("th");th.textContent=tName(x,t);tr.append(th);cats.forEach(([c])=>{const td=document.createElement("td");td.textContent=cnt(t,c);tr.append(td)});tb.querySelector("tbody").append(tr)});
+  st.append(tb);const g=[cnt("h","goal"),cnt("a","goal")];if(g[0]||g[1]){const p=document.createElement("small");p.className="muted";p.textContent=(A?"النتيجة حسب الأهداف المسجلة: ":"Score from logged goals: ")+`${tName(x,"h")} ${g[0]} - ${g[1]} ${tName(x,"a")}`;st.append(p)}box.append(st);
+  const lh=document.createElement("strong");lh.textContent=A?`الأحداث (${ev.length})`:`Events (${ev.length})`;box.append(lh);
+  ev.forEach(({i,k})=>{const r=document.createElement("div");r.className="evrow"+(i.ev==="bad"||i.ev==="miss"?" err":"");const t=document.createElement("div");t.innerHTML="<b></b><small class='muted'></small>";t.querySelector("b").textContent=evDesc(x,i);
+    t.querySelector("small").textContent=[i.type!=="sub"&&i.type!=="goal"?lbl2(INC_E,i.ev):"",i.note].filter(Boolean).join(" · ");
+    const e=document.createElement("button");e.className="btn";e.textContent="✏️";e.setAttribute("aria-label",A?"تعديل":"Edit");e.onclick=()=>{asEdit=k;paintEvents();box.scrollIntoView({behavior:"smooth"})};
+    const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{if(ask2(d,A?"مرة ثانية للحذف":"Again to delete")){anUpdate(a=>a.inc.splice(k,1));asEdit=null;paintEvents()}};r.append(t,e,d);box.append(r)})}
+
 /* animated video cases: our own reconstructions (no third-party footage) */
 let VCi=null,VCrun=null;
 function renderVC(){const box=$("#vcBox");box.innerHTML="";const A=ar();if(VCrun){VCrun.stop();VCrun=null}
@@ -1439,7 +1599,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();box
     art.innerHTML="<h2 style='margin:0'></h2><p class='muted' style='margin:0'></p><p style='margin:0'></p>";art.querySelector("h2").textContent=(P?P.name:SBS.user.email)+(SBS.admin?" 🛡":"");
     art.querySelector(".muted").textContent=SBS.user.email;art.querySelectorAll("p")[1].textContent=P?[nm(COUNTRIES,P.country),nm(GRADES,P.grade)].filter(Boolean).join(" · "):"";
     if(SBS.admin){const b=document.createElement("p");b.style.cssText="margin:0;font-weight:600;color:var(--pitch)";b.textContent=A?"🛡 مدير المنصة: تنشر المقاطع والمحاضرات لكل المستخدمين من المكتبة.":"🛡 Platform admin: publish clips and lectures to everyone from the library.";art.append(b)}
-    if(!P)art.append(profileForm());
+    if(!P)art.append(profileForm());if(SBS.admin)setTimeout(()=>box.append(aiAdminEl()));
     const out=document.createElement("button");out.className="btn";out.style.justifySelf="start";out.textContent=A?"تسجيل الخروج":"Sign out";out.onclick=async()=>{await SB.auth.signOut();await sbSession();renderAccount()};art.append(out);box.append(art);return}
   const art=document.createElement("article");art.className="quiz";let mode=store.get("acmode","up");
   const tabs=document.createElement("div");tabs.className="lvl";[["up",A?"حساب جديد":"Sign up"],["in",A?"تسجيل الدخول":"Sign in"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",mode===k);b.onclick=()=>{store.set("acmode",k);renderAccount()};tabs.append(b)});art.append(tabs);
@@ -1512,6 +1672,7 @@ function renderTiles(){const box=$("#tiles");if(!box)return;box.innerHTML="";con
    ["","⏱",A?"الاختبار الشامل":"Full exam",A?"بوقت محدد":"Timed",()=>go("exam")],
    ["","🚩",A?"مدرّب الإشارات":"Signals trainer",A?"الحكم والمساعد":"Referee & assistant",()=>{SG=null;go("signals")}],
    ["","❓",A?"صح أم خطأ؟":"True or false?",A?"أخطاء شائعة":"Common mistakes",()=>{MY=null;go("myths")}],
+   ["","📝",A?"صفحة المقيّم":"Assessor's page",A?"ورقة مباراة كاملة وتقدير الحكم":"Full match sheet and rating",()=>go("assess")],
    ["","🧠",A?"المحلل الذكي":"Smart analyst",A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match",()=>go("ai")]].forEach(([cls,n,tt,sub,fn])=>{
     const b=document.createElement("button");b.className="tile "+cls;b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=n;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;
     if(fn)b.onclick=fn;else b.disabled=true;box.append(b)})}
@@ -1680,17 +1841,18 @@ $("#favLaw").onclick=()=>{const f=store.get("fav",{});f[cur]=!f[cur];store.set("
 
 /* match stoppages (Law 7.3): manual button or automatic motion detection from the camera / analysis video */
 const ST_R={sub:["التبديلات","Substitutions"],inj:["تقييم المصابين وإخراجهم","Injury assessment"],waste:["إضاعة الوقت","Time-wasting"],disc:["العقوبات الانضباطية","Disciplinary sanctions"],med:["استراحة شرب أو تبريد","Drinks/cooling break"],var:["مراجعة الفيديو (VAR)","VAR check/review"],goal:["الاحتفال بالأهداف","Goal celebrations"],other:["سبب آخر","Other cause"],norm:["توقف طبيعي، لا يُعوَّض","Normal stoppage, not added"],unk:["لم يُحدَّد السبب","Reason not set"]};
+const stLive=()=>anMode==="live"||!$("#v-assess").hidden;
 const stComp=s=>s.e!=null&&!["norm","unk"].includes(s.r);
 const halfBase=h=>h===2?45:h===3?90:h===4?105:0;
 const HALF_N=h=>(ar()?["","الشوط الأول","الشوط الثاني","الإضافي الأول","الإضافي الثاني"]:["","1st half","2nd half","Extra time 1","Extra time 2"])[h];
 const mmss2=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}`;
 let anHalf=1,anAutoPause=false,stTick=null;
 const anDet={on:false,thr:12,quiet:6,lvl:0,q0:null,a0:null,cam:null,stream:null,timer:null,prev:null};
-function stNow(){const x=anCur();if(!x)return {t:0,h:1,ok:false};if(anMode==="live"){const L=x.live||{acc:0,run:null,half:1};return {t:Math.floor((L.acc+(L.run?Date.now()-L.run:0))/1000),h:L.half,ok:!!L.run}}
+function stNow(){const x=anCur();if(!x)return {t:0,h:1,ok:false};if(stLive()){const L=x.live||{acc:0,run:null,half:1};return {t:Math.floor((L.acc+(L.run?Date.now()-L.run:0))/1000),h:L.half,ok:!!L.run}}
   const v=$("#anBox video.vid");return {t:v?Math.floor(v.currentTime):0,h:anHalf,ok:!!v}}
 const stLabel=(s,t)=>s.src==="live"?`${String(Math.floor(t/60)+halfBase(s.h)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`:fmtT(t);
 const stOpen=()=>(anCur()?.stops||[]).find(s=>s.e==null);
-function stopStart(auto,back){const n=stNow();if(!n.ok)return false;anUpdate(a=>{(a.stops||(a.stops=[])).push({id:"s"+Date.now(),h:n.h,s:Math.max(0,n.t-(back||0)),e:null,r:"unk",auto:!!auto,src:anMode==="live"?"live":"video"})});paintStops();return true}
+function stopStart(auto,back){const n=stNow();if(!n.ok)return false;anUpdate(a=>{(a.stops||(a.stops=[])).push({id:"s"+Date.now(),h:n.h,s:Math.max(0,n.t-(back||0)),e:null,r:"unk",auto:!!auto,src:stLive()?"live":"video"})});paintStops();return true}
 function stopEnd(back){const n=stNow();anUpdate(a=>{const s=(a.stops||[]).find(z=>z.e==null);if(s)s.e=Math.max(s.s,n.t-(back||0))});paintStops()}
 function stSummary(x,h){const S=(x.stops||[]).filter(s=>s.h===h&&s.e!=null),lost=S.filter(stComp).reduce((n,s)=>n+s.e-s.s,0),by={};
   S.filter(stComp).forEach(s=>by[s.r]=(by[s.r]||0)+s.e-s.s);const ann=x.added?.[h];return {S,lost,by,ann,unk:S.filter(s=>s.r==="unk").length}}
@@ -1710,10 +1872,10 @@ function stopPanel(){const art=document.createElement("article");art.className="
 function paintStops(){const art=$("#stopsArt"),x=anCur();if(!art||!x)return;const A=ar();art.innerHTML="";const open=stOpen(),n=stNow();
   const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"⏸ توقفات المباراة والوقت الضائع (القانون 7)":"⏸ Stoppages and time lost (Law 7)";
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"سجّل كل توقف يدويًا بالزر، أو فعّل الكشف الإلكتروني بالكاميرا. ثم حدّد سببه. التوقفات الطبيعية (رمية تماس، ركلة مرمى) لا تُعوَّض.":"Log each stoppage with the button, or turn on electronic detection from the camera. Then set its reason. Normal stoppages (throw-ins, goal kicks) are not added.";art.append(h,tip);
-  if(anMode!=="live"){const r=document.createElement("div");r.className="lvl";[1,2,3,4].forEach(k=>{const b=document.createElement("button");b.className="btn";b.textContent=HALF_N(k);b.setAttribute("aria-pressed",anHalf===k);b.onclick=()=>{anHalf=k;paintStops()};r.append(b)});art.append(r)}
+  if(!stLive()){const r=document.createElement("div");r.className="lvl";[1,2,3,4].forEach(k=>{const b=document.createElement("button");b.className="btn";b.textContent=HALF_N(k);b.setAttribute("aria-pressed",anHalf===k);b.onclick=()=>{anHalf=k;paintStops()};r.append(b)});art.append(r)}
   const big=document.createElement("button");big.className="btn primary stbig"+(open?" on":"");
   big.innerHTML="<span></span><small id='stopTimer'></small>";big.querySelector("span").textContent=open?(A?"▶ انتهى التوقف":"▶ Stoppage over"):(A?"⏸ بدء توقف":"⏸ Start stoppage");
-  big.onclick=()=>{if(open)stopEnd();else if(!stopStart(false))warn.textContent=anMode==="live"?(A?"شغّل ساعة المباراة أولًا.":"Start the match clock first."):(A?"اختر فيديو المباراة أولًا.":"Pick the match video first.")};
+  big.onclick=()=>{if(open)stopEnd();else if(!stopStart(false))warn.textContent=stLive()?(A?"شغّل ساعة المباراة أولًا.":"Start the match clock first."):(A?"اختر فيديو المباراة أولًا.":"Pick the match video first.")};
   const warn=document.createElement("p");warn.className="muted";warn.style.cssText="margin:0;font-size:.85rem;color:var(--red)";art.append(big,warn);
   const target=open||(x.stops||[]).filter(s=>s.r==="unk").slice(-1)[0];
   if(target){const l=document.createElement("strong");l.style.fontSize=".85rem";l.textContent=open?(A?"سبب التوقف الحالي:":"Reason for this stoppage:"):(A?`سبب توقف ${stLabel(target,target.s)}:`:`Reason for stoppage at ${stLabel(target,target.s)}:`);
@@ -1721,9 +1883,9 @@ function paintStops(){const art=$("#stopsArt"),x=anCur();if(!art||!x)return;cons
       b.onclick=()=>{anUpdate(a=>{const s=a.stops.find(z=>z.id===target.id);if(s)s.r=k});paintStops()};ch.append(b)});art.append(l,ch)}
   /* electronic detection */
   const det=document.createElement("div");det.className="detbox";const db=document.createElement("button");db.className="btn";db.setAttribute("aria-pressed",anDet.on);
-  db.textContent=anDet.on?(A?"📷 إيقاف الكشف الإلكتروني":"📷 Stop electronic detection"):(A?(anMode==="live"?"📷 كشف إلكتروني من الكاميرا (تجريبي)":"📷 كشف إلكتروني من الفيديو (تجريبي)"):(anMode==="live"?"📷 Electronic detection from the camera (beta)":"📷 Electronic detection from the video (beta)"));
+  db.textContent=anDet.on?(A?"📷 إيقاف الكشف الإلكتروني":"📷 Stop electronic detection"):(A?(stLive()?"📷 كشف إلكتروني من الكاميرا (تجريبي)":"📷 كشف إلكتروني من الفيديو (تجريبي)"):(stLive()?"📷 Electronic detection from the camera (beta)":"📷 Electronic detection from the video (beta)"));
   db.onclick=async()=>{if(anDet.on)detStop();else await detStart();paintStops()};det.append(db);
-  if(anDet.on){if(anMode==="live"&&anDet.cam)det.append(anDet.cam);
+  if(anDet.on){if(stLive()&&anDet.cam)det.append(anDet.cam);
     const m=document.createElement("div");m.className="meter";m.innerHTML="<i id='detBar'></i><u></u>";m.querySelector("u").style.insetInlineStart=anDet.thr+"%";det.append(m);
     const lv=document.createElement("small");lv.id="detLvl";lv.className="muted";det.append(lv);
     const sl=(lab,min,max,key,step)=>{const l=document.createElement("label");l.className="detsl";const s=document.createElement("span");const i=document.createElement("input");i.type="range";i.min=min;i.max=max;i.step=step||1;i.value=anDet[key];
@@ -1731,9 +1893,9 @@ function paintStops(){const art=$("#stopsArt"),x=anCur();if(!art||!x)return;cons
     sl(A?"حد الهدوء (الحساسية)":"Calm threshold (sensitivity)",2,40,"thr");sl(A?"ثوانٍ من الهدوء قبل تسجيل التوقف":"Seconds of calm before logging",3,20,"quiet");
     const t2=document.createElement("p");t2.className="muted";t2.style.cssText="margin:0;font-size:.8rem";
     t2.textContent=A?"ثبّت الجوال على حامل ليرى الملعب كله. عندما يهدأ اللعب عدة ثوانٍ يبدأ توقف تلقائي 🤖، وعندما تعود الحركة ينتهي. الشريط يوضح الحركة الآن، والخط هو حد الهدوء: اضبطه حتى يبقى الشريط فوقه أثناء اللعب. الصورة تُحلَّل على جهازك فقط ولا تُرفع أو تُحفظ.":"Mount the phone so it sees the whole pitch. When play is calm for a few seconds an automatic stoppage 🤖 starts, and it ends when movement returns. The bar shows movement now; the line is the calm threshold — set it so the bar stays above it during play. Frames are analysed on your device only and never uploaded or saved.";det.append(t2);
-    if(anMode==="live"&&!n.ok){const w2=document.createElement("p");w2.style.cssText="margin:0;font-size:.85rem;color:var(--red)";w2.textContent=A?"شغّل ساعة المباراة ليبدأ التسجيل.":"Start the match clock to begin logging.";det.append(w2)}}
+    if(stLive()&&!n.ok){const w2=document.createElement("p");w2.style.cssText="margin:0;font-size:.85rem;color:var(--red)";w2.textContent=A?"شغّل ساعة المباراة ليبدأ التسجيل.":"Start the match clock to begin logging.";det.append(w2)}}
   art.append(det);
-  if(anMode!=="live"){const l=document.createElement("label");l.style.cssText="display:flex;gap:8px;align-items:center;font-size:.9rem";const c=document.createElement("input");c.type="checkbox";c.checked=anAutoPause;c.onchange=()=>anAutoPause=c.checked;
+  if(!stLive()){const l=document.createElement("label");l.style.cssText="display:flex;gap:8px;align-items:center;font-size:.9rem";const c=document.createElement("input");c.type="checkbox";c.checked=anAutoPause;c.onchange=()=>anAutoPause=c.checked;
     l.append(c,document.createTextNode(A?"⏯ أوقف الفيديو تلقائيًا عند كل حالة مسجلة للمراجعة":"⏯ Auto-pause the video at each logged incident for review"));art.append(l)}
   const S=(x.stops||[]).slice().sort((a,b)=>a.h-b.h||a.s-b.s);
   if(S.length){const lh=document.createElement("strong");lh.textContent=A?`التوقفات (${S.length})`:`Stoppages (${S.length})`;art.append(lh);
@@ -1743,12 +1905,12 @@ function paintStops(){const art=$("#stopsArt"),x=anCur();if(!art||!x)return;cons
       const se=document.createElement("select");se.style.cssText="font:inherit;font-size:.85rem;padding:4px;border:1px solid var(--line);border-radius:8px";Object.keys(ST_R).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=lbl2(ST_R,k);se.append(o)});se.value=s.r;
       se.onchange=()=>{anUpdate(a=>{const z=a.stops.find(q=>q.id===s.id);if(z)z.r=se.value});paintStops()};mid.append(tx,se);
       const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{anUpdate(a=>a.stops=a.stops.filter(q=>q.id!==s.id));paintStops()};r.append(ic,mid,d);art.append(r)})}
-  const sh=document.createElement("strong");sh.textContent=A?"الحساب لكل شوط":"Per-half calculation";art.append(sh,stSummaryEl(x,true));
+  if($("#v-assess").hidden){const sh=document.createElement("strong");sh.textContent=A?"الحساب لكل شوط":"Per-half calculation";art.append(sh,stSummaryEl(x,true))}
   clearInterval(stTick);stTick=setInterval(()=>{const el=$("#stopTimer");if(!el)return clearInterval(stTick);const o=stOpen(),q=stNow();el.textContent=o?mmss2(Math.max(0,q.t-o.s)):""},500)}
-async function detStart(){const A=ar();if(anMode==="live"){try{anDet.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false})}catch(e){alert(A?"تعذّر فتح الكاميرا. اسمح للمتصفح باستخدامها ثم حاول مرة أخرى.":"Could not open the camera. Allow camera access and try again.");return}
+async function detStart(){const A=ar();if(stLive()){try{anDet.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false})}catch(e){alert(A?"تعذّر فتح الكاميرا. اسمح للمتصفح باستخدامها ثم حاول مرة أخرى.":"Could not open the camera. Allow camera access and try again.");return}
     const v=document.createElement("video");v.muted=true;v.playsInline=true;v.autoplay=true;v.className="detcam";v.srcObject=anDet.stream;anDet.cam=v;v.play().catch(()=>{})}
   anDet.on=true;anDet.prev=null;anDet.q0=anDet.a0=null;const c=document.createElement("canvas");c.width=64;c.height=36;const g=c.getContext("2d",{willReadFrequently:true});
-  anDet.timer=setInterval(()=>{const src=anMode==="live"?anDet.cam:$("#anBox video.vid");if(!src||src.readyState<2||(anMode!=="live"&&src.paused)){anDet.prev=null;return}
+  anDet.timer=setInterval(()=>{const src=stLive()?anDet.cam:$("#anBox video.vid");if(!src||src.readyState<2||(!stLive()&&src.paused)){anDet.prev=null;return}
     try{g.drawImage(src,0,0,64,36)}catch(e){return}const d=g.getImageData(0,0,64,36).data;let sum=0;const p=anDet.prev;
     if(p)for(let i=0;i<d.length;i+=4)sum+=Math.abs(d[i]-p[i])+Math.abs(d[i+1]-p[i+1])+Math.abs(d[i+2]-p[i+2]);anDet.prev=new Uint8ClampedArray(d);if(!p)return;
     anDet.lvl=Math.min(100,sum/(64*36*3)*10);detStep()},250)}
@@ -1793,7 +1955,7 @@ function aiIncEl(i){const A=ar(),r=i.ai,d=document.createElement("div");d.classN
 function refMsg(x,only,extra){const A=ar(),L=[];const errs=x.inc.map((i,k)=>({i,k})).filter(({i})=>only==null?(i.ev==="bad"||i.ev==="miss"||i.ai?.verdict==="wrong"):true).filter(({k})=>only==null||k===only);
   L.push(A?`📋 ملاحظات تحكيمية: ${x.title}${x.date?` (${x.date})`:""}`:`📋 Refereeing feedback: ${x.title}${x.date?` (${x.date})`:""}`);if(x.ref)L.push((A?"إلى الحكم: ":"To referee: ")+x.ref);L.push("");
   if(!errs.length)L.push(A?"لا توجد أخطاء مسجلة. عمل موفق 👏":"No errors logged. Well done 👏");
-  errs.forEach(({i},n)=>{L.push(`${n+1}) ${i.min?i.min+"' · ":""}${fmtT(i.t)} ${A?"في الفيديو":"in the video"} · ${lbl2(INC_T,i.type)} · ${lbl2(INC_E,i.ev)}`);if(i.note)L.push("   "+(A?"الملاحظة: ":"Note: ")+i.note);
+  errs.forEach(({i},n)=>{L.push(`${n+1}) ${evDesc(x,i)}${i.live?"":` · ${fmtT(i.t)} ${A?"في الفيديو":"in the video"}`} · ${lbl2(INC_E,i.ev)}`);if(i.note)L.push("   "+(A?"الملاحظة: ":"Note: ")+i.note);
     if(i.ai){if(i.ai.correct)L.push("   "+(A?"القرار الصحيح: ":"Correct call: ")+i.ai.correct);if(i.ai.error)L.push("   "+(A?"الخطأ: ":"Error: ")+i.ai.error);if(i.ai.why)L.push("   "+(A?"التحليل: ":"Analysis: ")+i.ai.why);if(i.ai.tip)L.push("   "+(A?"نصيحة: ":"Tip: ")+i.ai.tip);if(aiArr(i.ai.refs).length)L.push("   "+(A?"المرجع: ":"Ref: ")+aiArr(i.ai.refs).join("، "))}L.push("")});
   if(extra)L.push(extra,"");L.push(A?"— قرار الحكم · منصة تعليمية مستقلة":"— Qarar Al-Hakam · independent learning platform");return {text:L.join("\n"),imgs:errs.filter(({i})=>i.img).map(({i},n)=>[i.img,`incident-${n+1}.jpg`])}}
 async function sendRef(x,only,extra){const A=ar(),{text,imgs}=refMsg(x,only,extra);let files=[];try{files=await Promise.all(imgs.map(async([u,nm])=>new File([await (await fetch(u)).blob()],nm,{type:"image/jpeg"})))}catch(e){files=[]}
@@ -1850,7 +2012,7 @@ function sbAI(){if(!SB)return null;const call=async(input,o={})=>{
     const {data:sd}=await SB.auth.getSession();if(!sd.session)throw {code:"signin"};
     const k=input.indexOf("\n\nTASK:"),system=k>0?input.slice(0,k):"",prompt=k>0?input.slice(k+2):input;
     const images=await Promise.all((o.images||[]).map(async b=>({type:["image/png","image/webp","image/gif"].includes(b.type)?b.type:"image/jpeg",data:await blob64(b)})));
-    const run=SB.functions.invoke("ai",{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c="failed";try{const j=await error.context.json();c={quota:"quota",rate_limited:"rate_limited",auth:"signin",refused:"refused"}[j.error]||"failed"}catch(e){}throw {code:c}}return data});
+    const run=SB.functions.invoke("ai",{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c="failed";try{const j=await error.context.json();c={quota:"quota",paid:"paid",rate_limited:"rate_limited",auth:"signin",refused:"refused"}[j.error]||"failed"}catch(e){}throw {code:c}}return data});
     const stop=new Promise((_,no)=>o.signal?.addEventListener("abort",()=>no({code:"cancelled"})));
     const d=await Promise.race([run,stop]);return aiParse(d.text)};
   const f=async(input,o)=>({text:JSON.stringify(await call(input,o))});f.json=call;
@@ -1887,6 +2049,7 @@ function renderAI(){const box=$("#aiBox");box.innerHTML="";const A=ar();box.appe
   [["case",A?"📝 حالة ولقطات":"📝 Case & frames"],["match",A?"📋 تقرير مباراة":"📋 Match report"],["hist",A?"🗂 السجل":"🗂 History"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",AIM===k);b.onclick=()=>{AIM=k;aiOut=null;renderAI()};tabs.append(b)});box.append(tabs);
   const off=document.createElement("p");off.className="tip";off.hidden=true;box.append(off);
   aiSample().then(s=>{if(!s){off.hidden=false;off.textContent=A?"المحلل غير متاح في هذا العرض.":"The analyst is not available in this view.";box.querySelectorAll(".aigo").forEach(b=>b.disabled=true)}else box.querySelectorAll(".aiimg").forEach(el=>el.hidden=!aiMaxImg())});
+  if(SB)box.append(aiPlanEl());
   if(AIM==="case")aiCaseUI(box);else if(AIM==="match")aiMatchUI(box);else aiHistUI(box);
   if(aiOut)box.append(aiOut.kind==="match"?aiMatchCard(aiOut):aiCaseCard(aiOut))}
 
@@ -1945,9 +2108,33 @@ function aiHistUI(box){const A=ar(),H=store.get("ai:hist",[]);const art=document
     const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{if(ask2(d,A?"اضغط مرة ثانية للحذف":"Tap again to delete")){const l=store.get("ai:hist",[]);l.splice(i,1);store.set("ai:hist",l);aiOut=null;renderAI()}};
     r.append(o,d);art.append(r)});box.append(art)}
 
+function aiPlanEl(){const A=ar(),w=document.createElement("article");w.className="quiz aiplan";const p=document.createElement("p");p.style.margin="0";w.append(p);
+  if(!SBS.user){p.textContent=A?"🔒 المحلل الذكي خدمة مدفوعة للمشتركين. سجّل الدخول من 👤 ثم اطلب الاشتراك.":"🔒 The smart analyst is a paid service for subscribers. Sign in with 👤, then request a subscription.";return w}
+  if(SBS.admin){p.textContent=A?"🛡 أنت المشرف: المحلل مجاني لك.":"🛡 You are the admin: the analyst is free for you.";return w}
+  p.textContent=A?"…":"…";(async()=>{const {data:acc}=await SB.from("ai_access").select("until").maybeSingle();const today=new Date().toISOString().slice(0,10);
+    if(acc&&acc.until>=today){p.textContent=A?`✅ مشترك حتى ${acc.until}. لك حتى 30 تحليلًا في اليوم.`:`✅ Subscribed until ${acc.until}. Up to 30 analyses a day.`;return}
+    const {data:rq}=await SB.from("ai_requests").select("id").eq("handled",false).limit(1);
+    p.textContent=rq?.length?(A?"⏳ طلب اشتراكك وصل للمشرف، وسيتواصل معك على بريدك بالسعر وطريقة الدفع.":"⏳ Your request reached the admin, who will email you the price and how to pay."):(A?"🔒 المحلل الذكي خدمة مدفوعة. اطلب الاشتراك ويتواصل معك المشرف على بريدك بالسعر وطريقة الدفع.":"🔒 The smart analyst is a paid service. Request a subscription and the admin will email you the price and how to pay.");
+    if(!rq?.length){const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"✉️ اطلب الاشتراك":"✉️ Request a subscription";
+      b.onclick=async()=>{b.disabled=true;const {data,error}=await SB.rpc("ai_request");if(error){b.disabled=false;p.textContent=(A?"تعذر الإرسال: ":"Could not send: ")+error.message;return}renderAI()};w.append(b)}})();return w}
+function aiAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"🧠 اشتراكات المحلل الذكي":"🧠 Smart analyst subscriptions";
+  const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"بعد أن يدفع المشترك، فعّل له المدة هنا. أنت تستخدم المحلل مجانًا.":"After a subscriber pays, activate their period here. You use the analyst for free.";art.append(h,tip);
+  const list=document.createElement("div");list.style.cssText="display:grid;gap:6px";art.append(list);
+  const g=document.createElement("div");g.className="pladd";const em=document.createElement("input");em.type="email";em.placeholder=A?"بريد المشترك":"Subscriber email";em.style.flex="1";const dy=document.createElement("select");[[30,A?"شهر":"1 month"],[90,A?"3 أشهر":"3 months"],[365,A?"سنة":"1 year"]].forEach(([v,n])=>{const o=document.createElement("option");o.value=v;o.textContent=n;dy.append(o)});
+  const gb=document.createElement("button");gb.className="btn primary";gb.textContent=A?"تفعيل":"Activate";const msg=document.createElement("small");msg.className="muted";
+  const grant=async(mail,days)=>{const {data,error}=await SB.rpc("ai_grant",{p_email:mail,p_days:+days});msg.textContent=error?((A?"تعذر: ":"Failed: ")+(/no such user/.test(error.message)?(A?"لا يوجد حساب بهذا البريد":"no account with this email"):error.message)):(A?`✓ مفعّل حتى ${data}`:`✓ Active until ${data}`);load()};
+  gb.onclick=()=>{if(em.value.trim())grant(em.value,dy.value)};g.append(em,dy,gb);art.append(g,msg);
+  const load=async()=>{list.innerHTML="";const {data,error}=await SB.rpc("ai_admin_list");if(error){list.textContent=error.message;return}
+    if(!data?.length){const p=document.createElement("small");p.className="muted";p.textContent=A?"لا توجد طلبات أو اشتراكات بعد.":"No requests or subscriptions yet.";list.append(p);return}
+    const today=new Date().toISOString().slice(0,10);data.forEach(r=>{const row=document.createElement("div");row.className="evrow";const t=document.createElement("div");t.innerHTML="<b></b><small class='muted'></small>";t.querySelector("b").textContent=r.email;
+      t.querySelector("small").textContent=[r.requested?(A?"⏳ طلب اشتراك":"⏳ Requested"):"",r.until?(r.until>=today?(A?`✅ حتى ${r.until}`:`✅ until ${r.until}`):(A?`منتهي ${r.until}`:`expired ${r.until}`)):"",r.used_today?(A?`اليوم ${r.used_today}`:`today ${r.used_today}`):""].filter(Boolean).join(" · ");
+      const a=document.createElement("button");a.className="btn";a.textContent=A?"+ شهر":"+1 month";a.onclick=()=>grant(r.email,30);
+      const x=document.createElement("button");x.className="btn";x.textContent=A?"إلغاء":"Revoke";x.onclick=async()=>{if(ask2(x,A?"مرة ثانية للإلغاء":"Again to revoke")){await SB.rpc("ai_revoke",{p_email:r.email});load()}};row.append(t,a,x);list.append(row)})};
+  load();return art}
 function aiSave(o){const l=store.get("ai:hist",[]);l.unshift(o);store.set("ai:hist",l.slice(0,20))}
 function aiErr(e){const A=ar(),c=e?.code;if(c==="cancelled")return A?"أوقفت التحليل.":"Stopped.";
   if(c==="signin")return A?"سجّل الدخول من زر 👤 أعلى الصفحة لاستخدام المحلل الذكي.":"Sign in with the 👤 button to use the smart analyst.";
+  if(c==="paid")return A?"🔒 التحليل بالذكاء الاصطناعي خدمة مدفوعة. اطلب الاشتراك من أعلى صفحة المحلل الذكي.":"🔒 AI analysis is a paid service. Request a subscription at the top of the Smart analyst page.";
   if(c==="quota")return A?"استخدمت كل تحليلاتك لهذا اليوم. يتجدد الرصيد غدًا.":"You have used today's analyses. They renew tomorrow.";
   if(c==="refused")return A?"لم يستطع المحلل تحليل هذا الطلب. أعد صياغة الوصف.":"The analyst could not handle this request. Rephrase the description.";if(c==="rate_limited")return t("limited");
   if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","images_unavailable"].includes(c))return A?"لم يُسمح للمحلل بالعمل في هذا العرض.":"The analyst was not allowed in this view.";
