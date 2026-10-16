@@ -1511,7 +1511,8 @@ function renderTiles(){const box=$("#tiles");if(!box)return;box.innerHTML="";con
    ["",m,A?"راجع أخطاءك":"Review mistakes",m?(A?"أسئلة أخطأت فيها":"Questions you missed"):(A?"لا أخطاء حتى الآن":"No mistakes yet"),m?()=>go("review"):null],
    ["","⏱",A?"الاختبار الشامل":"Full exam",A?"بوقت محدد":"Timed",()=>go("exam")],
    ["","🚩",A?"مدرّب الإشارات":"Signals trainer",A?"الحكم والمساعد":"Referee & assistant",()=>{SG=null;go("signals")}],
-   ["","❓",A?"صح أم خطأ؟":"True or false?",A?"أخطاء شائعة":"Common mistakes",()=>{MY=null;go("myths")}]].forEach(([cls,n,tt,sub,fn])=>{
+   ["","❓",A?"صح أم خطأ؟":"True or false?",A?"أخطاء شائعة":"Common mistakes",()=>{MY=null;go("myths")}],
+   ["","🧠",A?"المحلل الذكي":"Smart analyst",A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match",()=>go("ai")]].forEach(([cls,n,tt,sub,fn])=>{
     const b=document.createElement("button");b.className="tile "+cls;b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=n;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;
     if(fn)b.onclick=fn;else b.disabled=true;box.append(b)})}
 function renderDaily(){const box=$("#daily");if(!box)return;box.innerHTML="";const all=[];LAW_IDS().forEach(l=>casesOf(l).forEach(c=>all.push([l,c])));if(!all.length)return;
@@ -1838,10 +1839,22 @@ $("#stopBtn").onclick=()=>ctl?.abort();
 
 /* smart analyst: grounded in the approved summaries; images stay on the device until the viewer sends them */
 let AIM="case",aiS,aiCaps=null,aiImgs=[],aiOut=null,aiBusy=null,aiVidUrl=null,aiAn=null;
-async function aiSample(){if(aiS===undefined){try{aiS=(await (async()=>null)("sample"))||null}catch(e){aiS=null}
+async function aiSample(){if(aiS===undefined){try{aiS=(await (async()=>null)("sample"))||null}catch(e){aiS=null}if(!aiS)aiS=sbAI()
   try{aiCaps=aiS?await aiS.limits():null}catch(e){aiCaps=null}}return aiS}
 const aiRefSet=()=>{const s=new Set();for(const n in LAW_DATA)LAW_DATA[n].parts.forEach(p=>p.ref.split("·").forEach(r=>s.add(r.trim())));return s};
 const aiMaxImg=()=>Math.min(4,aiCaps?.images?.maxCount||0);
+/* on the public site the analyst runs through the platform's own server function, for signed-in users within a daily quota */
+const blob64=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=no;r.readAsDataURL(b)});
+function aiParse(t){t=String(t||"").replace(/```(?:json)?/g,"");const a=t.indexOf("{"),z=t.lastIndexOf("}");if(a<0||z<a)throw {code:"invalid_json"};try{return JSON.parse(t.slice(a,z+1))}catch(e){throw {code:"invalid_json"}}}
+function sbAI(){if(!SB)return null;const call=async(input,o={})=>{
+    const {data:sd}=await SB.auth.getSession();if(!sd.session)throw {code:"signin"};
+    const k=input.indexOf("\n\nTASK:"),system=k>0?input.slice(0,k):"",prompt=k>0?input.slice(k+2):input;
+    const images=await Promise.all((o.images||[]).map(async b=>({type:["image/png","image/webp","image/gif"].includes(b.type)?b.type:"image/jpeg",data:await blob64(b)})));
+    const run=SB.functions.invoke("ai",{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c="failed";try{const j=await error.context.json();c={quota:"quota",rate_limited:"rate_limited",auth:"signin",refused:"refused"}[j.error]||"failed"}catch(e){}throw {code:c}}return data});
+    const stop=new Promise((_,no)=>o.signal?.addEventListener("abort",()=>no({code:"cancelled"})));
+    const d=await Promise.race([run,stop]);return aiParse(d.text)};
+  const f=async(input,o)=>({text:JSON.stringify(await call(input,o))});f.json=call;
+  f.limits=async()=>({images:{maxCount:4,maxInputBytes:8e6,mediaTypes:["image/jpeg","image/png","image/webp"]}});return f}
 function aiBase(){return `You are the senior match-incident analyst of "Qarar Al-Hakam", an independent educational platform for football referees (not affiliated with IFAB or FIFA).
 Base every decision ONLY on the approved-summary knowledge below (Laws of the Game 2026/27). Never use outside rules or invent any. When the knowledge does not settle a point, say so in "missing".
 Write every prose field in ${ar()?"Arabic":"English"}. Section references look like "12.2" and must exist in the knowledge.
@@ -1933,7 +1946,10 @@ function aiHistUI(box){const A=ar(),H=store.get("ai:hist",[]);const art=document
     r.append(o,d);art.append(r)});box.append(art)}
 
 function aiSave(o){const l=store.get("ai:hist",[]);l.unshift(o);store.set("ai:hist",l.slice(0,20))}
-function aiErr(e){const A=ar(),c=e?.code;if(c==="cancelled")return A?"أوقفت التحليل.":"Stopped.";if(c==="rate_limited")return t("limited");
+function aiErr(e){const A=ar(),c=e?.code;if(c==="cancelled")return A?"أوقفت التحليل.":"Stopped.";
+  if(c==="signin")return A?"سجّل الدخول من زر 👤 أعلى الصفحة لاستخدام المحلل الذكي.":"Sign in with the 👤 button to use the smart analyst.";
+  if(c==="quota")return A?"استخدمت كل تحليلاتك لهذا اليوم. يتجدد الرصيد غدًا.":"You have used today's analyses. They renew tomorrow.";
+  if(c==="refused")return A?"لم يستطع المحلل تحليل هذا الطلب. أعد صياغة الوصف.":"The analyst could not handle this request. Rephrase the description.";if(c==="rate_limited")return t("limited");
   if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","images_unavailable"].includes(c))return A?"لم يُسمح للمحلل بالعمل في هذا العرض.":"The analyst was not allowed in this view.";
   if(c==="invalid_json")return A?"جاءت الإجابة بصيغة غير مفهومة. حاول مرة أخرى.":"The answer came back unreadable. Try again.";return t("failed")}
 const aiArr=v=>Array.isArray(v)?v.filter(x=>x!=null&&x!==""):[];
