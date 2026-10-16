@@ -37,7 +37,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 button,input,textarea{font:inherit;color:inherit}
 a{color:var(--pitch)}
 :focus-visible{outline:2px solid var(--pitch);outline-offset:2px}
-.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:0 110px}
+.tabbar{position:fixed;inset-inline:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right))}
+.tabbar button{display:grid;justify-items:center;gap:2px;border:0;background:none;font:inherit;font-size:.72rem;font-weight:600;color:var(--muted);padding:4px 0;cursor:pointer;border-radius:12px}
+.tabbar button b{font-size:1.25rem;line-height:1.2;filter:grayscale(1);opacity:.7;transition:transform .15s}
+.tabbar button[aria-pressed="true"]{color:var(--pitch)}.tabbar button[aria-pressed="true"] b{filter:none;opacity:1;transform:translateY(-2px) scale(1.08)}
+@media (min-width:900px){.tabbar{inset-inline:calc(50% - 300px);bottom:14px;border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 30px #0002}}
+@media print{.tabbar{display:none!important}}
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
 .bar-in{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:10px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.15rem;margin-inline-end:auto}
@@ -220,11 +226,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
     <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="5" y="2" width="12" height="18" rx="2" fill="var(--card)" transform="rotate(-10 11 11)"/><rect x="9" y="5" width="12" height="18" rx="2" fill="var(--red)" transform="rotate(8 15 14)"/></svg>
     <span data-t="brand">قرار الحكم</span>
   </div>
-  <nav class="nav" aria-label="sections">
-    <button data-go="guide" aria-pressed="true" data-t="navGuide">الدليل</button>
-        <button data-go="exam" aria-pressed="false" data-t="navExam">الاختبار</button>
-    <button data-go="progress" aria-pressed="false" data-t="navProg">تقدّمي</button>
-  </nav>
+  <span style="flex:1"></span>
   <button class="lang" id="acctBtn" aria-label="account">👤</button>
   <button class="lang" id="langBtn" aria-label="Switch language">EN</button>
 </div></div>
@@ -236,7 +238,6 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
     <div id="indexView" style="display:grid;gap:16px">
       <div class="next-up" id="nextUp"></div>
       <div class="trackbar" id="trackbar"></div>
-      <div class="tiles" id="tiles"></div>
       <div id="daily"></div>
       <div class="search"><input id="q" type="search" autocomplete="off" data-tp="searchPh"></div>
       <div class="results" id="results"></div>
@@ -277,6 +278,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
     </div>
   </section>
 
+  <section data-view="train" id="v-train" hidden><div class="prose"><h1 id="trainH"></h1><p class="muted" id="trainP"></p></div><div class="tiles" id="tiles"></div></section>
   <section data-view="news" id="v-news" hidden><div id="newsBox" style="display:grid;gap:16px"></div></section>
   <section data-view="signals" id="v-signals" hidden><div id="sigBox" style="display:grid;gap:16px"></div></section>
   <section data-view="myths" id="v-myths" hidden><div id="mythBox" style="display:grid;gap:16px"></div></section>
@@ -301,6 +303,12 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
     <p class="muted" style="font-size:.85rem" data-t="localNote"></p>
   </section>
 </main>
+<nav class="tabbar" aria-label="sections">
+  <button data-tab="guide" aria-pressed="true"><b>📖</b><span>الدليل</span></button>
+  <button data-tab="train" aria-pressed="false"><b>🎯</b><span>التدريب</span></button>
+  <button data-tab="library" aria-pressed="false"><b>🎬</b><span>المكتبة</span></button>
+  <button data-tab="progress" aria-pressed="false"><b>📊</b><span>تقدّمي</span></button>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
@@ -659,11 +667,15 @@ function applyLang(){
   document.querySelectorAll("[data-t]").forEach(el=>{const v=T[lang][el.dataset.t];if(typeof v==="string")el.textContent=v});
   document.querySelectorAll("[data-tp]").forEach(el=>el.placeholder=T[lang][el.dataset.tp]);
   $("#langBtn").textContent=ar()?"EN":"ع";
+  document.querySelectorAll(".tabbar span").forEach((s,i)=>s.textContent=(ar()?["الدليل","التدريب","المكتبة","تقدّمي"]:["Guide","Training","Library","Progress"])[i]);if(!$("#v-train").hidden)go("train");
   renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();if(!$("#v-vcases").hidden)renderVC();if(!$("#v-account").hidden)renderAccount();if(!$("#v-clips").hidden)renderClips();if(!$("#v-library").hidden)renderLibrary();if(!$("#v-lectures").hidden)renderLectures();if(!$("#v-analyze").hidden)renderAnalyze();if(!$("#v-assess").hidden)renderAssess();
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
+const TABOF=v=>({guide:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress"})[v]||"train";
 function go(v){document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
+  document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===TABOF(v)));
+  if(v==="train"){$("#trainH").textContent=ar()?"🎯 التدريب":"🎯 Training";$("#trainP").textContent=ar()?"كل أدوات التعلّم والتدريب والاختبار في مكان واحد.":"Every learning, practice and testing tool in one place.";renderTiles()}
   if(v==="progress")renderProgress();if(v==="exam")renderExam();if(v==="news")renderNews();if(v==="review")renderReview();if(v==="signals")renderSignals();if(v==="myths")renderMyths();if(v==="match")renderMatch();if(v==="bank")renderBank();if(v==="vcases")renderVC();if(v==="account")renderAccount();if(v==="clips")renderClips();if(v==="library")renderLibrary();if(v==="lectures")renderLectures();if(v==="analyze")renderAnalyze();if(v==="assess")renderAssess();if(v==="assistant")initChat();window.scrollTo(0,0)}
 
 /* index */
@@ -1467,9 +1479,7 @@ function renderTiles(){renderTrack();const box=$("#tiles");if(!box)return;box.in
   {const b=document.createElement("button");b.className="tile star";b.style.background="linear-gradient(135deg,#7A1E2C,#C2362B)";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="📚 "+bankPool().length;
    b.querySelector("span").textContent=A?"بنك الأسئلة":"Question bank";b.querySelector("small").textContent=A?"كل الأسئلة مختلطة من جميع القوانين: أسئلة، حالات، صح أم خطأ":"Every question mixed across all Laws: questions, cases, true or false";
    b.onclick=()=>{BK=null;go("bank")};box.append(b)}
-  {const b=document.createElement("button");b.className="tile star";b.style.background="linear-gradient(135deg,#0F2A1D,#5F3DC4)";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="📚🎬";
-   b.querySelector("span").textContent=A?"مكتبة الفيديو والمحاضرات":"Video & lecture library";b.querySelector("small").textContent=A?"حالات متحركة، ومقاطع حقيقية، ومحاضرات مسجلة، ومحاضرات مباشرة":"Animated cases, real clips, recorded and live lectures";
-   b.onclick=()=>go("library");box.append(b)}
+
   {const b=document.createElement("button");b.className="tile star";b.style.background="linear-gradient(135deg,#1F2B5C,#1C7ED6)";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="🎥 📝";
    b.querySelector("span").textContent=A?"تحليل الحكم وصفحة المقيّم":"Referee analysis & assessor page";b.querySelector("small").textContent=A?"صوّر أو اختر فيديو مباراة، سجّل الحالات بوقتها، ثم قيّم الحكم واطبع التقرير":"Record or pick a match video, log incidents by time, then assess the referee and print the report";
    b.onclick=()=>{AN=null;go("analyze")};box.append(b)}
@@ -1675,6 +1685,7 @@ $("#askIn").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.pr
 $("#stopBtn").onclick=()=>ctl?.abort();
 
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.onclick=()=>{const v=b.dataset.tab;if(v==="guide"&&!$("#lawView").hidden)closeLaw();go(v)});
 $("#backBtn").onclick=closeLaw;$("#q").addEventListener("input",renderSearch);
 $("#acctBtn").onclick=()=>go("account");
 $("#langBtn").onclick=()=>{lang=ar()?"en":"ar";store.set("lang",lang);applyLang()};
