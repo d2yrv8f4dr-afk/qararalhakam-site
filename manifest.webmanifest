@@ -1,0 +1,16 @@
+{
+  "name": "قرار الحكم",
+  "short_name": "قرار الحكم",
+  "description": "منصة تعليمية لقوانين كرة القدم للحكام",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F5F1",
+  "theme_color": "#123524",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
