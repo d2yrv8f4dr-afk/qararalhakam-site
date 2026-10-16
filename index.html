@@ -371,7 +371,7 @@ const LAWS=[
 
 const T={
  ar:{brand:"REF.LAB",navGuide:"الدليل",navAsk:"المساعد",navExam:"الاختبار",navProg:"تقدّمي",
-  credit:"© جميع الحقوق محفوظة لصاحبها الأستاذ خالد السناني، المشرف العام على المنصة.",proto:"نسخة مراجعة خاصة، يُرجى عدم نشرها. نموذج أولي للعرض. المحتوى ملخص تعليمي من إعداد «قرار الحكم» ولم يُراجع تحكيميًا بعد، وليس نص القانون. الرسوم من إنتاج المنصة. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
+  credit:"© جميع الحقوق محفوظة لصاحبها خالد السناني، المشرف العام على المنصة.",proto:"نسخة مراجعة خاصة، يُرجى عدم نشرها. نموذج أولي للعرض. المحتوى ملخص تعليمي من إعداد «قرار الحكم» ولم يُراجع تحكيميًا بعد، وليس نص القانون. الرسوم من إنتاج المنصة. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
   searchPh:"ابحث بمصطلح أو رقم قانون… مثل: منطقة الجزاء، 7.32، تسلل",lawsTitle:"قوانين اللعبة 2026/27 — بالترتيب",
   back:"→ كل القوانين",chipSrc:"المرجع: قوانين اللعبة 2026/27 — IFAB",chipDraft:"مسودة — بانتظار المراجعة التحكيمية",
   lawN:n=>`القانون ${n}`,parts:n=>`${n} أجزاء`,soon:"قيد الإعداد",part:"الجزء",
@@ -391,7 +391,7 @@ const T={
   declined:"",limited:"وصلت حد الاستخدام مؤقتًا. حاول لاحقًا.",failed:"تعذّر الحصول على إجابة. حاول مرة أخرى.",
   hello:"أهلًا. صف لي حالة من القوانين المغطاة، وسأوضح القرار مع رقم الفقرة."},
  en:{brand:"REF.LAB",navGuide:"Guide",navAsk:"Assistant",navExam:"Exam",navProg:"My progress",
-  credit:"© All rights reserved to Mr. Khalid Al-Sanani, General Supervisor of the platform.",proto:"Private review copy, please do not share. Prototype for review. The content is an educational summary written by Qarar Al-Hakam, not yet reviewed by a referee, and is not the text of the Law. Illustrations are our own. The platform is independent and not affiliated with IFAB or FIFA.",
+  credit:"© All rights reserved to Khalid Al-Sanani, General Supervisor of the platform.",proto:"Private review copy, please do not share. Prototype for review. The content is an educational summary written by Qarar Al-Hakam, not yet reviewed by a referee, and is not the text of the Law. Illustrations are our own. The platform is independent and not affiliated with IFAB or FIFA.",
   searchPh:"Search a term or Law number… e.g. penalty area, 7.32, offside",lawsTitle:"Laws of the Game 2026/27 — in order",
   back:"← All Laws",chipSrc:"Source: Laws of the Game 2026/27 — IFAB",chipDraft:"Draft — awaiting referee review",
   lawN:n=>`Law ${n}`,parts:n=>`${n} parts`,soon:"In preparation",part:"Part",
@@ -2101,7 +2101,7 @@ function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&s
     :!SBS.member?(SBS.mstatus==="rejected"?[A?"❌ لم تتم الموافقة على حسابك":"❌ Your account was not approved",A?"تواصل مع إدارة المنصة إذا كنت ترى أن هناك خطأ.":"Contact the platform team if you think this is a mistake."]:[A?"⏳ حسابك بانتظار موافقة المشرف":"⏳ Your account is waiting for approval",A?"وصل طلبك للمشرف. أكمل بياناتك أدناه ليتعرّف عليك، وستُفتح المنصة بعد الموافقة.":"Your request reached the admin. Complete your details below so they know you; the platform opens once approved."])
     :SBS.admin?[A?"📦 ارفع محتوى المنصة":"📦 Upload the platform content",A?"المحتوى لم يُرفع للخادم بعد. ارفع ملف المحتوى من الأسفل لتفتح المنصة للأعضاء.":"The content is not on the server yet. Upload the content file below to open the platform for members."]
     :[A?"المحتوى قيد التجهيز":"Content is being prepared",A?"حسابك مقبول، والمحتوى يُجهَّز الآن. حاول بعد قليل.":"Your account is approved and the content is being prepared. Try again shortly."];
-  w.querySelector("h1").textContent=h;w.querySelector("p").textContent=p;const c=document.createElement("small");c.style.cssText="color:#C9D8CE";c.textContent=A?"المشرف العام على المنصة: الأستاذ خالد السناني":"General Supervisor: Mr. Khalid Al-Sanani";w.append(c);return w}
+  w.querySelector("h1").textContent=h;w.querySelector("p").textContent=p;const c=document.createElement("small");c.style.cssText="color:#C9D8CE";c.textContent=A?"المشرف العام على المنصة: خالد السناني":"General Supervisor: Khalid Al-Sanani";w.append(c);return w}
 function membersAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"👥 طلبات الانضمام والأعضاء":"👥 Join requests and members";
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"كل حساب جديد ينتظر موافقتك. المقبول يدخل المنصة، والمرفوض والموقوف لا يرى شيئًا.":"Every new account waits for your approval. Approved accounts enter; rejected or suspended ones see nothing.";
   const list=document.createElement("div");list.style.cssText="display:grid;gap:6px";art.append(h,tip,list);
