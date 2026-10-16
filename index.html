@@ -1529,7 +1529,7 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
           const {error:ue}=await SB.storage.from("clips").upload(vpath,pickedVid,{contentType:pickedVid.type||"video/mp4",upsert:false});add.disabled=false;if(ue){msg.textContent=(A?"تعذر رفع الفيديو: ":"Video upload failed: ")+ue.message;return}}
         const row={yt:id,video_path:vpath,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer:ansSel,why:$("#cl-w").value.trim()||null};
         add.disabled=true;msg.textContent=A?"جارٍ النشر…":"Publishing…";const {error}=await SB.from("clips").insert(row);add.disabled=false;
-        if(error){msg.textContent=(A?"تعذر النشر: ":"Could not publish: ")+error.message;return}await sbLoad(true);CLi=null;renderClips();return}
+        if(error){if(vpath)SB.storage.from("clips").remove([vpath]).catch(()=>{});msg.textContent=(A?"تعذر النشر: ":"Could not publish: ")+error.message;return}await sbLoad(true);CLi=null;renderClips();return}
       const l=store.get("myclips",[]);l.push({id:"m"+Date.now(),yt:id,start:s,end:e,title:$("#cl-t").value.trim(),law:+$("#cl-law").value||0,w:$("#cl-w").value.trim()});store.set("myclips",l);CLi=CLIP_DATA.clips.length+l.length-1;renderClips()};
     const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.8rem";tip.textContent=A?"المقطع يُحفظ في هذا الجهاز. لإظهاره لكل المستخدمين، أرسل الرابط والوقتين، فيُضاف إلى المنصة. استخدم مقاطع من قنوات رسمية أو مسموح بعرضها.":"Clips are saved on this device. To show one to everyone, send the link and times and it will be added to the platform. Use clips from official or permitted channels.";
     f.append(add,msg,tip);box.append(f);return}
@@ -1642,6 +1642,7 @@ async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession()
   SBS.member=false;SBS.mstatus="none";if(SBS.user){try{const {data:ms}=await SB.rpc("member_status");SBS.mstatus=ms||"pending"}catch(e){SBS.mstatus="pending"}SBS.member=SBS.admin||SBS.mstatus==="approved"}
   SBS.instr=false;if(SBS.member&&!SBS.admin){try{const {data:ii}=await SB.rpc("is_instructor");SBS.instr=!!ii}catch(e){}}
   if(SBS.member&&!CONTENT_LOADED)await loadContent();if(!DB)CAN_EDIT=!!SBS.admin;
+  if(SBS.member)await sbLoad(true);
   SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤";
   const open=!!SBS.user&&SBS.member&&CONTENT_LOADED,was=document.body.classList.contains("locked");document.body.classList.remove("pending");document.body.classList.toggle("locked",!open);
   if(!open)go("account");else if(was||!UI_DONE){UI_DONE=true;applyLang();go("guide")}}
@@ -2197,7 +2198,7 @@ const SIGNED={};
 async function clipUrl(path){const h=SIGNED[path];if(h&&h.until>Date.now())return h.url;const {data,error}=await SB.storage.from("clips").createSignedUrl(path,3600);if(error)throw error;SIGNED[path]={url:data.signedUrl,until:Date.now()+55*60e3};return data.signedUrl}
 function clipMedia(c,small){if(!c.vp)return ytFrame(c,small);const w=document.createElement("div");w.className="yt vidbox"+(small?" ytsm":"");const v=document.createElement("video");v.controls=true;v.playsInline=true;v.preload="metadata";w.append(v);
   const st=+(c.start||0),en=+(c.end||0);v.addEventListener("loadedmetadata",()=>{if(st)v.currentTime=st});v.addEventListener("timeupdate",()=>{if(en>st&&v.currentTime>=en){v.pause();v.currentTime=en}});
-  if(SB)clipUrl(c.vp).then(u=>v.src=u).catch(()=>{w.insertAdjacentHTML("beforeend",`<p class="muted" style="margin:6px">${ar()?"تعذر تحميل الفيديو.":"Could not load the video."}</p>`)});return w}
+  if(SB)clipUrl(c.vp).then(u=>v.src=u+(st?`#t=${st}`:"")).catch(()=>{w.insertAdjacentHTML("beforeend",`<p class="muted" style="margin:6px">${ar()?"تعذر تحميل الفيديو.":"Could not load the video."}</p>`)});return w}
 function clipReplay(box,c){const v=box.querySelector("video");if(v){v.currentTime=+(c.start||0);v.play().catch(()=>{});return}const f=box.querySelector("iframe");if(f)f.src=f.src.replace(/&autoplay=1/,"")+"&autoplay=1"}
 async function hostSave(patch){const {data,error}=await SB.from("class_sessions").update(patch).eq("code",HS.code).select().single();if(error){alert(error.message);return}HS=data;renderHost()}
 function renderHost(){const box=$("#hoBox");box.innerHTML="";const A=ar();clearInterval(hostTick);box.append(backBtn("instr"));
