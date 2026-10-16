@@ -131,6 +131,24 @@ details.pro{border:1px dashed var(--line);border-radius:var(--r);padding:8px 12p
 details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .tile.star{grid-column:1/-1;background:linear-gradient(135deg,var(--night),#1D6B47);color:#fff;border:0}.tile.star b,.tile.star small,.tile.star span{color:#E8F0EA}
+.anform{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.anform>*{min-width:0}.anform input,.anform select,.field textarea{width:100%;box-sizing:border-box;min-width:0}
+.anform label,.field{display:grid;gap:4px;font-size:.85rem;font-weight:600}
+.anform input,.anform select,.anform textarea,.field input,.field select,.field textarea{font:inherit;font-weight:400;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.vwrap{position:relative;border-radius:var(--r);overflow:hidden;background:#000}
+.vid{width:100%;height:auto;display:block}
+.tele{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none}
+.tele.on{pointer-events:auto;cursor:crosshair;outline:3px solid var(--card);outline-offset:-3px}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.tools .btn[aria-pressed="true"]{background:var(--card);color:#16231C}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer}.sw[aria-pressed="true"]{outline:3px solid var(--ink)}
+.shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
+.inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
+.ev{font-size:.75rem;border-radius:999px;padding:1px 8px}.ev.ok{background:var(--pitch-soft);color:var(--pitch)}.ev.bad{background:var(--red-soft);color:var(--red)}.ev.miss{background:#FFE8CC;color:#B35C00}.ev.jd{background:var(--card-soft)}
+.score{display:grid;grid-template-columns:minmax(0,1fr) 150px 36px;gap:10px;align-items:center}
+.score input[type=range]{width:100%}
+.printonly{display:none}
+@media print{.bar,.proto,.btn,.tiles,.trackbar,button,details.book,.noprint{display:none!important}.printonly{display:block}body{background:#fff}section[data-view]{padding:0}.quiz{border:1px solid #999;break-inside:avoid}}
 .minute{display:inline-block;font-family:"IBM Plex Mono",monospace;font-weight:600;background:var(--night);color:#fff;border-radius:8px;padding:2px 10px;justify-self:start}
 .book{background:var(--card-soft);border-radius:var(--r);padding:10px 14px}.book summary{cursor:pointer;font-weight:600}.book ul{margin:8px 0 0;padding-inline-start:18px}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -250,6 +268,8 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
   <section data-view="myths" id="v-myths" hidden><div id="mythBox" style="display:grid;gap:16px"></div></section>
   <section data-view="match" id="v-match" hidden><div id="matchBox" style="display:grid;gap:16px"></div></section>
   <section data-view="bank" id="v-bank" hidden><div id="bankBox" style="display:grid;gap:16px"></div></section>
+  <section data-view="analyze" id="v-analyze" hidden><div id="anBox" style="display:grid;gap:16px"></div></section>
+  <section data-view="assess" id="v-assess" hidden><div id="asBox" style="display:grid;gap:16px"></div></section>
   <section data-view="review" id="v-review" hidden><div id="reviewBox" style="display:grid;gap:16px"></div></section>
   <section data-view="exam" id="v-exam" hidden><div id="examBox" style="display:grid;gap:16px"></div></section>
 
@@ -619,12 +639,12 @@ function applyLang(){
   document.querySelectorAll("[data-t]").forEach(el=>{const v=T[lang][el.dataset.t];if(typeof v==="string")el.textContent=v});
   document.querySelectorAll("[data-tp]").forEach(el=>el.placeholder=T[lang][el.dataset.tp]);
   $("#langBtn").textContent=ar()?"EN":"ع";
-  renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();
+  renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();if(!$("#v-analyze").hidden)renderAnalyze();if(!$("#v-assess").hidden)renderAssess();
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
 function go(v){document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
-  if(v==="progress")renderProgress();if(v==="exam")renderExam();if(v==="news")renderNews();if(v==="review")renderReview();if(v==="signals")renderSignals();if(v==="myths")renderMyths();if(v==="match")renderMatch();if(v==="bank")renderBank();if(v==="assistant")initChat();window.scrollTo(0,0)}
+  if(v==="progress")renderProgress();if(v==="exam")renderExam();if(v==="news")renderNews();if(v==="review")renderReview();if(v==="signals")renderSignals();if(v==="myths")renderMyths();if(v==="match")renderMatch();if(v==="bank")renderBank();if(v==="analyze")renderAnalyze();if(v==="assess")renderAssess();if(v==="assistant")initChat();window.scrollTo(0,0)}
 
 /* index */
 const LAW_IDS=()=>Object.keys(LAW_DATA).map(Number).sort((a,b)=>a-b);
@@ -988,6 +1008,135 @@ function renderBank(){const box=$("#bankBox");box.innerHTML="";const A=ar(),P=ba
     const nx=document.createElement("button");nx.className="btn primary";nx.style.justifySelf="center";nx.textContent=BK.i<BK.deck.length-1?(A?"التالي ←":"Next →"):(A?"النتيجة":"Result");
     nx.onclick=()=>{BK.i++;BK.picked=false;renderBank();window.scrollTo(0,0)};card.append(nx)};o.append(b)});
   box.append(card)}
+/* referee analysis (video + incident log) and assessor page; everything stays on this device */
+let AN=null,anVideo=null,anShot=null;
+function renderShot(){const s=$("#in-shot");if(!s)return;s.innerHTML="";if(!anShot)return;const i=document.createElement("img");i.className="shot";i.src=anShot;const r=document.createElement("button");r.className="btn";r.textContent=ar()?"إزالة اللقطة":"Remove frame";r.onclick=()=>{anShot=null;renderShot()};s.append(i,r)}
+const INC_T={foul:["خطأ","Foul"],hand:["لمسة يد","Handball"],off:["تسلل","Offside"],pk:["ركلة جزاء","Penalty"],yc:["بطاقة صفراء","Yellow card"],rc:["بطاقة حمراء","Red card"],adv:["ميزة","Advantage"],goal:["هدف","Goal"],pos:["تمركز","Positioning"],mgmt:["إدارة وتواصل","Management"],other:["أخرى","Other"]};
+const INC_E={ok:["صحيح","Correct"],bad:["خاطئ","Wrong"],miss:["فائت (لم يُتخذ)","Missed"],jd:["تقديري","Judgement"]};
+const INC_P={good:["قريب وزاوية جيدة","Close, good angle"],far:["بعيد","Too far"],blind:["زاوية محجوبة","Blocked view"],na:["—","—"]};
+const anList=()=>store.get("an:list",[]);const anSave=l=>store.set("an:list",l);
+const fmtT=s=>{s=Math.max(0,Math.round(s||0));return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`};
+const lbl2=(o,k)=>(o[k]||["",""])[ar()?0:1];
+function anCur(){return anList().find(x=>x.id===AN)}
+function anUpdate(fn){const l=anList(),i=l.findIndex(x=>x.id===AN);if(i<0)return;fn(l[i]);anSave(l)}
+function backBtn(to){const b=document.createElement("button");b.className="btn noprint";b.style.justifySelf="start";b.textContent=t("back");b.onclick=()=>go(to);return b}
+function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box.append(backBtn("guide"));
+  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";
+  hd.querySelector("p").textContent=A?"صوّر المباراة بالجوال أو اختر فيديو، وسجّل كل حالة بوقتها وتقييمها. الفيديو يبقى على جهازك ولا يُرفع لأي مكان، والتحليل يُحفظ في هذا المتصفح. احصل على إذن من يظهر في التصوير.":"Record with your phone or pick a video, and log each incident with its time and evaluation. The video stays on your device and is never uploaded; the analysis is saved in this browser. Get consent from people you film.";box.append(hd);
+  if(!AN||!anCur()){const L=anList();const art=document.createElement("article");art.className="quiz";
+    const h2=document.createElement("h2");h2.style.margin="0";h2.textContent=A?"تحليل جديد":"New analysis";art.append(h2);
+    const f=document.createElement("div");f.className="anform";
+    [["title",A?"المباراة (الفريقان)":"Match (teams)"],["comp",A?"المسابقة":"Competition"],["date",A?"التاريخ":"Date","date"],["ref",A?"اسم الحكم":"Referee"]].forEach(([k,n,ty])=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.type=ty||"text";i.id="an-"+k;l.append(i);f.append(l)});
+    art.append(f);const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"إنشاء التحليل":"Create analysis";
+    b.onclick=()=>{const v=k=>$("#an-"+k).value.trim();const it={id:"a"+Date.now(),title:v("title")||(A?"مباراة بلا اسم":"Untitled match"),comp:v("comp"),date:v("date"),ref:v("ref"),inc:[],at:Date.now()};const l=anList();l.unshift(it);anSave(l);AN=it.id;renderAnalyze()};
+    art.append(b);box.append(art);
+    if(L.length){const ls=document.createElement("article");ls.className="quiz";const h3=document.createElement("h3");h3.style.margin="0";h3.textContent=A?"تحليلاتك المحفوظة":"Your saved analyses";ls.append(h3);
+      L.forEach(x=>{const r=document.createElement("div");r.className="inc";r.style.gridTemplateColumns="1fr auto auto";r.innerHTML="<div><b></b><div class='muted' style='font-size:.85rem'></div></div>";
+        r.querySelector("b").textContent=x.title;r.querySelector(".muted").textContent=[x.comp,x.date,x.ref,`${x.inc.length} ${A?"حالة":"incidents"}`].filter(Boolean).join(" · ");
+        const o=document.createElement("button");o.className="btn";o.textContent=A?"فتح":"Open";o.onclick=()=>{AN=x.id;anVideo=null;renderAnalyze()};
+        const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{if(confirm(A?"حذف هذا التحليل؟":"Delete this analysis?")){anSave(anList().filter(y=>y.id!==x.id));store.set("as:"+x.id,null);renderAnalyze()}};
+        r.append(o,d);ls.append(r)});box.append(ls)}
+    return}
+  const x=anCur();const top=document.createElement("article");top.className="quiz";top.innerHTML="<h2 style='margin:0'></h2><p class='muted' style='margin:0'></p>";
+  top.querySelector("h2").textContent=x.title;top.querySelector("p").textContent=[x.comp,x.date,x.ref&&(A?"الحكم: ":"Referee: ")+x.ref].filter(Boolean).join(" · ");
+  const sw=document.createElement("div");sw.className="lvl";const bl=document.createElement("button");bl.className="btn";bl.textContent=A?"كل التحليلات":"All analyses";bl.onclick=()=>{AN=null;renderAnalyze()};
+  const ba=document.createElement("button");ba.className="btn primary";ba.textContent=A?"📝 صفحة المقيّم لهذه المباراة":"📝 Assessor page for this match";ba.onclick=()=>go("assess");sw.append(bl,ba);top.append(sw);box.append(top);
+  const vc=document.createElement("article");vc.className="quiz";
+  const pick=document.createElement("label");pick.className="btn primary";pick.style.cssText="justify-self:start;cursor:pointer";pick.textContent=A?"🎥 صوّر أو اختر فيديو":"🎥 Record or choose a video";
+  const fi=document.createElement("input");fi.type="file";fi.accept="video/*";fi.setAttribute("capture","environment");fi.hidden=true;pick.append(fi);
+  fi.onchange=()=>{const f=fi.files[0];if(!f)return;if(anVideo)URL.revokeObjectURL(anVideo);anVideo=URL.createObjectURL(f);renderAnalyze()};
+  const note=document.createElement("p");note.className="muted";note.style.cssText="margin:0;font-size:.8rem";note.textContent=A?"على الجوال يفتح الكاميرا للتصوير أو مكتبة الفيديو. بعد إغلاق الصفحة اختر الفيديو نفسه مرة أخرى؛ الحالات محفوظة.":"On a phone this opens the camera or your video library. After closing the page, pick the same video again; incidents are kept.";
+  vc.append(pick,note);let video=null;
+  if(anVideo){const wrap=document.createElement("div");wrap.className="vwrap";video=document.createElement("video");video.className="vid";video.src=anVideo;video.controls=true;video.playsInline=true;
+    const cv=document.createElement("canvas");cv.className="tele";wrap.append(video,cv);vc.append(wrap);
+    const T={on:false,tool:"arrow",col:"#FFD43B",shapes:[],cur:null};
+    const fit=()=>{cv.width=video.videoWidth||1280;cv.height=video.videoHeight||720;draw()};video.addEventListener("loadedmetadata",fit);
+    const arrow=(c,a,b,lw)=>{const an=Math.atan2(b.y-a.y,b.x-a.x),hl=lw*4;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.beginPath();c.moveTo(b.x,b.y);
+      c.lineTo(b.x-hl*Math.cos(an-0.45),b.y-hl*Math.sin(an-0.45));c.lineTo(b.x-hl*Math.cos(an+0.45),b.y-hl*Math.sin(an+0.45));c.closePath();c.fill()};
+    function paint(c,s,k){const lw=Math.max(3,Math.max(3,cv.width/220)*k);c.strokeStyle=c.fillStyle=s.col;c.lineWidth=lw;c.lineCap="round";c.lineJoin="round";c.setLineDash(s.tool==="line"?[lw*3,lw*2]:[]);
+      const a={x:s.a.x*k,y:s.a.y*k},b={x:s.b.x*k,y:s.b.y*k};
+      if(s.tool==="arrow")arrow(c,a,b,lw);else if(s.tool==="line"){c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke()}
+      else if(s.tool==="circle"){c.beginPath();c.ellipse(a.x,a.y,Math.max(4,Math.abs(b.x-a.x)),Math.max(4,Math.abs(b.y-a.y)),0,0,Math.PI*2);c.stroke()}
+      else{c.beginPath();s.pts.forEach((p,i)=>i?c.lineTo(p.x*k,p.y*k):c.moveTo(p.x*k,p.y*k));c.stroke()}}
+    function draw(){const c=cv.getContext("2d");c.clearRect(0,0,cv.width,cv.height);[...T.shapes,...(T.cur?[T.cur]:[])].forEach(s=>paint(c,s,1))}
+    const pt=e=>{const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*cv.width,y:(e.clientY-r.top)/r.height*cv.height}};
+    cv.onpointerdown=e=>{if(!T.on)return;cv.setPointerCapture(e.pointerId);const p=pt(e);T.cur={tool:T.tool,col:T.col,a:p,b:p,pts:[p]}};
+    cv.onpointermove=e=>{if(!T.cur)return;const p=pt(e);T.cur.b=p;if(T.cur.tool==="free")T.cur.pts.push(p);draw()};
+    cv.onpointerup=()=>{if(T.cur){T.shapes.push(T.cur);T.cur=null;draw()}};
+    video.addEventListener("play",()=>{if(T.shapes.length){T.shapes=[];draw()}});
+    const tools=document.createElement("div");tools.className="tools";const mk=(tx,fn,tip)=>{const b=document.createElement("button");b.className="btn";b.textContent=tx;if(tip)b.title=tip;b.onclick=fn;tools.append(b);return b};
+    const pen=mk(A?"✏️ رسم":"✏️ Draw",()=>{T.on=!T.on;cv.classList.toggle("on",T.on);pen.setAttribute("aria-pressed",T.on);if(T.on)video.pause()});pen.setAttribute("aria-pressed","false");
+    const tb={};[["arrow","➚",A?"سهم":"Arrow"],["line","┄",A?"خط تسلل":"Offside line"],["circle","◯",A?"دائرة":"Circle"],["free","〰",A?"حر":"Free"]].forEach(([k,ic,n])=>{tb[k]=mk(`${ic} ${n}`,()=>{T.tool=k;Object.entries(tb).forEach(([kk,b])=>b.setAttribute("aria-pressed",kk===k))})});tb.arrow.setAttribute("aria-pressed","true");
+    ["#FFD43B","#FA5252","#FFFFFF","#4DABF7"].forEach(c=>{const s=document.createElement("button");s.className="sw";s.style.background=c;s.setAttribute("aria-label",c);s.setAttribute("aria-pressed",c===T.col);s.onclick=()=>{T.col=c;tools.querySelectorAll(".sw").forEach(x=>x.setAttribute("aria-pressed",x===s))};tools.append(s)});
+    mk(A?"↶ تراجع":"↶ Undo",()=>{T.shapes.pop();draw()});mk(A?"🧽 مسح":"🧽 Clear",()=>{T.shapes=[];draw()});
+    const ctl=document.createElement("div");ctl.className="tools";const mk2=(tx,fn)=>{const b=document.createElement("button");b.className="btn";b.textContent=tx;b.onclick=fn;ctl.append(b);return b};
+    mk2("⏪ 5",()=>{video.currentTime=Math.max(0,video.currentTime-5)});mk2(A?"⏮ إطار":"⏮ Frame",()=>{video.pause();video.currentTime=Math.max(0,video.currentTime-1/25)});
+    mk2(A?"إطار ⏭":"Frame ⏭",()=>{video.pause();video.currentTime=video.currentTime+1/25});mk2("5 ⏩",()=>{video.currentTime=video.currentTime+5});
+    const sl=mk2("🐢 0.25×",()=>{const r=[1,0.5,0.25];const n=r[(r.indexOf(video.playbackRate)+1)%3];video.playbackRate=n;sl.textContent=`🐢 ${n===1?0.5:n===0.5?0.25:1}×`});
+    mk2(A?"📸 التقاط اللقطة":"📸 Capture frame",()=>{const w=480,hh=Math.round(w*cv.height/cv.width),o=document.createElement("canvas");o.width=w;o.height=hh;const c=o.getContext("2d");
+      try{c.drawImage(video,0,0,w,hh);const k=w/cv.width;T.shapes.forEach(s=>paint(c,s,k));anShot=o.toDataURL("image/jpeg",0.72);$("#in-t").value=fmtT(video.currentTime);renderShot()}catch(err){alert(A?"تعذر التقاط اللقطة من هذا الفيديو.":"Could not capture this video frame.")}});
+    if(x.inc.length)mk2(A?"▶ شريط الحالات":"▶ Incident reel",()=>{let k=0;const list=x.inc.slice();const go2=()=>{if(k>=list.length){video.pause();video.ontimeupdate=null;return}const it=list[k];video.currentTime=Math.max(0,it.t-3);video.play();
+        video.ontimeupdate=()=>{if(video.currentTime>=it.t+4){k++;go2()}}};go2()});
+    vc.append(tools,ctl);
+    const hint=document.createElement("p");hint.className="muted";hint.style.cssText="margin:0;font-size:.8rem";hint.textContent=A?"أوقف الفيديو عند اللحظة، ارسم سهمًا أو خط تسلل، ثم «📸 التقاط اللقطة» لترفقها بالحالة.":"Pause at the moment, draw an arrow or offside line, then Capture frame to attach it to the incident.";vc.append(hint)}
+  box.append(vc);
+  const form=document.createElement("article");form.className="quiz";const fh=document.createElement("h3");fh.style.margin="0";fh.textContent=A?"＋ تسجيل حالة":"＋ Log an incident";form.append(fh);
+  const g=document.createElement("div");g.className="anform";const sel=(id,n,obj)=>{const l=document.createElement("label");l.textContent=n;const s=document.createElement("select");s.id=id;Object.keys(obj).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=lbl2(obj,k);s.append(o)});l.append(s);g.append(l)};
+  {const l=document.createElement("label");l.textContent=A?"الوقت في الفيديو":"Video time";const i=document.createElement("input");i.id="in-t";i.placeholder="0:00";i.value=video?fmtT(video.currentTime):"";l.append(i);g.append(l);
+   if(video)video.addEventListener("pause",()=>{i.value=fmtT(video.currentTime)})}
+  {const l=document.createElement("label");l.textContent=A?"دقيقة المباراة":"Match minute";const i=document.createElement("input");i.id="in-min";i.inputMode="numeric";l.append(i);g.append(l)}
+  sel("in-type",A?"نوع الحالة":"Type",INC_T);sel("in-ev",A?"تقييم القرار":"Evaluation",INC_E);sel("in-pos",A?"التمركز":"Positioning",INC_P);
+  {const l=document.createElement("label");l.textContent=A?"القانون":"Law";const s=document.createElement("select");s.id="in-law";s.innerHTML=`<option value="">—</option>`+LAWS.map(([n,a,e])=>`<option value="${n}">${n}. ${A?a:e}</option>`).join("");l.append(s);g.append(l)}
+  form.append(g);
+  {const s=document.createElement("div");s.id="in-shot";s.style.cssText="display:grid;gap:6px;justify-items:start";form.append(s)}
+  {const l=document.createElement("label");l.className="field";l.textContent=A?"قرار الحكم وملاحظتك":"Referee's decision and your note";const i=document.createElement("textarea");i.id="in-note";i.rows=2;l.append(i);form.append(l)}
+  const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ الحالة":"Save incident";
+  add.onclick=()=>{const tv=$("#in-t").value.trim().split(":").map(Number);const secs=tv.length===2?tv[0]*60+tv[1]:(+tv[0]||0);
+    anUpdate(a=>{a.inc.push({t:secs,min:$("#in-min").value.trim(),type:$("#in-type").value,ev:$("#in-ev").value,pos:$("#in-pos").value,law:$("#in-law").value,note:$("#in-note").value.trim(),...(anShot?{img:anShot}:{})});a.inc.sort((p,q)=>p.t-q.t)});anShot=null;renderAnalyze()};
+  form.append(add);box.append(form);renderShot();
+  const ls=document.createElement("article");ls.className="quiz";const lh=document.createElement("h3");lh.style.margin="0";
+  const inc=x.inc,cnt=k=>inc.filter(i=>i.ev===k).length,judged=inc.filter(i=>i.ev!=="jd").length;
+  lh.textContent=A?`الحالات (${inc.length})`:`Incidents (${inc.length})`;ls.append(lh);
+  if(inc.length){const s=document.createElement("p");s.className="muted";s.style.margin="0";s.textContent=(A?`صحيح ${cnt("ok")} · خاطئ ${cnt("bad")} · فائت ${cnt("miss")} · تقديري ${cnt("jd")}`:`Correct ${cnt("ok")} · Wrong ${cnt("bad")} · Missed ${cnt("miss")} · Judgement ${cnt("jd")}`)+(judged?` · ${A?"دقة القرارات":"Accuracy"} ${Math.round(cnt("ok")/judged*100)}%`:"");ls.append(s)}
+  inc.forEach((i,k)=>{const r=document.createElement("div");r.className="inc";const tb=document.createElement("button");tb.className="tbtn";tb.textContent=fmtT(i.t);tb.title=A?"انتقل لهذا الوقت":"Jump to time";
+    tb.onclick=()=>{const v=box.querySelector("video");if(v){v.currentTime=i.t;v.scrollIntoView({block:"center"})}};
+    const mid=document.createElement("div");mid.innerHTML="<div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center'><b></b><span class='ev'></span><span class='muted' style='font-size:.8rem'></span></div><div style='font-size:.9rem'></div>";
+    mid.querySelector("b").textContent=(i.min?i.min+"' · ":"")+lbl2(INC_T,i.type);const ev=mid.querySelector(".ev");ev.classList.add(i.ev);ev.textContent=lbl2(INC_E,i.ev);
+    mid.querySelector(".muted").textContent=[i.law&&(A?"القانون ":"Law ")+i.law,i.pos!=="na"&&lbl2(INC_P,i.pos)].filter(Boolean).join(" · ");mid.lastChild.textContent=i.note;if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;im.style.marginTop="6px";mid.append(im)}
+    const del=document.createElement("button");del.className="btn";del.textContent="🗑";del.onclick=()=>{anUpdate(a=>a.inc.splice(k,1));renderAnalyze()};r.append(tb,mid,del);ls.append(r)});
+  box.append(ls)}
+const AS_C=[["laws",["تطبيق القوانين","Application of the Laws"],30],["pos",["التمركز والحركة","Positioning and movement"],20],["fit",["اللياقة البدنية","Fitness"],10],["mgmt",["إدارة المباراة والشخصية","Match control and personality"],25],["team",["التعاون مع الحكام الآخرين","Teamwork with other officials"],10],["sig",["الإشارات والتواصل","Signals and communication"],5]];
+function renderAssess(){const box=$("#asBox");box.innerHTML="";const A=ar();box.append(backBtn("analyze"));const x=anCur();
+  if(!x){const p=document.createElement("p");p.textContent=A?"افتح أو أنشئ تحليل مباراة أولًا من «تحليل الحكم».":"Open or create a match analysis first in Referee analysis.";const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";b.onclick=()=>go("analyze");box.append(p,b);return}
+  const S=store.get("as:"+x.id,null)||{sc:{},diff:"mid",str:"",imp:"",who:"",date:new Date().toISOString().slice(0,10)};const save=()=>store.set("as:"+x.id,S);
+  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 تقرير المقيّم":"📝 Assessor's report";
+  hd.querySelector("p").textContent=A?"نموذج تدريبي من «قرار الحكم» لتقييم أداء الحكم، وليس نموذجًا رسميًا لأي اتحاد. المعايير وأوزانها قابلة للمراجعة.":"A Qarar Al-Hakam training form for assessing a referee; not an official form of any federation. Criteria and weights are open to review.";box.append(hd);
+  const info=document.createElement("article");info.className="quiz";info.innerHTML="<h2 style='margin:0'></h2><p style='margin:0'></p>";info.querySelector("h2").textContent=x.title;
+  info.querySelector("p").textContent=[x.comp,x.date,x.ref&&(A?"الحكم: ":"Referee: ")+x.ref].filter(Boolean).join(" · ");
+  const g=document.createElement("div");g.className="anform";
+  {const l=document.createElement("label");l.textContent=A?"اسم المقيّم":"Assessor";const i=document.createElement("input");i.value=S.who;i.oninput=()=>{S.who=i.value;save()};l.append(i);g.append(l)}
+  {const l=document.createElement("label");l.textContent=A?"تاريخ التقييم":"Date";const i=document.createElement("input");i.type="date";i.value=S.date;i.oninput=()=>{S.date=i.value;save()};l.append(i);g.append(l)}
+  {const l=document.createElement("label");l.textContent=A?"صعوبة المباراة":"Match difficulty";const s=document.createElement("select");[["easy",A?"سهلة":"Easy"],["mid",A?"متوسطة":"Normal"],["hard",A?"صعبة":"Difficult"]].forEach(([k,n])=>{const o=document.createElement("option");o.value=k;o.textContent=n;s.append(o)});s.value=S.diff;s.onchange=()=>{S.diff=s.value;save()};l.append(s);g.append(l)}
+  info.append(g);box.append(info);
+  const inc=x.inc,cnt=k=>inc.filter(i=>i.ev===k).length,judged=inc.filter(i=>i.ev!=="jd").length;
+  const st=document.createElement("article");st.className="quiz";const sh=document.createElement("h3");sh.style.margin="0";sh.textContent=A?"ملخص الحالات من التحليل":"Incidents from the analysis";st.append(sh);
+  const bx=document.createElement("div");bx.className="topics";bars(bx,[[A?"صحيح":"Correct",cnt("ok"),inc.length],[A?"خاطئ":"Wrong",cnt("bad"),inc.length],[A?"فائت":"Missed",cnt("miss"),inc.length],[A?"تقديري":"Judgement",cnt("jd"),inc.length]]);st.append(bx);
+  const acc=judged?Math.round(cnt("ok")/judged*100):null;const ap=document.createElement("p");ap.style.margin="0";ap.style.fontWeight="600";
+  ap.textContent=acc===null?(A?"لا توجد حالات مقيّمة بعد.":"No evaluated incidents yet."):(A?`دقة القرارات: ${acc}% (${cnt("ok")} من ${judged})`:`Decision accuracy: ${acc}% (${cnt("ok")} of ${judged})`);st.append(ap);
+  const key=inc.filter(i=>i.ev==="bad"||i.ev==="miss"||["pk","rc","goal"].includes(i.type));
+  if(key.length){const kh=document.createElement("strong");kh.textContent=A?"الحالات المهمة":"Key incidents";st.append(kh);key.forEach(i=>{const d=document.createElement("div");d.style.fontSize=".9rem";d.textContent=`${i.min?i.min+"'":fmtT(i.t)} · ${lbl2(INC_T,i.type)} · ${lbl2(INC_E,i.ev)}${i.law?" · "+(A?"القانون ":"Law ")+i.law:""}${i.note?" — "+i.note:""}`;st.append(d);if(i.img){const im=document.createElement("img");im.className="shot";im.src=i.img;st.append(im)}})}
+  box.append(st);
+  const sc=document.createElement("article");sc.className="quiz";const ch=document.createElement("h3");ch.style.margin="0";ch.textContent=A?"المعايير (من 10)":"Criteria (out of 10)";sc.append(ch);
+  const tot=document.createElement("p");tot.className="big";
+  const calc=()=>{let s=0,w=0;AS_C.forEach(([k,,wt])=>{if(S.sc[k]!=null){s+=S.sc[k]*wt;w+=wt}});const v=w?s/w:null;
+    tot.textContent=v===null?"—":`${v.toFixed(1)} / 10`;verdict.textContent=v===null?"":v>=8.5?(A?"أداء ممتاز":"Excellent"):v>=7.5?(A?"أداء جيد جدًا":"Very good"):v>=6.5?(A?"أداء جيد":"Good"):v>=5.5?(A?"مقبول":"Acceptable"):(A?"يحتاج تطوير":"Needs improvement")};
+  const verdict=document.createElement("p");verdict.style.cssText="margin:0;font-weight:600";
+  AS_C.forEach(([k,n,wt])=>{const r=document.createElement("div");r.className="score";const l=document.createElement("span");l.textContent=`${n[A?0:1]} (${wt}%)`;
+    const i=document.createElement("input");i.type="range";i.min=1;i.max=10;i.step=0.5;i.value=S.sc[k]??7;const v=document.createElement("b");v.textContent=S.sc[k]??"—";
+    i.oninput=()=>{S.sc[k]=+i.value;v.textContent=i.value;save();calc()};r.append(l,i,v);sc.append(r)});
+  sc.append(tot,verdict);calc();box.append(sc);
+  const tx=document.createElement("article");tx.className="quiz";[["str",A?"نقاط القوة":"Strengths"],["imp",A?"نقاط للتطوير":"Areas to improve"]].forEach(([k,n])=>{const l=document.createElement("label");l.className="field";l.textContent=n;const i=document.createElement("textarea");i.rows=3;i.value=S[k];i.oninput=()=>{S[k]=i.value;save()};l.append(i);tx.append(l)});box.append(tx);
+  const pr=document.createElement("button");pr.className="btn primary";pr.style.justifySelf="center";pr.textContent=A?"🖨 طباعة التقرير أو حفظه PDF":"🖨 Print or save as PDF";pr.onclick=()=>window.print();box.append(pr)}
 function renderTiles(){renderTrack();const box=$("#tiles");if(!box)return;box.innerHTML="";const A=ar(),m=mistakes().length;
   {const b=document.createElement("button");b.className="tile star";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="🏟";
    b.querySelector("span").textContent=A?"أدِر المباراة":"Referee the match";b.querySelector("small").textContent=A?"مباراة تفاعلية كاملة: قراراتك تُسجل وتؤثر على ما بعدها":"A full interactive match: your decisions are recorded and affect what follows";
@@ -995,6 +1144,9 @@ function renderTiles(){renderTrack();const box=$("#tiles");if(!box)return;box.in
   {const b=document.createElement("button");b.className="tile star";b.style.background="linear-gradient(135deg,#7A1E2C,#C2362B)";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="📚 "+bankPool().length;
    b.querySelector("span").textContent=A?"بنك الأسئلة":"Question bank";b.querySelector("small").textContent=A?"كل الأسئلة مختلطة من جميع القوانين: أسئلة، حالات، صح أم خطأ":"Every question mixed across all Laws: questions, cases, true or false";
    b.onclick=()=>{BK=null;go("bank")};box.append(b)}
+  {const b=document.createElement("button");b.className="tile star";b.style.background="linear-gradient(135deg,#1F2B5C,#1C7ED6)";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="🎥 📝";
+   b.querySelector("span").textContent=A?"تحليل الحكم وصفحة المقيّم":"Referee analysis & assessor page";b.querySelector("small").textContent=A?"صوّر أو اختر فيديو مباراة، سجّل الحالات بوقتها، ثم قيّم الحكم واطبع التقرير":"Record or pick a match video, log incidents by time, then assess the referee and print the report";
+   b.onclick=()=>{AN=null;go("analyze")};box.append(b)}
   [["new",NEW_DATA.items.length,A?"الجديد في 2026/27":"New in 2026/27",A?"تعديلات هذا الموسم":"This season's changes",()=>go("news")],
    ["",m,A?"راجع أخطاءك":"Review mistakes",m?(A?"أسئلة أخطأت فيها":"Questions you missed"):(A?"لا أخطاء حتى الآن":"No mistakes yet"),m?()=>go("review"):null],
    ["","⏱",A?"الاختبار الشامل":"Full exam",A?"بوقت محدد":"Timed",()=>go("exam")],
