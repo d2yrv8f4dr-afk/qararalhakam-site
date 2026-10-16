@@ -1622,6 +1622,8 @@ async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)re
   if(!l.error)SBD.lect=l.data;SBD.at=Date.now()}
 async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession();SBS.user=data.session?data.session.user:null;SBS.profile=null;SBS.admin=false;
   if(SBS.user){const [p,a]=await Promise.all([SB.from("profiles").select("*").eq("id",SBS.user.id).maybeSingle(),SB.rpc("is_admin")]);SBS.profile=p.data||null;SBS.admin=!!a.data}
+  if(SBS.user&&typeof idleCheck==="function"&&idleCheck())return;
+  if(SBS.user)store.set("lastActive",Date.now());
   SBS.member=false;SBS.mstatus="none";if(SBS.user){try{const {data:ms}=await SB.rpc("member_status");SBS.mstatus=ms||"pending"}catch(e){SBS.mstatus="pending"}SBS.member=SBS.admin||SBS.mstatus==="approved"}
   SBS.instr=false;if(SBS.member&&!SBS.admin){try{const {data:ii}=await SB.rpc("is_instructor");SBS.instr=!!ii}catch(e){}}
   if(SBS.member&&!CONTENT_LOADED)await loadContent();if(!DB)CAN_EDIT=!!SBS.admin;
@@ -1629,7 +1631,7 @@ async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession()
   const open=!!SBS.user&&SBS.member&&CONTENT_LOADED,was=document.body.classList.contains("locked");document.body.classList.remove("pending");document.body.classList.toggle("locked",!open);
   if(!open)go("account");else if(was||!UI_DONE){UI_DONE=true;applyLang();go("guide")}}
 function refreshOpen(){["clips","lectures","library","account"].forEach(v=>{if(!$("#v-"+v).hidden)({clips:renderClips,lectures:renderLectures,library:renderLibrary,account:renderAccount})[v]()})}
-if(SB){document.body.classList.add("pending");setTimeout(()=>{if(document.body.classList.contains("pending")){document.body.classList.remove("pending");document.body.classList.add("locked");go("account")}},8000);SB.auth.onAuthStateChange(()=>{sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
+if(SB){document.body.classList.add("pending");setTimeout(()=>{if(document.body.classList.contains("pending")){document.body.classList.remove("pending");document.body.classList.add("locked");go("account")}},8000);SB.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN")store.set("lastActive",Date.now());sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
 const COUNTRIES=[["SA","السعودية","Saudi Arabia"],["AE","الإمارات","UAE"],["KW","الكويت","Kuwait"],["QA","قطر","Qatar"],["BH","البحرين","Bahrain"],["OM","عُمان","Oman"],["EG","مصر","Egypt"],["JO","الأردن","Jordan"],["MA","المغرب","Morocco"],["DZ","الجزائر","Algeria"],["TN","تونس","Tunisia"],["IQ","العراق","Iraq"],["GB","بريطانيا","United Kingdom"],["ES","إسبانيا","Spain"],["IT","إيطاليا","Italy"],["DE","ألمانيا","Germany"],["FR","فرنسا","France"],["PT","البرتغال","Portugal"],["BR","البرازيل","Brazil"],["AR","الأرجنتين","Argentina"],["US","الولايات المتحدة","United States"],["XX","أخرى","Other"]];
 const GRADES=[["new","حكم مستجد","New referee"],["g3","درجة ثالثة","Grade 3"],["g2","درجة ثانية","Grade 2"],["g1","درجة أولى","Grade 1"],["elite","نخبة","Elite"],["fifa","دولي (FIFA)","International (FIFA)"],["instr","محاضر","Instructor"],["assessor","مقيّم","Assessor"],["fan","مهتم","Enthusiast"]];
 const nm=(arr,k)=>{const r=arr.find(x=>x[0]===k);return r?r[ar()?1:2]:""};
@@ -1655,11 +1657,11 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
   go1.onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!/^\S+@\S+\.\S+$/.test(e)||p.length<8){msg.textContent=A?"أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل.":"Enter a valid email and a password of 8+ characters.";return}
     go1.disabled=true;msg.textContent=A?"لحظة…":"One moment…";
     if(mode==="up"){const prof=pf.read();if(!prof){go1.disabled=false;msg.textContent=A?"اكتب اسمك (حرفان على الأقل).":"Enter your name (2+ characters).";return}
-      const {data,error}=await SB.auth.signUp({email:e,password:p,options:{data:{name:prof.name}}});
+      store.set("lastActive",Date.now());const {data,error}=await SB.auth.signUp({email:e,password:p,options:{data:{name:prof.name}}});
       if(error){go1.disabled=false;msg.textContent=(A?"تعذر إنشاء الحساب: ":"Sign-up failed: ")+error.message;return}
       if(data.session){await SB.from("profiles").upsert({id:data.user.id,...prof});await sbSession();renderAccount();return}
       store.set("pendingProfile",prof);go1.disabled=false;msg.textContent=A?"تم إنشاء الحساب. افتح بريدك واضغط رابط التأكيد، ثم سجّل الدخول.":"Account created. Confirm from your email, then sign in.";return}
-    const {error}=await SB.auth.signInWithPassword({email:e,password:p});go1.disabled=false;
+    store.set("lastActive",Date.now());const {error}=await SB.auth.signInWithPassword({email:e,password:p});go1.disabled=false;store.set("lastActive",Date.now());
     if(error){msg.textContent=(A?"تعذر الدخول: ":"Sign-in failed: ")+error.message;return}
     await sbSession();const pend=store.get("pendingProfile",null);if(!SBS.profile&&pend){await SB.from("profiles").upsert({id:SBS.user.id,...pend});store.set("pendingProfile",null);await sbSession()}renderAccount()};
   art.append(go1,msg);box.append(art)}
@@ -2104,7 +2106,7 @@ function asDemo(){const A=ar(),id="demo";const old=anList().filter(x=>x.id!==id)
 async function loadContent(){try{const {data,error}=await SB.from("content").select("key,data");if(error||!data||!data.length)return false;const m={};data.forEach(r=>m[r.key]=r.data);
   const L={};Object.keys(m).filter(k=>k.startsWith("law-")).forEach(k=>L[k.slice(4)]=m[k]);if(!Object.keys(L).length)return false;
   LAW_DATA=L;if(m.new)NEW_DATA=m.new;if(m.matches)MATCH_DATA=m.matches;if(m.vcases)VC_DATA=m.vcases;if(m.clips)CLIP_DATA=m.clips;if(m.lectures)LECT_DATA=m.lectures;if(m.links)LINK_DATA=m.links;if(m.edits)EDITS=m.edits;CONTENT_LOADED=true;return true}catch(e){return false}}
-function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){store.set("idleOut",0);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 30 دقيقة دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 30 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
+function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){clearTimeout(window.__idleClr);window.__idleClr=setTimeout(()=>store.set("idleOut",0),4000);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 30 دقيقة دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 30 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
   const [h,p]=!SBS.user?[A?"أهلًا بك في منصة الحكام":"Welcome to the referees' platform",A?"سجّل الدخول أو أنشئ حسابًا جديدًا. يراجع المشرف كل حساب جديد قبل فتح المنصة.":"Sign in or create an account. The admin reviews every new account before the platform opens."]
     :!SBS.member?(SBS.mstatus==="rejected"?[A?"❌ لم تتم الموافقة على حسابك":"❌ Your account was not approved",A?"تواصل مع إدارة المنصة إذا كنت ترى أن هناك خطأ.":"Contact the platform team if you think this is a mistake."]:[A?"⏳ حسابك بانتظار موافقة المشرف":"⏳ Your account is waiting for approval",A?"وصل طلبك للمشرف. أكمل بياناتك أدناه ليتعرّف عليك، وستُفتح المنصة بعد الموافقة.":"Your request reached the admin. Complete your details below so they know you; the platform opens once approved."])
     :SBS.admin?[A?"📦 ارفع محتوى المنصة":"📦 Upload the platform content",A?"المحتوى لم يُرفع للخادم بعد. ارفع ملف المحتوى من الأسفل لتفتح المنصة للأعضاء.":"The content is not on the server yet. Upload the content file below to open the platform for members."]
@@ -2493,8 +2495,12 @@ async function signOutNow(){try{await Promise.race([SB.auth.signOut({scope:"loca
 const paintTheme=()=>{const t=store.get("theme",null);if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;const dark=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;$("#themeBtn").textContent=dark?"☀️":"🌙";$("#themeBtn").title=ar()?(dark?"الوضع النهاري":"الوضع الليلي"):(dark?"Day mode":"Night mode")};
 $("#themeBtn").onclick=()=>{const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;store.set("theme",dark?"light":"dark");paintTheme()};paintTheme();
 /* sign out automatically after 30 minutes without any activity (public site) */
-{let idleAt=Date.now();["pointerdown","keydown","scroll","touchstart"].forEach(e=>addEventListener(e,()=>idleAt=Date.now(),{passive:true}));
- setInterval(()=>{if(SB&&SBS.user&&Date.now()-idleAt>30*60*1000){idleAt=Date.now();store.set("idleOut",1);signOutNow()}},30000)}
+/* the last activity time is kept on the device, so closing the app and coming back later also counts as idle */
+const IDLE_MS=30*60*1000;let idleAt=Number(store.get("lastActive",0))||Date.now();
+const touchActive=()=>{const n=Date.now();if(n-idleAt>15000){idleAt=n;store.set("lastActive",n)}else idleAt=n};
+["pointerdown","keydown","scroll","touchstart"].forEach(e=>addEventListener(e,touchActive,{passive:true}));
+const idleCheck=()=>{if(SB&&SBS.user&&Date.now()-Math.max(idleAt,Number(store.get("lastActive",0))||0)>IDLE_MS){idleAt=Date.now();store.set("lastActive",idleAt);store.set("idleOut",1);signOutNow();return true}return false};
+setInterval(idleCheck,30000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)idleCheck()});addEventListener("pageshow",()=>idleCheck());
 $("#langBtn").onclick=()=>{lang=ar()?"en":"ar";store.set("lang",lang);applyLang()};
 lang=store.get("lang","ar");applyLang();
 </script>
