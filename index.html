@@ -844,7 +844,7 @@ function renderExam(){const box=$("#examBox");box.innerHTML="";const A=ar();
   const nx=document.createElement("button");nx.className="btn";nx.textContent=A?"التالي ←":"Next →";nx.disabled=EX.i===n-1;nx.onclick=()=>{EX.i++;renderExam()};
   nv.append(pv,nx);box.append(nv);
   const fin=document.createElement("button");fin.className="btn primary";fin.style.justifySelf="center";fin.textContent=A?"إنهاء الاختبار وعرض النتيجة":"Finish and see result";
-  fin.onclick=()=>{if(answered<n&&!confirm(A?`لم تُجب على ${n-answered} سؤال. إنهاء الاختبار؟`:`${n-answered} unanswered. Finish anyway?`))return;finishExam()};box.append(fin);
+  fin.onclick=()=>{if(answered<n&&!ask2(fin,A?`لم تُجب على ${n-answered} سؤال. اضغط مرة ثانية للإنهاء`:`${n-answered} unanswered. Tap again to finish`))return;finishExam()};box.append(fin);
 }
 /* home extras: what's new, case of the day, review mistakes */
 function mistakes(){const out=[];LAW_IDS().forEach(l=>{LAW_DATA[l].parts.forEach((_,i)=>{const a=ans(l,i);quizOf(l,i).forEach((q,qi)=>{if(a[qi]===false)out.push({law:l,part:i,qi,q})})});
@@ -1096,7 +1096,7 @@ function renderAnalyze(){const box=$("#anBox");box.innerHTML="";const A=ar();box
       L.forEach(x=>{const r=document.createElement("div");r.className="inc";r.style.gridTemplateColumns="1fr auto auto";r.innerHTML="<div><b></b><div class='muted' style='font-size:.85rem'></div></div>";
         r.querySelector("b").textContent=x.title;r.querySelector(".muted").textContent=[x.comp,x.date,x.ref,`${x.inc.length} ${A?"حالة":"incidents"}`].filter(Boolean).join(" · ");
         const o=document.createElement("button");o.className="btn";o.textContent=A?"فتح":"Open";o.onclick=()=>{AN=x.id;anVideo=null;renderAnalyze()};
-        const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{if(confirm(A?"حذف هذا التحليل؟":"Delete this analysis?")){anSave(anList().filter(y=>y.id!==x.id));store.set("as:"+x.id,null);renderAnalyze()}};
+        const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{if(ask2(d,A?"اضغط مرة ثانية للحذف":"Tap again to delete")){anSave(anList().filter(y=>y.id!==x.id));store.set("as:"+x.id,null);renderAnalyze()}};
         r.append(o,d);ls.append(r)});box.append(ls)}
     return}
   const x=anCur();const top=document.createElement("article");top.className="quiz";top.innerHTML="<h2 style='margin:0'></h2><p class='muted' style='margin:0'></p>";
@@ -1289,7 +1289,7 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
   box.append(hd,v,ctl,info);
   if(c.w){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
   const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المقاطع":"All clips";all.onclick=()=>{CLi=null;renderClips()};nav.append(all);
-  if(c.mine){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع":"🗑 Delete clip";del.onclick=()=>{if(!confirm(A?"حذف المقطع؟":"Delete clip?"))return;store.set("myclips",store.get("myclips",[]).filter(x=>x.id!==c.id));CLi=null;renderClips()};nav.append(del)}
+  if(c.mine){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع":"🗑 Delete clip";del.onclick=()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;store.set("myclips",store.get("myclips",[]).filter(x=>x.id!==c.id));CLi=null;renderClips()};nav.append(del)}
   box.append(nav)}
 /* video library hub and lectures (recorded + live) */
 function renderLibrary(){const box=$("#libBox");box.innerHTML="";const A=ar();box.append(backBtn("guide"));
@@ -1319,7 +1319,7 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
       art.querySelector(".muted").textContent=[x.lecturer&&(A?"المحاضر: ":"Lecturer: ")+x.lecturer,x.date,x.law&&(A?"القانون ":"Law ")+x.law].filter(Boolean).join(" · ");art.querySelectorAll("p")[1].textContent=x.desc||"";
       {const a=document.createElement("a");a.className=videoEmbed(x.url)?"btn":"btn primary";a.href=x.url;a.target="_blank";a.rel="noopener";a.style.justifySelf="start";a.textContent=videoEmbed(x.url)?(A?"إذا لم يعمل المشغّل: افتح التسجيل ↗":"If the player fails: open the recording ↗"):(A?"▶ شاهد التسجيل ↗":"▶ Watch the recording ↗");art.append(a)}
       const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المحاضرات":"All lectures";all.onclick=()=>{LECi=null;renderLectures()};nav.append(all);
-      if(x.mine){const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.onclick=()=>{if(!confirm(A?"حذف المحاضرة؟":"Delete?"))return;const m=mine();m.recorded=m.recorded.filter(y=>y.id!==x.id);saveMine(m);LECi=null;renderLectures()};nav.append(d)}
+      if(x.mine){const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.onclick=()=>{if(!ask2(d,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;const m=mine();m.recorded=m.recorded.filter(y=>y.id!==x.id);saveMine(m);LECi=null;renderLectures()};nav.append(d)}
       art.append(nav);box.append(art);return}
     if(L.recorded.length){const l=document.createElement("div");l.className="vclist";L.recorded.forEach((x,i)=>{const b=document.createElement("button");b.className="vccard";const y=ytId(x.url);
       b.innerHTML=(y?`<img style="width:100%;border-radius:8px;aspect-ratio:16/9;object-fit:cover" alt="" src="https://i.ytimg.com/vi/${y}/mqdefault.jpg">`:`<div style="aspect-ratio:16/9;border-radius:8px;background:var(--night);display:grid;place-items:center;font-size:2rem">🎓</div>`)+"<b></b><small></small>";
@@ -1342,7 +1342,7 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
     const jr=document.createElement("a");jr.className=x.link?"btn":"btn primary";jr.href=`https://meet.jit.si/${room}`;jr.target="_blank";jr.rel="noopener";jr.textContent=A?"🔴 ادخل غرفة البث المجانية ↗":"🔴 Enter the free live room ↗";ctl.append(jr);
     const nt=document.createElement("p");nt.className="muted";nt.style.cssText="margin:0;font-size:.8rem;line-height:1.7";nt.textContent=A?"غرفة البث بخدمة Jitsi المجانية: كاميرا وصوت ومشاركة شاشة، بلا اشتراك. تُفتح في صفحة مستقلة (أو تطبيق Jitsi على الجوال)، وكل من يفتح هذه المحاضرة يدخل الغرفة نفسها. المحاضر يسجل الدخول بحساب جوجل لبدء الغرفة.":"Free Jitsi room: camera, audio and screen sharing, no subscription. It opens in its own page (or the Jitsi app on phones); everyone opening this lecture joins the same room. The lecturer signs in with Google to start it.";
     art.append(ctl,nt);const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المواعيد":"All sessions";all.onclick=()=>{LECi=null;renderLectures()};nav.append(all);
-    if(x.mine){const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.onclick=()=>{if(!confirm(A?"حذف الموعد؟":"Delete?"))return;const m=mine();m.live=m.live.filter(y=>y.id!==x.id);saveMine(m);LECi=null;renderLectures()};nav.append(d)}
+    if(x.mine){const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.onclick=()=>{if(!ask2(d,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;const m=mine();m.live=m.live.filter(y=>y.id!==x.id);saveMine(m);LECi=null;renderLectures()};nav.append(d)}
     art.append(nav);box.append(art);return}
   const up=L.live.map((x,i)=>[x,i]).filter(([x])=>new Date(x.when).getTime()+3*36e5>now);
   if(up.length){const l=document.createElement("div");l.style.cssText="display:grid;gap:8px";up.forEach(([x,i])=>{const b=document.createElement("button");b.className="vccard";const ms=new Date(x.when).getTime()-now;
@@ -1357,6 +1357,9 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
     const m=mine();m.live.push({id:"l"+Date.now(),title:t1.value.trim(),lecturer:t2.value.trim(),when:new Date(t3.value).toISOString(),link:t4.value.trim()});saveMine(m);renderLectures()};
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.8rem";tip.textContent=A?"الموعد يُحفظ في هذا الجهاز؛ لنشره للحكام أرسل التفاصيل ليُضاف للمنصة.":"Saved on this device; send the details to publish it for referees.";
   f.append(add,msg,tip);box.append(f)}
+/* two-tap confirmation (browser confirm dialogs are blocked in some views) */
+function ask2(b,msg){if(b.dataset.arm)return true;b.dataset.arm=1;const old=b.textContent;b.textContent=msg;b.style.background="var(--red)";b.style.color="#fff";
+  setTimeout(()=>{if(!b.isConnected)return;delete b.dataset.arm;b.textContent=old;b.style.background="";b.style.color=""},4000);return false}
 function renderTiles(){renderTrack();const box=$("#tiles");if(!box)return;box.innerHTML="";const A=ar(),m=mistakes().length;
   {const b=document.createElement("button");b.className="tile star";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent="🏟";
    b.querySelector("span").textContent=A?"أدِر المباراة":"Referee the match";b.querySelector("small").textContent=A?"مباراة تفاعلية كاملة: قراراتك تُسجل وتؤثر على ما بعدها":"A full interactive match: your decisions are recorded and affect what follows";
