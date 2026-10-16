@@ -1624,7 +1624,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
     art.querySelector(".muted").textContent=SBS.user.email;art.querySelectorAll("p")[1].textContent=P?[nm(COUNTRIES,P.country),nm(GRADES,P.grade)].filter(Boolean).join(" · "):"";
     if(SBS.admin){const b=document.createElement("p");b.style.cssText="margin:0;font-weight:600;color:var(--pitch)";b.textContent=A?"🛡 مدير المنصة: تنشر المقاطع والمحاضرات لكل المستخدمين من المكتبة.":"🛡 Platform admin: publish clips and lectures to everyone from the library.";art.append(b)}
     if(!P)art.append(profileForm());if(SBS.admin){const tok=box.dataset.r=String(Math.random());setTimeout(()=>{if(box.dataset.r!==tok)return;box.append(contentAdminEl(),membersAdminEl());if(CONTENT_LOADED)box.append(aiAdminEl())})}
-    const out=document.createElement("button");out.className="btn";out.style.justifySelf="start";out.textContent=A?"تسجيل الخروج":"Sign out";out.onclick=async()=>{await SB.auth.signOut();await sbSession();renderAccount()};art.append(out);box.append(art);return}
+    const out=document.createElement("button");out.className="btn";out.style.justifySelf="start";out.textContent=A?"تسجيل الخروج":"Sign out";out.onclick=()=>signOutNow();art.append(out);box.append(art);return}
   const art=document.createElement("article");art.className="quiz";let mode=store.get("acmode","up");
   const tabs=document.createElement("div");tabs.className="lvl";[["up",A?"حساب جديد":"Sign up"],["in",A?"تسجيل الدخول":"Sign in"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",mode===k);b.onclick=()=>{store.set("acmode",k);renderAccount()};tabs.append(b)});art.append(tabs);
   const g=document.createElement("div");g.className="anform";const fld=(id,n,type,ph)=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.id=id;i.type=type||"text";if(ph)i.placeholder=ph;l.append(i);g.append(l);return i};
@@ -2319,12 +2319,15 @@ document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go)
 document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.onclick=()=>{const v=b.dataset.tab;if(v==="guide"&&!$("#lawView").hidden)closeLaw();go(v)});
 $("#backBtn").onclick=closeLaw;$("#q").addEventListener("input",renderSearch);
 $("#acctBtn").onclick=()=>go("account");
+/* sign out: clear the session on this device right away (no waiting on the server), then reload so no content stays in memory */
+async function signOutNow(){try{await Promise.race([SB.auth.signOut({scope:"local"}),new Promise(r=>setTimeout(r,2500))])}catch(e){}
+  try{Object.keys(localStorage).filter(k=>/^sb-.*-auth-token$/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}
 /* day / night: follows the device until the user picks one */
 const paintTheme=()=>{const t=store.get("theme",null);if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;const dark=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;$("#themeBtn").textContent=dark?"☀️":"🌙";$("#themeBtn").title=ar()?(dark?"الوضع النهاري":"الوضع الليلي"):(dark?"Day mode":"Night mode")};
 $("#themeBtn").onclick=()=>{const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;store.set("theme",dark?"light":"dark");paintTheme()};paintTheme();
 /* sign out automatically after 30 minutes without any activity (public site) */
 {let idleAt=Date.now();["pointerdown","keydown","scroll","touchstart"].forEach(e=>addEventListener(e,()=>idleAt=Date.now(),{passive:true}));
- setInterval(async()=>{if(SB&&SBS.user&&Date.now()-idleAt>30*60*1000){idleAt=Date.now();await SB.auth.signOut();await sbSession();store.set("idleOut",1);if(!$("#v-account").hidden)renderAccount()}},30000)}
+ setInterval(()=>{if(SB&&SBS.user&&Date.now()-idleAt>30*60*1000){idleAt=Date.now();store.set("idleOut",1);signOutNow()}},30000)}
 $("#langBtn").onclick=()=>{lang=ar()?"en":"ar";store.set("lang",lang);applyLang()};
 lang=store.get("lang","ar");applyLang();
 </script>
