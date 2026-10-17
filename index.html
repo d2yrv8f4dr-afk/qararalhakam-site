@@ -229,6 +229,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .gpsw{display:grid;gap:10px}.gpsvg{width:100%;height:auto;border-radius:10px;display:block}.gpbg{fill:#2f7a45}.gpl{fill:none;stroke:#fff;stroke-width:.35;opacity:.9}.gpd{fill:#fff}.gpath{fill:none;stroke:#ffe14d;stroke-width:.45;stroke-linejoin:round;opacity:.85}.gptrim{display:grid;gap:4px}.gptrim label{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:8px;font-size:.85rem}.gpzones{display:grid;gap:6px}.gpz{display:grid;grid-template-columns:150px 1fr 110px;align-items:center;gap:8px;font-size:.82rem}@media(max-width:520px){.gpz{grid-template-columns:1fr 90px}.gpz .stbar{grid-column:1/-1;grid-row:2}}
 .camt{display:grid;gap:10px;border:2px solid var(--pitch);border-radius:14px;padding:12px}.camhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.camstage{position:relative;line-height:0;border-radius:10px;overflow:hidden;background:#000}.camstage video{width:100%;height:auto;display:block}.camstage canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:manipulation}.camscrub{width:100%}
 .anspick{display:grid;gap:6px}.anspick .btn{justify-self:stretch;text-align:start;white-space:normal}
+.clipedit{gap:10px}.clipedit summary{cursor:pointer;font-weight:700}.clipedit[open]{display:grid}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -1583,7 +1584,16 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
   if(c.server)box.append(pollEl(c),commentsEl(c));
   if(c.w&&!c.server){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
   const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المقاطع":"All clips";all.onclick=()=>{CLi=null;renderClips()};nav.append(all);
-  if(c.server&&SB&&(SBS.admin||(SBS.instr&&c.by===SBS.user?.id))){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع للجميع":"🗑 Delete clip for everyone";
+  if(c.server&&SB&&(SBS.admin||(SBS.instr&&c.by===SBS.user?.id))){
+    /* fix a published clip: poll options, answer and the reasoning */
+    const ed=document.createElement("details");ed.className="quiz clipedit";const es=document.createElement("summary");es.textContent=A?"✏️ تعديل الخيارات والإجابة":"✏️ Edit options and answer";ed.append(es);
+    ed.ontoggle=()=>{if(!ed.open||ed.dataset.built)return;ed.dataset.built=1;const po=pollOptsEl("blank",{options:c.options||[],answer:c.answer});const why=document.createElement("textarea");why.rows=2;why.value=c.w||"";why.placeholder=A?"القرار الصحيح والتعليل":"Correct decision and reasoning";why.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px";
+      const note=document.createElement("small");note.className="muted";note.textContent=A?"تنبيه: الأصوات السابقة محفوظة برقم الخيار. إذا غيّرت ترتيب الخيارات أو معناها تغيّرت نتائجها.":"Note: earlier votes are stored by option number; changing the order or meaning changes their results.";
+      const sv=document.createElement("button");sv.className="btn primary";sv.style.justifySelf="start";sv.textContent=A?"💾 حفظ التعديل":"💾 Save changes";const m=document.createElement("small");m.className="muted";
+      sv.onclick=async()=>{const pv=po.read();if(pv.err){m.textContent=pv.err;return}sv.disabled=true;m.textContent=A?"جارٍ الحفظ…":"Saving…";const {error}=await SB.from("clips").update({options:pv.options,answer:pv.answer,why:why.value.trim()||null}).eq("id",c.sid);sv.disabled=false;
+        if(error){m.textContent=(A?"تعذر الحفظ: ":"Could not save: ")+error.message;return}await sbLoad(true);renderClips()};
+      ed.append(po,why,note,sv,m)};box.append(ed);
+    const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع للجميع":"🗑 Delete clip for everyone";
     del.onclick=async()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;const {error}=await SB.from("clips").delete().eq("id",c.sid);if(error){alert(error.message);return}if(c.vp)await SB.storage.from("clips").remove([c.vp]).catch(()=>{});await sbLoad(true);CLi=null;renderClips()};box.append(del)}
   if(c.mine){const del=document.createElement("button");del.className="btn";del.textContent=A?"🗑 حذف المقطع":"🗑 Delete clip";del.onclick=()=>{if(!ask2(del,A?"اضغط مرة ثانية للحذف":"Tap again to delete"))return;store.set("myclips",store.get("myclips",[]).filter(x=>x.id!==c.id));CLi=null;renderClips()};nav.append(del)}
   box.append(nav)}
@@ -2665,7 +2675,7 @@ function backupAdminEl(){const A=ar(),art=document.createElement("article");art.
     st.className="muted";st.textContent=A?`✓ آخر نسخة: ${new Date().toLocaleDateString("en-GB")}`:`✓ Last backup: ${new Date().toLocaleDateString("en-GB")}`};
   return art}
 /* poll options for a clip: ready sets per incident, 2 to 4 options, the correct answer chosen by its text */
-function pollOptsEl(start){const A=ar(),w=document.createElement("div");w.className="opt4";const h=document.createElement("strong");h.textContent=A?"🗳 خيارات التصويت (من 2 إلى 4)":"🗳 Poll options (2 to 4)";w.append(h);
+function pollOptsEl(start,init){const A=ar(),w=document.createElement("div");w.className="opt4";const h=document.createElement("strong");h.textContent=A?"🗳 خيارات التصويت (من 2 إلى 4)":"🗳 Poll options (2 to 4)";w.append(h);
   const PRE=[["foul",A?"خطأ وعقوبة":"Foul & sanction",A?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"]],
     ["off",A?"تسلل":"Offside",A?["تسلل: ركلة حرة غير مباشرة","ليس تسللًا: استمرار اللعب","ليس تسللًا: المدافع لعب الكرة عمدًا",""]:["Offside: indirect free kick","Not offside: play on","Not offside: the defender deliberately played the ball",""]],
     ["hand",A?"لمسة يد":"Handball",A?["ليست مخالفة: استمرار اللعب","لمسة يد مخالفة: ركلة حرة أو جزاء","لمسة يد مخالفة + إنذار 🟨","لمسة يد منعت هدفًا: طرد 🟥"]:["Not an offence: play on","Handball offence: free kick or penalty","Handball offence + caution 🟨","Handball denied a goal: sending-off 🟥"]],
@@ -2682,6 +2692,7 @@ function pollOptsEl(start){const A=ar(),w=document.createElement("div");w.classN
   const fill=k=>{const P=PRE.find(z=>z[0]===k)||PRE[0];optsIn.forEach((i,j)=>i.value=P[2][j]||"");ansSel=null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z.dataset.k===P[0]));paintAns()};
   PRE.forEach(([k,n2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.style.fontSize=".85rem";b.dataset.k=k;b.textContent=n2;b.onclick=()=>fill(k);pr.append(b)});
   w.append(ah,ch);fill(start||"foul");
+  if(init){optsIn.forEach((i,j)=>i.value=(init.options||[])[j]||"");ansSel=init.answer??null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed","false"));paintAns()}
   w.read=()=>{const raw=optsIn.map(i=>i.value.trim()),options=raw.filter(Boolean);
     if(options.length<2)return {err:A?"اكتب خيارين على الأقل.":"Write at least two options."};
     if(new Set(options.map(o=>o.replace(/\s+/g," ").toLowerCase())).size!==options.length)return {err:A?"يوجد خيار مكرر. اجعل كل خيار مختلفًا.":"Two options are the same. Make each one different."};
