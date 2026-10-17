@@ -220,6 +220,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .aisoon{border:2px dashed var(--line);text-align:center}.aisoon b{font-size:1.3rem}.aisoon p{margin:6px 0}.aisoon ul{margin:0;text-align:start;display:grid;gap:4px}
 .assync{display:block;margin-top:-4px}.assync[data-state=wait]{color:#c77700}.assync[data-state=miss]{color:var(--red)}.rlist{display:grid;gap:8px;max-height:420px;overflow:auto}.rrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.rrow>div{display:grid;min-width:0}.rrow b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linkbtn{background:none;border:0;padding:0;color:var(--pitch);font:inherit;text-decoration:underline;cursor:pointer;justify-self:start}.pwbox summary{cursor:pointer;font-weight:600}.pwbox .anform{margin-top:8px}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -1639,6 +1640,8 @@ function ask2(b,msg){if(b.dataset.arm)return true;b.dataset.arm=1;const old=b.te
   setTimeout(()=>{if(!b.isConnected)return;delete b.dataset.arm;b.textContent=old;b.style.background="";b.style.color=""},4000);return false}
 /* shared backend (Supabase): accounts, decision polls, comments, published clips and lectures */
 const SB_URL="https://lrjxrkbjllincxymlcys.supabase.co",SB_KEY="sb_publishable_CaNlrqXsLSqdXmMKdROiMw_eqPOTluQ";
+/* a password-reset link lands here with #…type=recovery: keep that session alive until the new password is saved */
+let RECOVER=/type=recovery/.test(location.hash);if(RECOVER)store.set("lastActive",Date.now());
 let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){SB=null}
 const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const AI_SOON=CONTENT_REMOTE;const SBD={clips:[],lect:[],at:0};
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
@@ -1655,9 +1658,10 @@ async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession()
   if(SBS.member){await sbLoad(true);await loadAnn();asPull()}
   SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤";
   const open=!!SBS.user&&SBS.member&&CONTENT_LOADED,was=document.body.classList.contains("locked");document.body.classList.remove("pending");document.body.classList.toggle("locked",!open);
+  if(RECOVER&&SBS.user){go("account");return}
   if(!open)go("account");else if(was||!UI_DONE){UI_DONE=true;applyLang();go("guide")}}
 function refreshOpen(){["clips","lectures","library","account"].forEach(v=>{if(!$("#v-"+v).hidden)({clips:renderClips,lectures:renderLectures,library:renderLibrary,account:renderAccount})[v]()})}
-if(SB){document.body.classList.add("pending");setTimeout(()=>{if(document.body.classList.contains("pending")){document.body.classList.remove("pending");document.body.classList.add("locked");go("account")}},8000);SB.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN")store.set("lastActive",Date.now());sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
+if(SB){document.body.classList.add("pending");setTimeout(()=>{if(document.body.classList.contains("pending")){document.body.classList.remove("pending");document.body.classList.add("locked");go("account")}},8000);SB.auth.onAuthStateChange((ev)=>{if(ev==="PASSWORD_RECOVERY"){RECOVER=true;store.set("lastActive",Date.now())}if(ev==="SIGNED_IN")store.set("lastActive",Date.now());sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
 const COUNTRIES=[["SA","السعودية","Saudi Arabia"],["AE","الإمارات","UAE"],["KW","الكويت","Kuwait"],["QA","قطر","Qatar"],["BH","البحرين","Bahrain"],["OM","عُمان","Oman"],["EG","مصر","Egypt"],["JO","الأردن","Jordan"],["MA","المغرب","Morocco"],["DZ","الجزائر","Algeria"],["TN","تونس","Tunisia"],["IQ","العراق","Iraq"],["GB","بريطانيا","United Kingdom"],["ES","إسبانيا","Spain"],["IT","إيطاليا","Italy"],["DE","ألمانيا","Germany"],["FR","فرنسا","France"],["PT","البرتغال","Portugal"],["BR","البرازيل","Brazil"],["AR","الأرجنتين","Argentina"],["US","الولايات المتحدة","United States"],["XX","أخرى","Other"]];
 const GRADES=[["new","حكم مستجد","New referee"],["g3","درجة ثالثة","Grade 3"],["g2","درجة ثانية","Grade 2"],["g1","درجة أولى","Grade 1"],["elite","نخبة","Elite"],["fifa","دولي (FIFA)","International (FIFA)"],["instr","محاضر","Instructor"],["assessor","مقيّم","Assessor"],["fan","مهتم","Enthusiast"]];
 const nm=(arr,k)=>{const r=arr.find(x=>x[0]===k);return r?r[ar()?1:2]:""};
@@ -1668,11 +1672,15 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
   hd.querySelector("p").textContent=A?"الحساب يتيح لك التصويت في «شاركنا قرارك» والتعليق والنقاش مع حكام من السعودية والعالم.":"An account lets you vote in “Your call”, comment and discuss with referees from Saudi Arabia and worldwide.";box.append(hd);
   if(!SB){const p=document.createElement("p");p.className="tip";p.textContent=A?"الحسابات تعمل على رابط المنصة العام (github.io أو qararalhakam.com)، لا في هذا العرض.":"Accounts work on the public site (github.io or qararalhakam.com), not in this view.";box.append(p);return}
   if(!SBS.ready){const p=document.createElement("p");p.className="muted";p.textContent=A?"جارٍ التحميل…":"Loading…";box.append(p);return}
+  if(SBS.user&&RECOVER){const art=document.createElement("article");art.className="quiz";const h=document.createElement("h2");h.style.margin="0";h.textContent=A?"🔑 اختر كلمة مرور جديدة":"🔑 Choose a new password";
+    const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=SBS.user.email;art.append(h,p,pwFormEl(()=>{RECOVER=false;try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}store.set("pwDone",1);sbSession().then(()=>go("account"))}));box.append(art);return}
   if(SBS.user){const art=document.createElement("article");art.className="quiz";const P=SBS.profile;
+    if(store.get("pwDone",0)){clearTimeout(window.pwT);window.pwT=setTimeout(()=>store.set("pwDone",0),3000);const ok=document.createElement("p");ok.className="tip";ok.textContent=A?"✓ تم تغيير كلمة المرور. استخدمها في المرة القادمة.":"✓ Password changed. Use it next time.";box.append(ok)}
     art.innerHTML="<h2 style='margin:0'></h2><p class='muted' style='margin:0'></p><p style='margin:0'></p>";art.querySelector("h2").textContent=(P?P.name:SBS.user.email)+(SBS.admin?" 🛡":"");
     art.querySelector(".muted").textContent=SBS.user.email;art.querySelectorAll("p")[1].textContent=P?[nm(COUNTRIES,P.country),nm(GRADES,P.grade)].filter(Boolean).join(" · "):"";
     if(SBS.admin){const b=document.createElement("p");b.style.cssText="margin:0;font-weight:600;color:var(--pitch)";b.textContent=A?"🛡 مدير المنصة: تنشر المقاطع والمحاضرات لكل المستخدمين من المكتبة.":"🛡 Platform admin: publish clips and lectures to everyone from the library.";art.append(b)}
-    if(!P)art.append(profileForm());if(SBS.admin){const tok=box.dataset.r=String(Math.random());setTimeout(()=>{if(box.dataset.r!==tok)return;if(CONTENT_LOADED)box.append(statsAdminEl());box.append(membersAdminEl());if(CONTENT_LOADED)box.append(suggestAdminEl(),annAdminEl(),mediaAdminEl());box.append(contentAdminEl());if(CONTENT_LOADED)box.append(aiAdminEl(),paymentsAdminEl())})}
+    if(!P)art.append(profileForm());if(SBS.admin){const tok=box.dataset.r=String(Math.random());setTimeout(()=>{if(box.dataset.r!==tok)return;if(CONTENT_LOADED)box.append(statsAdminEl(),backupAdminEl());box.append(membersAdminEl());if(CONTENT_LOADED)box.append(suggestAdminEl(),annAdminEl(),mediaAdminEl());box.append(contentAdminEl());if(CONTENT_LOADED)box.append(aiAdminEl(),paymentsAdminEl())})}
+    const cp=document.createElement("details");cp.className="pwbox";const cs=document.createElement("summary");cs.textContent=A?"🔑 تغيير كلمة المرور":"🔑 Change password";cp.append(cs,pwFormEl(()=>{store.set("pwDone",1);renderAccount()}));art.append(cp);
     const out=document.createElement("button");out.className="btn";out.style.justifySelf="start";out.textContent=A?"تسجيل الخروج":"Sign out";out.onclick=()=>signOutNow();art.append(out);box.append(art);return}
   const art=document.createElement("article");art.className="quiz";let mode=store.get("acmode","up");
   const tabs=document.createElement("div");tabs.className="lvl";[["up",A?"حساب جديد":"Sign up"],["in",A?"تسجيل الدخول":"Sign in"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",mode===k);b.onclick=()=>{store.set("acmode",k);renderAccount()};tabs.append(b)});art.append(tabs);
@@ -1690,7 +1698,22 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
     store.set("lastActive",Date.now());const {error}=await SB.auth.signInWithPassword({email:e,password:p});go1.disabled=false;store.set("lastActive",Date.now());
     if(error){msg.textContent=(A?"تعذر الدخول: ":"Sign-in failed: ")+error.message;return}
     await sbSession();const pend=store.get("pendingProfile",null);if(!SBS.profile&&pend){await SB.from("profiles").upsert({id:SBS.user.id,...pend});store.set("pendingProfile",null);await sbSession()}renderAccount()};
-  art.append(go1,msg);box.append(art)}
+  art.append(go1,msg);
+  if(mode==="in"){const fg=document.createElement("button");fg.className="linkbtn";fg.textContent=A?"نسيت كلمة المرور؟":"Forgot your password?";
+    fg.onclick=async()=>{const e=em.value.trim();if(!/^\S+@\S+\.\S+$/.test(e)){msg.textContent=A?"اكتب بريدك الإلكتروني في الخانة أعلاه، ثم اضغط «نسيت كلمة المرور؟».":"Type your email above, then tap “Forgot your password?”.";em.focus();return}
+      fg.disabled=true;msg.textContent=A?"لحظة…":"One moment…";const {error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});fg.disabled=false;
+      msg.textContent=error?(/rate|seconds|limit/i.test(error.message)?(A?"طلبات كثيرة. انتظر دقائق ثم حاول مرة أخرى.":"Too many requests. Wait a few minutes and try again."):(A?"تعذر الإرسال: ":"Could not send: ")+error.message)
+        :(A?"📧 إذا كان البريد مسجّلًا ستصلك رسالة خلال دقائق فيها رابط لاختيار كلمة مرور جديدة. افحص أيضًا البريد غير المرغوب (Spam).":"📧 If this email is registered, a message with a link to choose a new password will arrive in a few minutes. Check your spam folder too.")};art.append(fg)}
+  box.append(art)}
+/* new password + confirmation; used after a reset link and from the account page */
+function pwFormEl(done){const A=ar(),w=document.createElement("div");w.className="anform";const mk=t=>{const l=document.createElement("label");l.textContent=t;const i=document.createElement("input");i.type="password";i.autocomplete="new-password";l.append(i);w.append(l);return i};
+  const p1=mk(A?"كلمة المرور الجديدة (8 أحرف على الأقل)":"New password (8+ characters)"),p2=mk(A?"أعد كتابتها للتأكيد":"Type it again to confirm");
+  const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"حفظ كلمة المرور":"Save password";const m=document.createElement("small");m.className="muted";w.append(b,m);
+  b.onclick=async()=>{if(p1.value.length<8){m.textContent=A?"8 أحرف على الأقل.":"At least 8 characters.";return}if(p1.value!==p2.value){m.textContent=A?"الكلمتان غير متطابقتين.":"The two don't match.";return}
+    b.disabled=true;m.textContent=A?"لحظة…":"One moment…";const {error}=await SB.auth.updateUser({password:p1.value});b.disabled=false;
+    if(error){m.textContent=/same|different/i.test(error.message)?(A?"اختر كلمة مرور مختلفة عن القديمة.":"Choose a password different from the old one."):(A?"تعذر الحفظ: ":"Could not save: ")+error.message;return}
+    p1.value=p2.value="";done()};
+  return w}
 function profileForm(embedded){const A=ar(),w=document.createElement("div");w.className="anform";
   const l1=document.createElement("label");l1.textContent=A?"الاسم كما يظهر للآخرين":"Display name";const n=document.createElement("input");n.maxLength=60;l1.append(n);
   const sel=(t,arr)=>{const l=document.createElement("label");l.textContent=t;const s=document.createElement("select");arr.forEach(([k,a,e])=>{const o=document.createElement("option");o.value=k;o.textContent=A?a:e;s.append(o)});l.append(s);return [l,s]};
@@ -2418,6 +2441,20 @@ function storageMeterEl(){const A=ar(),box=document.createElement("div");box.cla
     if(lvl!=="ok"){warn.hidden=false;warn.textContent=lvl==="full"?(A?"⛔ امتلأت المساحة المجانية. احذف فيديوهات قديمة، أو ارفع المقاطع الطويلة على يوتيوب «غير مدرج» وأضف رابطها، أو رقِّ الخطة إلى Pro.":"⛔ The free storage is full. Delete old videos, or put long clips on YouTube as unlisted and add the link, or upgrade to Pro."):(A?"⚠️ تجاوزت 80% من المساحة المجانية. للمقاطع الطويلة استخدم رابط يوتيوب «غير مدرج» بدل الرفع، وراجع صفحة Usage في Supabase لحجم التحميل الشهري.":"⚠️ Over 80% of the free storage. For long clips use an unlisted YouTube link instead of uploading, and check Usage in Supabase for monthly egress.")}});
   return box}
 
+/* admin backup: one JSON file with everything the admin can read; the free plan keeps no downloadable backups */
+const BK_TABLES=[["members","rpc:members_admin_list"],["profiles","profiles"],["assessments","assessments"],["payments","payments"],["clips","clips"],["lectures","lectures"],["announcements","announcements"],["clip_suggestions","clip_suggestions"],["comments","comments"],["class_sessions","class_sessions"],["content","content"]];
+function backupAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";art.id="bkArt";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"🗄 النسخة الاحتياطية":"🗄 Backup";
+  const last=Number(store.get("lastBackup",0)),days=last?Math.floor((Date.now()-last)/864e5):null;
+  const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"ملف واحد فيه الأعضاء وتقارير المقيّمين والمدفوعات والمقاطع والمحاضرات والإعلانات والتعليقات والمحتوى. نزّله كل أسبوع واحفظه في مكان آمن (الملفات أو iCloud)، ولا ترسله لأحد.":"One file with members, assessors' reports, payments, clips, lectures, announcements, comments and content. Download it weekly, keep it somewhere safe (Files or iCloud) and don't share it.";
+  const st=document.createElement("p");st.style.margin="0";st.className=days==null||days>=7?"stwarn":"muted";st.textContent=days==null?(A?"⚠️ لم تنزّل نسخة احتياطية من هذا الجهاز بعد.":"⚠️ No backup downloaded from this device yet."):days>=7?(A?`⚠️ آخر نسخة قبل ${days} يومًا. نزّل نسخة جديدة.`:`⚠️ Last backup ${days} days ago. Download a new one.`):(A?`✓ آخر نسخة: ${new Date(last).toLocaleDateString("en-GB")}`:`✓ Last backup: ${new Date(last).toLocaleDateString("en-GB")}`);
+  const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"⬇️ نزّل نسخة احتياطية الآن":"⬇️ Download a backup now";const m=document.createElement("small");m.className="muted";art.append(h,tip,st,b,m);
+  b.onclick=async()=>{b.disabled=true;m.textContent=A?"جارٍ التجميع…":"Collecting…";const out={app:"REF.LAB",made_at:new Date().toISOString(),by:SBS.user?.email||"",tables:{}},skipped=[];
+    for(const [k,src] of BK_TABLES){try{const r=src.startsWith("rpc:")?await SB.rpc(src.slice(4)):await SB.from(src).select("*").limit(10000);if(r.error){skipped.push(k);continue}out.tables[k]=r.data||[]}catch(e){skipped.push(k)}}
+    const blob=new Blob([JSON.stringify(out)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`REF.LAB-backup-${out.made_at.slice(0,10)}.json`;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+    store.set("lastBackup",Date.now());b.disabled=false;const n=Object.values(out.tables).reduce((x,t)=>x+t.length,0),kb=Math.round(blob.size/1024);
+    m.textContent=(A?`✓ نُزّلت النسخة: ${n} سجلًا، ${kb} KB.`:`✓ Backup downloaded: ${n} records, ${kb} KB.`)+(skipped.length?(A?` لم تُضمَّن (الجدول غير موجود بعد): ${skipped.join("، ")}`:` Not included (table not set up yet): ${skipped.join(", ")}`):"");
+    st.className="muted";st.textContent=A?`✓ آخر نسخة: ${new Date().toLocaleDateString("en-GB")}`:`✓ Last backup: ${new Date().toLocaleDateString("en-GB")}`};
+  return art}
 const SUG_DEF=()=>ar()?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"];
 function suggestAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"💡 لقطات مقترحة من الأعضاء":"💡 Clips suggested by members";
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"شاهد اللقطة، اكتب الخيارات الأربعة والإجابة، ثم انشرها لكل الأعضاء. أو ارفضها.":"Watch the clip, write the four options and the answer, then publish it to all members, or reject it.";
