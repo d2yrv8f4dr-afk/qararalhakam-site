@@ -2684,10 +2684,12 @@ $("#themeBtn").onclick=()=>{const dark=document.documentElement.dataset.theme?do
 /* the last activity time is kept on the device, so closing the app and coming back later also counts as idle */
 const IDLE_MS=10*60*1000;
 /* work in progress counts as activity: a running match clock, a live classroom session, or a playing video */
+/* a started match open on the assessor sheet keeps the session through half-time: 30 minutes instead of 10 */
+const idleLimit=()=>{try{const l=anCur()?.live;if(!$("#v-assess").hidden&&l&&(l.acc||Object.keys(l.played||{}).length))return 30*60*1000}catch(e){}return IDLE_MS};
 const busyNow=()=>{try{if(anCur()?.live?.run)return true;if(!$("#v-host").hidden&&HS&&HS.active)return true;if(!$("#v-join").hidden&&JS)return true;if([...document.querySelectorAll("video")].some(v=>!v.paused&&!v.ended))return true}catch(e){}return false};let idleAt=Number(store.get("lastActive",0))||Date.now();
 const touchActive=()=>{const n=Date.now();if(n-idleAt>15000){idleAt=n;store.set("lastActive",n)}else idleAt=n};
 ["pointerdown","keydown","scroll","touchstart"].forEach(e=>addEventListener(e,touchActive,{passive:true}));
-const idleCheck=()=>{if(busyNow()){touchActive();return false}if(SB&&SBS.user&&Date.now()-Math.max(idleAt,Number(store.get("lastActive",0))||0)>IDLE_MS){idleAt=Date.now();store.set("lastActive",idleAt);store.set("idleOut",1);signOutNow();return true}return false};
+const idleCheck=()=>{if(busyNow()){touchActive();return false}if(SB&&SBS.user&&Date.now()-Math.max(idleAt,Number(store.get("lastActive",0))||0)>idleLimit()){idleAt=Date.now();store.set("lastActive",idleAt);store.set("idleOut",1);signOutNow();return true}return false};
 setInterval(idleCheck,30000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)idleCheck()});addEventListener("pageshow",()=>idleCheck());
 $("#langBtn").onclick=()=>{lang=ar()?"en":"ar";store.set("lang",lang);applyLang()};
 lang=store.get("lang","ar");applyLang();
