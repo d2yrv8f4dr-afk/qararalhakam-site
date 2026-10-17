@@ -218,6 +218,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .minute{display:inline-block;font-family:"IBM Plex Mono",monospace;font-weight:600;background:var(--night);color:#fff;border-radius:8px;padding:2px 10px;justify-self:start}
 .book{background:var(--card-soft);border-radius:var(--r);padding:10px 14px}.book summary{cursor:pointer;font-weight:600}.book ul{margin:8px 0 0;padding-inline-start:18px}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.aisoon{border:2px dashed var(--line);text-align:center}.aisoon b{font-size:1.3rem}.aisoon p{margin:6px 0}.aisoon ul{margin:0;text-align:start;display:grid;gap:4px}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -1171,7 +1172,7 @@ const fmtT=s=>{s=Math.max(0,Math.round(s||0));return `${Math.floor(s/60)}:${Stri
 const lbl2=(o,k)=>(o[k]||["",""])[ar()?0:1];
 function anCur(){return anList().find(x=>x.id===AN)}
 function anUpdate(fn){const l=anList(),i=l.findIndex(x=>x.id===AN);if(i<0)return;fn(l[i]);anSave(l)}
-function backBtn(to){const b=document.createElement("button");b.className="btn noprint";b.style.justifySelf="start";b.textContent=t("back");b.onclick=()=>go(to);return b}
+function backBtn(to){const b=document.createElement("button");b.className="btn noprint";b.style.justifySelf="start";const A=ar(),N={assessor:["صفحة المقيّم","Assessor"],instr:["منصة المحاضر","Instructor"],library:["المكتبة","Library"],train:["الأسئلة","Questions"]}[to];b.textContent=N?(A?`→ ${N[0]}`:`← ${N[1]}`):t("back");b.onclick=()=>go(to);return b}
 function renderAnalyze(){const box=$("#anBox");box.innerHTML="";$("#asBox").innerHTML="";const A=ar();box.append(backBtn("assessor"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";
   hd.querySelector("p").textContent=A?"صوّر المباراة بالجوال أو اختر فيديو، وسجّل كل حالة بوقتها وتقييمها. الفيديو يبقى على جهازك ولا يُرفع لأي مكان، والتحليل يُحفظ في هذا المتصفح. احصل على إذن من يظهر في التصوير.":"Record with your phone or pick a video, and log each incident with its time and evaluation. The video stays on your device and is never uploaded; the analysis is saved in this browser. Get consent from people you film.";box.append(hd);
@@ -1637,7 +1638,7 @@ function ask2(b,msg){if(b.dataset.arm)return true;b.dataset.arm=1;const old=b.te
 /* shared backend (Supabase): accounts, decision polls, comments, published clips and lectures */
 const SB_URL="https://lrjxrkbjllincxymlcys.supabase.co",SB_KEY="sb_publishable_CaNlrqXsLSqdXmMKdROiMw_eqPOTluQ";
 let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){SB=null}
-const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const SBD={clips:[],lect:[],at:0};
+const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const AI_SOON=CONTENT_REMOTE;const SBD={clips:[],lect:[],at:0};
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
   const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
   if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,vp:x.video_path||null,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
@@ -2075,7 +2076,7 @@ function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=
   const g=document.createElement("div");g.className="tiles";
   [["🎥",A?"تحليل فيديو":"Video analysis",A?"صوّر أو اختر فيديو وارسم على اللقطة":"Record or pick a video and draw on it",()=>{AN=null;anMode="video";go("analyze")}],
    ["📍",A?"الملعب الذكي":"Smart pitch",A?"سبورة لشرح أين يقف الحكم":"A board to show where the referee should stand",()=>go("board")],
-   ["🧠",A?"المحلل الذكي":"Smart analyst",A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match",()=>go("ai")],
+   ["🧠",A?"المحلل الذكي":"Smart analyst",AI_SOON?(A?"⏳ قريبًا":"⏳ Coming soon"):(A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match"),()=>go("ai")],
    ["🧑‍⚖️",A?"ملفات الحكام":"Referee profiles",A?"تطوّر كل حكم عبر مبارياته":"Each referee's progress across matches",()=>{REFsel=null;go("refs")}]].forEach(([ic,tt,sub,fn])=>{const b=document.createElement("button");b.className="tile";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=ic;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;b.onclick=fn;g.append(b)});
   g.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";box.append(g);
   const h=document.createElement("h2");h.style.margin="0";h.textContent=A?"مبارياتك":"Your matches";box.append(h);
@@ -2496,7 +2497,7 @@ $("#stopBtn").onclick=()=>ctl?.abort();
 
 /* smart analyst: grounded in the approved summaries; images stay on the device until the viewer sends them */
 let AIM="case",aiS,aiCaps=null,aiImgs=[],aiOut=null,aiBusy=null,aiVidUrl=null,aiAn=null;
-async function aiSample(){if(aiS===undefined){try{aiS=(await (async()=>null)("sample"))||null}catch(e){aiS=null}if(!aiS)aiS=sbAI()
+async function aiSample(){if(AI_SOON)return null;if(aiS===undefined){try{aiS=(await (async()=>null)("sample"))||null}catch(e){aiS=null}if(!aiS)aiS=sbAI()
   try{aiCaps=aiS?await aiS.limits():null}catch(e){aiCaps=null}}return aiS}
 const aiRefSet=()=>{const s=new Set();for(const n in LAW_DATA)LAW_DATA[n].parts.forEach(p=>p.ref.split("·").forEach(r=>s.add(r.trim())));return s};
 const aiMaxImg=()=>Math.min(4,aiCaps?.images?.maxCount||0);
@@ -2540,6 +2541,10 @@ Return ONLY a JSON object:
 function renderAI(){const box=$("#aiBox");box.innerHTML="";const A=ar();box.append(backBtn("assessor"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🧠 المحلل الذكي":"🧠 Smart analyst";
   hd.querySelector("p").textContent=A?"يحلّل الحالة مثل مقيّم خبير ويستند فقط إلى ملخصات المنصة لقوانين 2026/27: القرار، الاستئناف، العقوبة، المادة، وما يحتاج تقدير الحكم. هو أداة تعليمية مساعدة، والقرار في الملعب للحكم.":"Analyses incidents like an expert assessor, using only the platform's summaries of the 2026/27 Laws: decision, restart, sanction, section and what needs the referee's judgement. A learning aid; on the pitch the referee decides.";box.append(hd);
+  if(AI_SOON){const c=document.createElement("article");c.className="quiz aisoon";c.innerHTML="<b></b><p></p><ul></ul>";c.querySelector("b").textContent=A?"⏳ قريبًا":"⏳ Coming soon";
+    c.querySelector("p").textContent=A?"نجهّز المحلل الذكي ليكون متاحًا لكم قريبًا بإذن الله. سيمكّنك من:":"The smart analyst is being prepared and will be available soon. It will let you:";
+    (A?["تحليل حالة مكتوبة أو لقطات من فيديو: القرار، الاستئناف، العقوبة، والمادة","تقرير كامل عن مباراة من أحداث المقيّم","إرسال التحليل مع الأخطاء للحكم"]:["Analyse a written case or video frames: decision, restart, sanction and section","Get a full report on a match from the assessor's events","Send the analysis and the errors to the referee"]).forEach(t=>{const li=document.createElement("li");li.textContent=t;c.querySelector("ul").append(li)});
+    box.append(c);return}
   const tabs=document.createElement("div");tabs.className="lvl";
   [["case",A?"📝 حالة ولقطات":"📝 Case & frames"],["match",A?"📋 تقرير مباراة":"📋 Match report"],["hist",A?"🗂 السجل":"🗂 History"]].forEach(([k,n])=>{const b=document.createElement("button");b.className="btn";b.textContent=n;b.setAttribute("aria-pressed",AIM===k);b.onclick=()=>{AIM=k;aiOut=null;renderAI()};tabs.append(b)});box.append(tabs);
   const off=document.createElement("p");off.className="tip";off.hidden=true;box.append(off);
