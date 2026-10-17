@@ -1557,34 +1557,14 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
     f.append(g);{const l=document.createElement("label");l.className="field";l.textContent=A?"القرار الصحيح والتعليل (يظهر بعد المشاهدة)":"Correct decision and reasoning (shown after watching)";const i=document.createElement("textarea");i.id="cl-w";i.rows=2;l.append(i);f.append(l)}
     const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";
     const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ المقطع":"Save clip";
-    let optsIn=null,ansSel=null;if(SBS.admin||SBS.instr){const w=document.createElement("div");w.className="opt4";const h=document.createElement("strong");h.textContent=A?"🗳 خيارات التصويت (من 2 إلى 4)":"🗳 Poll options (2 to 4)";w.append(h);
-      /* ready-made option sets per kind of incident; the writer edits them freely, 2 to 4 options */
-      const PRE=[["foul",A?"خطأ وعقوبة":"Foul & sanction",A?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"]],
-        ["off",A?"تسلل":"Offside",A?["تسلل: ركلة حرة غير مباشرة","ليس تسللًا: استمرار اللعب","ليس تسللًا: المدافع لعب الكرة عمدًا",""]:["Offside: indirect free kick","Not offside: play on","Not offside: the defender deliberately played the ball",""]],
-        ["hand",A?"لمسة يد":"Handball",A?["ليست مخالفة: استمرار اللعب","لمسة يد مخالفة: ركلة حرة أو جزاء","لمسة يد مخالفة + إنذار 🟨","لمسة يد منعت هدفًا: طرد 🟥"]:["Not an offence: play on","Handball offence: free kick or penalty","Handball offence + caution 🟨","Handball denied a goal: sending-off 🟥"]],
-        ["pen",A?"ركلة جزاء":"Penalty",A?["لا شيء، استمرار اللعب","ركلة جزاء","ركلة جزاء + إنذار 🟨","ركلة جزاء + طرد 🟥"]:["Nothing, play on","Penalty kick","Penalty + caution 🟨","Penalty + sending-off 🟥"]],
-        ["goal",A?"هدف":"Goal",A?["هدف صحيح","هدف ملغى: خطأ","هدف ملغى: تسلل","هدف ملغى: لمسة يد"]:["Goal stands","Goal disallowed: foul","Goal disallowed: offside","Goal disallowed: handball"]],
-        ["blank",A?"فارغ":"Blank",["","","",""]]];
-      const ph=document.createElement("small");ph.className="muted";ph.textContent=A?"اختر نوع الحالة لتعبئة خيارات جاهزة، ثم عدّلها كما تريد. خياران على الأقل، وأربعة كحد أقصى.":"Pick the kind of incident to fill ready options, then edit them. At least two, at most four.";
-      const pr=document.createElement("div");pr.className="lvl";w.append(ph,pr);
-      optsIn=[0,1,2,3].map(k=>{const r=document.createElement("label");r.className="optrow";const n=document.createElement("b");n.textContent=k+1;const i=document.createElement("input");i.maxLength=80;i.placeholder=k<2?(A?"مطلوب":"Required"):(A?"اختياري":"Optional");r.append(n,i);w.append(r);return i});
-      const ah=document.createElement("strong");ah.textContent=A?"الإجابة الصحيحة":"Correct answer";const ch=document.createElement("div");ch.className="anspick";ansSel=null;
-      const paintAns=()=>{ch.innerHTML="";[0,1,2,3,null].forEach(v=>{if(v!=null&&!optsIn[v].value.trim())return;const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=v==null?(A?"💬 نقاش مفتوح (بلا إجابة معتمدة)":"💬 Open debate (no official answer)"):`${v+1}. ${optsIn[v].value.trim()}`;
-        b.setAttribute("aria-pressed",v===ansSel);b.onclick=()=>{ansSel=v;paintAns()};ch.append(b)});if(ansSel!=null&&!optsIn[ansSel].value.trim()){ansSel=null;paintAns()}};
-      optsIn.forEach(i=>i.oninput=paintAns);
-      const fill=k=>{const P=PRE.find(z=>z[0]===k);optsIn.forEach((i,j)=>i.value=P[2][j]||"");ansSel=null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z.dataset.k===k));paintAns()};
-      PRE.forEach(([k,n2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.style.fontSize=".85rem";b.dataset.k=k;b.textContent=n2;b.onclick=()=>fill(k);pr.append(b)});
-      w.append(ah,ch);f.append(w);fill("foul");
+    let po=null;if(SBS.admin||SBS.instr){po=pollOptsEl();f.append(po);
       const bd=document.createElement("p");bd.style.cssText="margin:0;font-weight:600;color:var(--pitch)";bd.textContent=SBS.admin?(A?"🛡 أنت مدير: المقطع يُنشر لكل المستخدمين.":"🛡 Admin: the clip is published to everyone."):(A?"🎓 أنت محاضر: المقطع يُنشر لكل الأعضاء، وتستطيع حذف مقاطعك أنت فقط.":"🎓 Instructor: the clip is published to all members; you can delete only your own clips.");f.append(bd)}
     add.onclick=async()=>{const id=pickedVid?null:ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value)||(pickedVid?pickedDur:0);if(!id&&!pickedVid){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب أو اختر فيديو من مكتبة الصور.":"Invalid link. Paste a YouTube link or pick a video from your library.";return}
       if(!(e>s)&&!(pickedVid&&!e)){msg.textContent=A?"يجب أن تكون النهاية بعد البداية.":"End must be after start.";return}
-      if(SBS.admin||SBS.instr){const raw=optsIn.map(i=>i.value.trim()),options=raw.filter(Boolean);
-        if(options.length<2){msg.textContent=A?"اكتب خيارين على الأقل.":"Write at least two options.";return}
-        if(new Set(options.map(o=>o.replace(/\s+/g," ").toLowerCase())).size!==options.length){msg.textContent=A?"يوجد خيار مكرر. اجعل كل خيار مختلفًا.":"Two options are the same. Make each one different.";return}
-        const answer=ansSel==null?null:options.indexOf(raw[ansSel]);
+      if(SBS.admin||SBS.instr){const pv=po.read();if(pv.err){msg.textContent=pv.err;return}const {options,answer}=pv;
         let vpath=null;if(pickedVid){add.disabled=true;msg.textContent=A?"⏳ جارٍ رفع الفيديو… لا تغلق الصفحة.":"⏳ Uploading the video… keep this page open.";const ext=(pickedVid.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";vpath=`${SBS.user.id}/${Date.now()}.${ext}`;
           const {error:ue}=await SB.storage.from("clips").upload(vpath,pickedVid,{contentType:pickedVid.type||"video/mp4",upsert:false});add.disabled=false;if(ue){msg.textContent=(A?"تعذر رفع الفيديو: ":"Video upload failed: ")+ue.message;return}}
-        const row={yt:id,video_path:vpath,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer:answer<0?null:answer,why:$("#cl-w").value.trim()||null};
+        const row={yt:id,video_path:vpath,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer,why:$("#cl-w").value.trim()||null};
         add.disabled=true;msg.textContent=A?"جارٍ النشر…":"Publishing…";const {error}=await SB.from("clips").insert(row);add.disabled=false;
         if(error){if(vpath)SB.storage.from("clips").remove([vpath]).catch(()=>{});msg.textContent=(A?"تعذر النشر: ":"Could not publish: ")+error.message;return}await sbLoad(true);CLi=null;renderClips();return}
       const l=store.get("myclips",[]);l.push({id:"m"+Date.now(),yt:id,start:s,end:e,title:$("#cl-t").value.trim(),law:+$("#cl-law").value||0,w:$("#cl-w").value.trim()});store.set("myclips",l);CLi=CLIP_DATA.clips.length+l.length-1;renderClips()};
@@ -2684,7 +2664,29 @@ function backupAdminEl(){const A=ar(),art=document.createElement("article");art.
     m.textContent=(A?`✓ نُزّلت النسخة: ${n} سجلًا، ${kb} KB.`:`✓ Backup downloaded: ${n} records, ${kb} KB.`)+(skipped.length?(A?` لم تُضمَّن (الجدول غير موجود بعد): ${skipped.join("، ")}`:` Not included (table not set up yet): ${skipped.join(", ")}`):"");
     st.className="muted";st.textContent=A?`✓ آخر نسخة: ${new Date().toLocaleDateString("en-GB")}`:`✓ Last backup: ${new Date().toLocaleDateString("en-GB")}`};
   return art}
-const SUG_DEF=()=>ar()?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"];
+/* poll options for a clip: ready sets per incident, 2 to 4 options, the correct answer chosen by its text */
+function pollOptsEl(start){const A=ar(),w=document.createElement("div");w.className="opt4";const h=document.createElement("strong");h.textContent=A?"🗳 خيارات التصويت (من 2 إلى 4)":"🗳 Poll options (2 to 4)";w.append(h);
+  const PRE=[["foul",A?"خطأ وعقوبة":"Foul & sanction",A?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"]],
+    ["off",A?"تسلل":"Offside",A?["تسلل: ركلة حرة غير مباشرة","ليس تسللًا: استمرار اللعب","ليس تسللًا: المدافع لعب الكرة عمدًا",""]:["Offside: indirect free kick","Not offside: play on","Not offside: the defender deliberately played the ball",""]],
+    ["hand",A?"لمسة يد":"Handball",A?["ليست مخالفة: استمرار اللعب","لمسة يد مخالفة: ركلة حرة أو جزاء","لمسة يد مخالفة + إنذار 🟨","لمسة يد منعت هدفًا: طرد 🟥"]:["Not an offence: play on","Handball offence: free kick or penalty","Handball offence + caution 🟨","Handball denied a goal: sending-off 🟥"]],
+    ["pen",A?"ركلة جزاء":"Penalty",A?["لا شيء، استمرار اللعب","ركلة جزاء","ركلة جزاء + إنذار 🟨","ركلة جزاء + طرد 🟥"]:["Nothing, play on","Penalty kick","Penalty + caution 🟨","Penalty + sending-off 🟥"]],
+    ["goal",A?"هدف":"Goal",A?["هدف صحيح","هدف ملغى: خطأ","هدف ملغى: تسلل","هدف ملغى: لمسة يد"]:["Goal stands","Goal disallowed: foul","Goal disallowed: offside","Goal disallowed: handball"]],
+    ["blank",A?"فارغ":"Blank",["","","",""]]];
+  const ph=document.createElement("small");ph.className="muted";ph.textContent=A?"اختر نوع الحالة لتعبئة خيارات جاهزة، ثم عدّلها كما تريد. خياران على الأقل، وأربعة كحد أقصى.":"Pick the kind of incident to fill ready options, then edit them. At least two, at most four.";
+  const pr=document.createElement("div");pr.className="lvl";w.append(ph,pr);let ansSel=null;
+  const optsIn=[0,1,2,3].map(k=>{const r=document.createElement("label");r.className="optrow";const n=document.createElement("b");n.textContent=k+1;const i=document.createElement("input");i.maxLength=80;i.placeholder=k<2?(A?"مطلوب":"Required"):(A?"اختياري":"Optional");r.append(n,i);w.append(r);return i});
+  const ah=document.createElement("strong");ah.textContent=A?"الإجابة الصحيحة":"Correct answer";const ch=document.createElement("div");ch.className="anspick";
+  const paintAns=()=>{ch.innerHTML="";[0,1,2,3,null].forEach(v=>{if(v!=null&&!optsIn[v].value.trim())return;const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=v==null?(A?"💬 نقاش مفتوح (بلا إجابة معتمدة)":"💬 Open debate (no official answer)"):`${v+1}. ${optsIn[v].value.trim()}`;
+    b.setAttribute("aria-pressed",v===ansSel);b.onclick=()=>{ansSel=v;paintAns()};ch.append(b)});if(ansSel!=null&&!optsIn[ansSel].value.trim()){ansSel=null;paintAns()}};
+  optsIn.forEach(i=>i.oninput=paintAns);
+  const fill=k=>{const P=PRE.find(z=>z[0]===k)||PRE[0];optsIn.forEach((i,j)=>i.value=P[2][j]||"");ansSel=null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z.dataset.k===P[0]));paintAns()};
+  PRE.forEach(([k,n2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.style.fontSize=".85rem";b.dataset.k=k;b.textContent=n2;b.onclick=()=>fill(k);pr.append(b)});
+  w.append(ah,ch);fill(start||"foul");
+  w.read=()=>{const raw=optsIn.map(i=>i.value.trim()),options=raw.filter(Boolean);
+    if(options.length<2)return {err:A?"اكتب خيارين على الأقل.":"Write at least two options."};
+    if(new Set(options.map(o=>o.replace(/\s+/g," ").toLowerCase())).size!==options.length)return {err:A?"يوجد خيار مكرر. اجعل كل خيار مختلفًا.":"Two options are the same. Make each one different."};
+    const a=ansSel==null?-1:options.indexOf(raw[ansSel]);return {options,answer:a<0?null:a}};
+  return w}
 function suggestAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"💡 لقطات مقترحة من الأعضاء":"💡 Clips suggested by members";
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"شاهد اللقطة، اكتب الخيارات الأربعة والإجابة، ثم انشرها لكل الأعضاء. أو ارفضها.":"Watch the clip, write the four options and the answer, then publish it to all members, or reject it.";
   const list=document.createElement("div");list.style.cssText="display:grid;gap:12px";art.append(h,tip,list);
@@ -2697,11 +2699,10 @@ function suggestAdminEl(){const A=ar(),art=document.createElement("article");art
       m.textContent=[(A?"من: ":"From: ")+(nm[r.user_id]||(A?"عضو":"Member")),r.law&&`${A?"القانون":"Law"} ${r.law}`,`${fmtT(r.start_s)} → ${fmtT(r.end_s)}`,(r.created_at||"").slice(0,10)].filter(Boolean).join(" · ");c.append(t,m);
       if(r.note){const n=document.createElement("p");n.style.margin="0";n.textContent="💬 "+r.note;c.append(n)}
       c.append(ytFrame({yt:r.yt,start:r.start_s,end:r.end_s||""},true));
-      const w=document.createElement("div");w.className="opt4";const ins=SUG_DEF().map((d,k)=>{const l=document.createElement("label");l.className="optrow";const b=document.createElement("b");b.textContent=k+1;const i=document.createElement("input");i.value=d;l.append(b,i);w.append(l);return i});
-      let ans=null;const ch=document.createElement("div");ch.className="lvl";[[0,"1"],[1,"2"],[2,"3"],[3,"4"],[null,A?"نقاش مفتوح":"Open debate"]].forEach(([v,t2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=t2;b.setAttribute("aria-pressed",v===ans);b.onclick=()=>{ans=v;ch.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z===b))};ch.append(b)});
-      const why=document.createElement("textarea");why.rows=2;why.placeholder=A?"القرار الصحيح والتعليل":"Correct decision and reasoning";why.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px";w.append(ch,why);c.append(w);
+      const w=pollOptsEl(r.law===11?"off":r.law===12?"foul":"foul");
+      const why=document.createElement("textarea");why.rows=2;why.placeholder=A?"القرار الصحيح والتعليل":"Correct decision and reasoning";why.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px";w.append(why);c.append(w);
       const bar=document.createElement("div");bar.className="lvl";const ok=document.createElement("button");ok.className="btn primary";ok.textContent=A?"✓ انشرها للأعضاء":"✓ Publish to members";const no=document.createElement("button");no.className="btn";no.textContent=A?"✗ رفض":"✗ Reject";const msg=document.createElement("small");msg.className="muted";
-      ok.onclick=async()=>{const options=ins.map(i=>i.value.trim());if(options.some(o=>!o)){msg.textContent=A?"اكتب الخيارات الأربعة.":"Fill in all four options.";return}ok.disabled=true;
+      ok.onclick=async()=>{const pv=w.read();if(pv.err){msg.textContent=pv.err;return}const {options,answer:ans}=pv;ok.disabled=true;
         const {error:e1}=await SB.from("clips").insert({yt:r.yt,start_s:r.start_s,end_s:r.end_s||r.start_s+30,title:r.title,law:r.law||null,options,answer:ans,why:why.value.trim()||null});if(e1){ok.disabled=false;msg.textContent=e1.message;return}
         await SB.from("clip_suggestions").update({status:"approved"}).eq("id",r.id);await sbLoad(true);load()};
       no.onclick=async()=>{if(!ask2(no,A?"مرة ثانية للرفض":"Again to reject"))return;await SB.from("clip_suggestions").update({status:"rejected"}).eq("id",r.id);load()};bar.append(ok,no,msg);c.append(bar);list.append(c)})};
