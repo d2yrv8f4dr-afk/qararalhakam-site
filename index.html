@@ -219,6 +219,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .book{background:var(--card-soft);border-radius:var(--r);padding:10px 14px}.book summary{cursor:pointer;font-weight:600}.book ul{margin:8px 0 0;padding-inline-start:18px}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .aisoon{border:2px dashed var(--line);text-align:center}.aisoon b{font-size:1.3rem}.aisoon p{margin:6px 0}.aisoon ul{margin:0;text-align:start;display:grid;gap:4px}
+.assync{display:block;margin-top:-4px}.assync[data-state=wait]{color:#c77700}.assync[data-state=miss]{color:var(--red)}.rlist{display:grid;gap:8px;max-height:420px;overflow:auto}.rrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.rrow>div{display:grid;min-width:0}.rrow b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -711,7 +712,7 @@ let dpos=2;
 
 /* ---------- state ---------- */
 let lang="ar", cur=1, part=0;
-const store={get(k,d){try{const v=localStorage.getItem("qh2:"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("qh2:"+k,JSON.stringify(v))}catch(e){}}};
+const store={get(k,d){try{const v=localStorage.getItem("qh2:"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("qh2:"+k,JSON.stringify(v))}catch(e){}if(k==="an:list"||k.startsWith("as:"))window.asQueue?.()}};
 const $=s=>document.querySelector(s);
 const t=k=>T[lang][k];
 const ans=(law,p)=>store.get(`a:${law}:${p}`,{});
@@ -1298,7 +1299,8 @@ function evDesc(x,i){const A=ar();const who=i.team?`${tName(x,i.team)}${i.pl?` #
 function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.innerHTML="";const A=ar();box.append(backBtn("assessor"));clearInterval(asTick);
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 صفحة المقيّم":"📝 Assessor's page";
   hd.querySelector("p").textContent=A?"ورقة مباراة كاملة: المعلومات، التشكيلتان، الساعة وتسجيل الأحداث يدويًا، الطاقم، الوقت الضائع، ثم تقدير الحكم. نموذج تدريبي من «قرار الحكم» وليس نموذجًا رسميًا لأي اتحاد.":"A full match sheet: information, line-ups, clock and manual event logging, officials, time lost, then the referee's rating. A Qarar Al-Hakam training form, not an official form of any federation.";box.append(hd);
-  let x=anCur();const L0=anList();
+  let x=anCur();const L0=anList().filter(m=>!m.ro);
+  if(x?.ro){const rb=document.createElement("p");rb.className="tip";rb.textContent=A?`📥 تقرير المقيّم ${x.by||""}: نسخة للاطلاع على جوالك، وتعديلها لا يغيّر تقرير المقيّم.`:`📥 ${x.by||"An assessor"}'s report: a copy to read on your phone; editing it doesn't change the assessor's report.`;box.append(rb)}
   if(!x){const art=document.createElement("article");art.className="quiz";art.innerHTML="<h2 style='margin:0'></h2><div class='anform'></div>";art.querySelector("h2").textContent=A?"مباراة جديدة":"New match";
     const f=art.querySelector(".anform");[["home",A?"الفريق المضيف":"Home team"],["away",A?"الفريق الضيف":"Away team"],["date",A?"التاريخ":"Date","date"]].forEach(([k,n,ty])=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.type=ty||"text";i.id="nm-"+k;l.append(i);f.append(l)});
     const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"إنشاء ورقة المباراة":"Create match sheet";
@@ -1650,7 +1652,7 @@ async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession()
   SBS.member=false;SBS.mstatus="none";if(SBS.user){try{const {data:ms}=await SB.rpc("member_status");SBS.mstatus=ms||"pending"}catch(e){SBS.mstatus="pending"}SBS.member=SBS.admin||SBS.mstatus==="approved"}
   SBS.instr=false;if(SBS.member&&!SBS.admin){try{const {data:ii}=await SB.rpc("is_instructor");SBS.instr=!!ii}catch(e){}}
   if(SBS.member&&!CONTENT_LOADED)await loadContent();if(!DB)CAN_EDIT=!!SBS.admin;
-  if(SBS.member){await sbLoad(true);await loadAnn()}
+  if(SBS.member){await sbLoad(true);await loadAnn();asPull()}
   SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤";
   const open=!!SBS.user&&SBS.member&&CONTENT_LOADED,was=document.body.classList.contains("locked");document.body.classList.remove("pending");document.body.classList.toggle("locked",!open);
   if(!open)go("account");else if(was||!UI_DONE){UI_DONE=true;applyLang();go("guide")}}
@@ -2065,7 +2067,55 @@ const gradeOf=v=>v==null?null:v>=8.5?["ممتاز","Excellent","g5"]:v>=7.5?["ج
 const refOf=x=>(x.crew?.ref?.name||x.ref||"").trim();
 const gradeEl=v=>{const g=gradeOf(v),s=document.createElement("span");s.className="grade "+(g?g[2]:"g0");s.textContent=g?`${v.toFixed(1)} · ${g[ar()?0:1]}`:(ar()?"لم يُقيَّم":"Not rated");return s};
 let REFsel=null;
-function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=anList();
+/* assessor reports backed up on the server: the phone keeps the working copy, the server keeps one per member, the admin reads all */
+const AS_SYNC={t:null,busy:false,err:"",at:0,miss:false};
+const asHash=t=>{let h=5381;for(let i=0;i<t.length;i++)h=(h*33^t.charCodeAt(i))|0;return t.length+":"+h};
+const asSyncable=x=>x&&x.id!=="demo"&&!x.ro;
+window.asQueue=()=>{if(!SB)return;clearTimeout(AS_SYNC.t);AS_SYNC.t=setTimeout(asPush,3000)};
+async function asPush(){if(!SB||!SBS.user||!SBS.member||AS_SYNC.busy)return;AS_SYNC.busy=true;let fail=0;
+  try{const map=store.get("an:sync",{}),L=anList().filter(asSyncable),ids=new Set(L.map(x=>x.id));
+    for(const x of L){let d={item:x,as:store.get("as:"+x.id,null)},t=JSON.stringify(d);
+      if(t.length>2900000){d={item:{...x,inc:(x.inc||[]).map(({img,...i})=>i)},as:d.as,lite:1};t=JSON.stringify(d)}
+      const h=asHash(t);if(map[x.id]===h)continue;
+      const {error}=await SB.from("assessments").upsert({user_id:SBS.user.id,id:x.id,title:(x.title||"").slice(0,200),match_date:String(x.info?.date||x.date||"").slice(0,20),data:d,updated_at:new Date().toISOString()});
+      if(error){fail++;AS_SYNC.err=error.message;AS_SYNC.miss=/assessments/.test(error.message);continue}map[x.id]=h}
+    for(const id of Object.keys(map))if(!ids.has(id)){const {error}=await SB.from("assessments").delete().eq("user_id",SBS.user.id).eq("id",id);if(error)fail++;else delete map[id]}
+    store.set("an:sync",map);if(!fail){AS_SYNC.err="";AS_SYNC.miss=false;AS_SYNC.at=Date.now()}
+  }catch(e){fail++;AS_SYNC.err=String(e?.message||e)}finally{AS_SYNC.busy=false;paintSync()}}
+/* one phone, several accounts: each account's reports are parked when another signs in */
+function asStash(uid){const L=anList(),as={};L.forEach(x=>{as[x.id]=store.get("as:"+x.id,null);store.set("as:"+x.id,null)});store.set("an:stash:"+uid,{list:L,as,sync:store.get("an:sync",{})});store.set("an:sync",{});store.set("an:list",[])}
+function asUnstash(uid){const k="an:stash:"+uid,p=store.get(k,null);if(!p)return;Object.entries(p.as||{}).forEach(([id,v])=>store.set("as:"+id,v));store.set("an:sync",p.sync||{});store.set("an:list",p.list||[]);store.set(k,null)}
+async function asPull(){if(!SB||!SBS.user||!SBS.member)return;const uid=SBS.user.id,owner=store.get("an:owner",null);
+  if(owner!==uid){if(owner)asStash(owner);asUnstash(uid);store.set("an:owner",uid)}
+  const {data,error}=await SB.from("assessments").select("id,data").eq("user_id",uid);
+  if(error){AS_SYNC.err=error.message;AS_SYNC.miss=/assessments/.test(error.message);paintSync();return}
+  const map=store.get("an:sync",{}),L=anList(),have=new Set(L.map(x=>x.id));let added=0;
+  (data||[]).forEach(r=>{const d=r.data||{};if(have.has(r.id)||map[r.id]||!d.item)return;L.push({...d.item,id:r.id});if(d.as)store.set("as:"+r.id,d.as);map[r.id]=asHash(JSON.stringify(d));added++});
+  if(added){L.sort((a,b)=>(b.at||0)-(a.at||0));store.set("an:sync",map);anSave(L);if(!$("#v-assessor").hidden)renderAssessor()}
+  asPush()}
+function paintSync(){const el=$("#asSync");if(!el)return;const A=ar(),pend=anList().filter(asSyncable).length&&AS_SYNC.err;
+  el.dataset.state=AS_SYNC.miss?"miss":pend?"wait":"ok";
+  el.textContent=AS_SYNC.miss?(SBS.admin?(A?"⚠️ شغّل ملف assessments.sql في Supabase لحفظ التقارير على الخادم.":"⚠️ Run assessments.sql in Supabase to back up reports on the server."):(A?"💾 التقارير محفوظة في جوالك.":"💾 Reports are saved on your phone.")):
+    pend?(A?"⏳ محفوظة في جوالك، وتُرفع للخادم عند عودة الإنترنت.":"⏳ Saved on your phone; they upload when the connection is back."):(A?"☁️ تقاريرك محفوظة في جوالك وعلى الخادم.":"☁️ Your reports are saved on your phone and on the server.")}
+addEventListener("online",()=>asPush());document.addEventListener("visibilitychange",()=>{if(document.hidden&&AS_SYNC.t){clearTimeout(AS_SYNC.t);AS_SYNC.t=null;asPush()}});
+/* admin: every assessor's reports; opening one makes a read-only copy on this phone that never syncs */
+async function asOpenRemote(r){const A=ar();const {data,error}=await SB.from("assessments").select("data").eq("user_id",r.user_id).eq("id",r.id).maybeSingle();
+  if(error||!data?.data?.item){alert(error?.message||(A?"تعذّر فتح التقرير.":"Could not open the report."));return}
+  const d=data.data,id="rv-"+String(r.user_id).slice(0,8)+"-"+r.id;anList().filter(x=>x.ro).forEach(x=>store.set("as:"+x.id,null));
+  const L=anList().filter(x=>!x.ro);L.unshift({...d.item,id,ro:1,by:r.who||r.email||""});anSave(L);store.set("as:"+id,d.as||null);AN=id;go("assess")}
+function asRemoteEl(){const A=ar(),art=document.createElement("article");art.className="quiz";art.id="asRemote";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"📥 تقارير المقيّمين":"📥 Assessors' reports";
+  const tip=document.createElement("small");tip.className="muted";tip.textContent=A?"كل تقرير يحفظه مقيّم يصل هنا تلقائيًا. الفتح يعرض نسخة للاطلاع ولا يغيّر تقرير المقيّم.":"Every report an assessor saves arrives here. Opening shows a copy to read; it doesn't change the assessor's report.";
+  const q=document.createElement("input");q.type="search";q.placeholder=A?"ابحث باسم المقيّم أو المباراة":"Search by assessor or match";q.style.cssText="font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px";
+  const list=document.createElement("div");list.className="rlist";art.append(h,tip,q,list);let R=[];
+  const paint=()=>{list.innerHTML="";const k=q.value.trim().toLowerCase();const S=R.filter(r=>!k||[r.who,r.email,r.title].some(v=>String(v||"").toLowerCase().includes(k)));
+    if(!S.length){const p=document.createElement("small");p.className="muted";p.textContent=R.length?(A?"لا نتائج.":"No results."):(A?"لا توجد تقارير بعد.":"No reports yet.");list.append(p);return}
+    S.forEach(r=>{const row=document.createElement("div");row.className="rrow";const t=document.createElement("div");t.innerHTML="<b></b><small class='muted'></small>";t.querySelector("b").textContent=r.title||(A?"بلا عنوان":"Untitled");
+      t.querySelector("small").textContent=[r.who||r.email,r.match_date,new Date(r.updated_at).toLocaleString("en-GB",{dateStyle:"short",timeStyle:"short"})].filter(Boolean).join(" · ");
+      const o=document.createElement("button");o.className="btn";o.textContent=A?"📄 فتح":"📄 Open";o.onclick=()=>asOpenRemote(r);row.append(t,o);list.append(row)})};
+  q.oninput=paint;
+  SB.rpc("assessments_admin_list").then(({data,error})=>{if(error){list.textContent=/assessments_admin_list/.test(error.message)?(A?"شغّل ملف assessments.sql في Supabase أولًا.":"Run assessments.sql in Supabase first."):error.message;return}R=data||[];paint()});
+  return art}
+function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=anList().filter(x=>!x.ro);
   const hero=document.createElement("div");hero.className="ahero";hero.innerHTML="<span class='eyebrow'></span><h1></h1><p></p><div class='lvl'></div>";
   hero.querySelector(".eyebrow").textContent=A?"منصة المقيّم":"Assessor's platform";hero.querySelector("h1").textContent=A?"قيّم الحكم كمحترف":"Assess the referee like a pro";
   hero.querySelector("p").textContent=A?"ورقة مباراة كاملة، ساعة وأحداث بأرقام اللاعبين، الملعب الذكي، التوقفات، المحلل الذكي، وتقرير يصل للحكم.":"A full match sheet, clock and events with shirt numbers, the smart pitch, stoppages, the smart analyst, and a report sent to the referee.";
@@ -2079,7 +2129,9 @@ function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=
    ["🧠",A?"المحلل الذكي":"Smart analyst",AI_SOON?(A?"⏳ قريبًا":"⏳ Coming soon"):(A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match"),()=>go("ai")],
    ["🧑‍⚖️",A?"ملفات الحكام":"Referee profiles",A?"تطوّر كل حكم عبر مبارياته":"Each referee's progress across matches",()=>{REFsel=null;go("refs")}]].forEach(([ic,tt,sub,fn])=>{const b=document.createElement("button");b.className="tile";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=ic;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;b.onclick=fn;g.append(b)});
   g.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";box.append(g);
+  if(SB&&SBS.admin)box.append(asRemoteEl());
   const h=document.createElement("h2");h.style.margin="0";h.textContent=A?"مبارياتك":"Your matches";box.append(h);
+  if(SB&&SBS.user){const sy=document.createElement("small");sy.id="asSync";sy.className="assync";box.append(sy);paintSync()}
   if(!L.length){const p=document.createElement("p");p.className="muted";p.textContent=A?"لا توجد مباريات بعد. ابدأ بمباراة جديدة أو افتح المثال الكامل.":"No matches yet. Start a new one or open the worked example.";box.append(p);return}
   const cards=document.createElement("div");cards.className="mcards";
   L.forEach(x=>{const I=x.info||{},c=document.createElement("article");c.className="mcard";const v=asScore(x.id);
