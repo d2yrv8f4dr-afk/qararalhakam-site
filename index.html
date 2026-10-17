@@ -223,6 +223,8 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .linkbtn{background:none;border:0;padding:0;color:var(--pitch);font:inherit;text-decoration:underline;cursor:pointer;justify-self:start}.pwbox summary{cursor:pointer;font-weight:600}.pwbox .anform{margin-top:8px}
 .kitprog{display:grid;gap:6px}.kitgrp{gap:2px}.kitrow{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);cursor:pointer}.kitrow:last-of-type{border-bottom:0}.kitrow input{width:22px;height:22px;accent-color:var(--pitch);flex:none}.kitrow input:checked+span{color:var(--muted);text-decoration:line-through}
 .faceid{margin:0;font-size:.85rem;padding:8px 10px;border-radius:8px;background:var(--surface);border:1px dashed var(--line)}
+.lostbox{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.lostbox>div{display:grid;gap:2px;min-width:0}.lostbox.on{border-color:var(--red);box-shadow:0 0 0 2px color-mix(in srgb,var(--red) 25%,transparent)}.lostbox .btn{flex:none}
+.lostnum{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.lostnum b{font-size:1.6rem;font-variant-numeric:tabular-nums;direction:ltr}.lostnum span{font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--yellow,#f2c230);color:#1a1a1a}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -1363,11 +1365,14 @@ function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.inner
       if(l.run)mk(A?"⏸ إيقاف الساعة":"⏸ Pause clock","",()=>{l.acc+=Date.now()-l.run;l.run=null;saveL(l);paintClock();paintStops()});
       else mk(l.acc?(A?"▶ استئناف":"▶ Resume"):(A?`▶ بدء ${HALF_N(l.half)}`:`▶ Start ${HALF_N(l.half)}`),"primary",()=>{l.run=Date.now();saveL(l);paintClock();paintStops()});
       if(l.acc||l.run)mk(A?"⏹ نهاية الشوط":"⏹ End of half","",()=>{if(l.run){l.acc+=Date.now()-l.run;l.run=null}l.played[l.half]=l.acc;if(l.half<4){l.half++;l.acc=l.played[l.half]||0}saveL(l);paintClock();paintStops()});
-      const st=document.createElement("p");st.className="muted";st.style.cssText="margin:0;text-align:center;font-size:.85rem";st.textContent=l.run?(A?"الساعة تعمل":"Clock running"):(l.acc?(A?"الساعة متوقفة":"Clock paused"):(A?"اضغط البدء مع صافرة الحكم":"Start with the referee's whistle"));
-      ck.append(big,hs,ct,st);
+      const st=document.createElement("p");st.className="muted";st.style.cssText="margin:0;text-align:center;font-size:.85rem";st.textContent=l.run?(A?"الساعة تعمل ولا تتوقف مع التوقفات، فالوقت الضائع يُحسب تحتها":"The clock keeps running through stoppages; time lost is counted below it"):(l.acc?(A?"الساعة متوقفة":"Clock paused"):(A?"اضغط البدء مع صافرة الحكم":"Start with the referee's whistle"));
+      /* live time-lost counter: the match clock never stops, stoppages add up here */
+      const lostBox=document.createElement("div");lostBox.className="lostbox";lostBox.innerHTML="<div><small id='asLostH' class='muted'></small><div class='lostnum'><b id='asLost'></b><span id='asLostAdd'></span></div><small id='asLostSub' class='muted'></small></div>";
+      const sb=document.createElement("button");sb.id="asStopBtn";sb.className="btn";sb.onclick=()=>{if(stOpen())stopEnd();else if(!stopStart(false)){alert(A?"شغّل ساعة المباراة أولًا.":"Start the match clock first.");return}paintLost()};lostBox.append(sb);
+      ck.append(big,hs,ct,st,lostBox);paintLost();
       const P=Object.entries(l.played).filter(([,v])=>v);if(P.length){const t=document.createElement("div");t.className="played";P.forEach(([h,v])=>{h=+h;const s=Math.round(v/1000),extra=Math.max(0,s-HALF_LEN[h]),m=stSummary(anCur(),h),allStops=m.S.reduce((n2,z)=>n2+z.e-z.s,0);
         const r=document.createElement("div");r.textContent=`${HALF_N(h)}: ${A?"المدة":"length"} ${mmss2(s)} · ${A?"الوقت بدل الضائع الملعوب":"added time played"} ${mmss2(extra)}${allStops?` · ${A?"التوقفات المسجلة":"logged stoppages"} ${mmss2(allStops)} · ${A?"اللعب الفعلي ≈":"effective play ≈"} ${mmss2(Math.max(0,s-allStops))}`:""}`;t.append(r)});ck.append(t)}};
-    paintClock();asTick=setInterval(()=>{const c=$("#asClk");if(!c)return clearInterval(asTick);c.textContent=clockTxt(L())},1000);
+    paintClock();asTick=setInterval(()=>{const c=$("#asClk");if(!c)return clearInterval(asTick);c.textContent=clockTxt(L());paintLost()},1000);
     const qh=document.createElement("strong");qh.textContent=A?"سجّل حدثًا (يُسجَّل بدقيقة الساعة، وتعدّلها إن احتجت):":"Log an event (stamped with the clock minute; edit if needed):";
     const q=document.createElement("div");q.className="livegrid";EV_Q.forEach(([k,ic])=>{const bt=document.createElement("button");bt.textContent=`${ic} ${lbl2(INC_T,k)}`;bt.onclick=()=>{const l=L(),on=!!l.run||l.acc>0;anUpdate(a=>a.inc.push({t:clkSecs(l),h:l.half,min:on?clockMin(l):"",type:k,ev:"ok",pos:"na",law:EV_LAW[k]||"",note:"",team:"",pl:"",live:1}));asEdit=anCur().inc.length-1;paintEvents()};q.append(bt)});
     b.append(qh,q,ev,stopPanel())}
@@ -2016,8 +2021,18 @@ function stSummaryEl(x,edit){const A=ar(),w=document.createElement("div");w.styl
       i.onchange=()=>{anUpdate(a=>{a.added=a.added||{};if(i.value==="")delete a.added[h];else a.added[h]=+i.value});d.querySelector(".vd").textContent=stVerdict(m.lost,i.value===""?null:+i.value)};l.append(i);an.append(l)}
     else if(m.ann!=null)an.textContent=(A?"المعلن: ":"Announced: ")+m.ann+(A?" د":" min");
     d.querySelector(".vd").textContent=stVerdict(m.lost,m.ann);w.append(d)});return w}
+/* time lost so far in the current half: counted reasons + the stoppage still open + those still without a reason */
+function lostNow(){const x=anCur();if(!x)return null;const n=stNow(),S=(x.stops||[]).filter(z=>z.h===n.h&&z.src==="live");
+  const done=S.filter(stComp).reduce((t,z)=>t+z.e-z.s,0),o=S.find(z=>z.e==null),open=o&&o.r!=="norm"?Math.max(0,n.t-o.s):0,unk=S.filter(z=>z.e!=null&&z.r==="unk").reduce((t,z)=>t+z.e-z.s,0);
+  return {done,open,unk,total:done+open+unk,isOpen:!!o,n:S.length,h:n.h,run:n.ok}}
+function paintLost(){const el=$("#asLost");if(!el)return;const A=ar(),m=lostNow();if(!m)return;const sub=$("#asLostSub"),b=$("#asStopBtn"),box=el.closest(".lostbox");
+  $("#asLostH").textContent=(A?"⏱ الوقت الضائع · ":"⏱ Time lost · ")+HALF_N(m.h);el.textContent=mmss2(m.total);
+  const ad=$("#asLostAdd");ad.textContent=m.total?(A?`يُضاف ≈ ${Math.ceil(m.total/60)} د`:`add ≈ ${Math.ceil(m.total/60)} min`):"";ad.hidden=!m.total;
+  sub.textContent=[m.isOpen?(A?`توقف جارٍ ${mmss2(m.open)}`:`stoppage running ${mmss2(m.open)}`):"",m.unk?(A?`${mmss2(m.unk)} بانتظار تحديد السبب`:`${mmss2(m.unk)} awaiting a reason`):"",m.n?(A?(m.n===1?"توقف واحد":m.n===2?"توقفان":m.n<=10?`${m.n} توقفات`:`${m.n} توقفًا`):(m.n===1?"1 stoppage":`${m.n} stoppages`)):(A?"اضغط «⏸ توقف» عند كل توقف، والساعة تبقى تعمل":"Tap “⏸ Stoppage” at each stoppage; the clock keeps running")].filter(Boolean).join(" · ");
+  if(b){b.textContent=m.isOpen?(A?"▶ انتهى التوقف":"▶ Stoppage over"):(A?"⏸ توقف":"⏸ Stoppage");b.classList.toggle("primary",!m.isOpen);b.disabled=!m.run&&!m.isOpen}
+  if(box)box.classList.toggle("on",m.isOpen)}
 function stopPanel(){const art=document.createElement("article");art.className="quiz";art.id="stopsArt";setTimeout(paintStops);return art}
-function paintStops(){const art=$("#stopsArt"),x=anCur();if(!art||!x)return;const A=ar();art.innerHTML="";const open=stOpen(),n=stNow();
+function paintStops(){paintLost();const art=$("#stopsArt"),x=anCur();if(!art||!x)return;const A=ar();art.innerHTML="";const open=stOpen(),n=stNow();
   const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"⏸ توقفات المباراة والوقت الضائع (القانون 7)":"⏸ Stoppages and time lost (Law 7)";
   const tip=document.createElement("p");tip.className="muted";tip.style.cssText="margin:0;font-size:.85rem";tip.textContent=A?"سجّل كل توقف يدويًا بالزر، أو فعّل الكشف الإلكتروني بالكاميرا. ثم حدّد سببه. التوقفات الطبيعية (رمية تماس، ركلة مرمى) لا تُعوَّض.":"Log each stoppage with the button, or turn on electronic detection from the camera. Then set its reason. Normal stoppages (throw-ins, goal kicks) are not added.";art.append(h,tip);
   if(!stLive()){const r=document.createElement("div");r.className="lvl";[1,2,3,4].forEach(k=>{const b=document.createElement("button");b.className="btn";b.textContent=HALF_N(k);b.setAttribute("aria-pressed",anHalf===k);b.onclick=()=>{anHalf=k;paintStops()};r.append(b)});art.append(r)}
