@@ -1672,7 +1672,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
   else box.append(backBtn("guide"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"👤 حسابي":"👤 My account";
   hd.querySelector("p").textContent=A?"الحساب يتيح لك التصويت في «شاركنا قرارك» والتعليق والنقاش مع حكام من السعودية والعالم.":"An account lets you vote in “Your call”, comment and discuss with referees from Saudi Arabia and worldwide.";box.append(hd);
-  if(!SB){const p=document.createElement("p");p.className="tip";p.textContent=A?"الحسابات تعمل على رابط المنصة العام (github.io أو qararalhakam.com)، لا في هذا العرض.":"Accounts work on the public site (github.io or qararalhakam.com), not in this view.";box.append(p);return}
+  if(!SB){const p=document.createElement("p");p.className="tip";p.textContent=A?"الحسابات تعمل على رابط المنصة qararalhakam.com، لا في هذا العرض.":"Accounts work on the platform at qararalhakam.com, not in this view.";box.append(p);return}
   if(!SBS.ready){const p=document.createElement("p");p.className="muted";p.textContent=A?"جارٍ التحميل…":"Loading…";box.append(p);return}
   if(SBS.user&&RECOVER){const art=document.createElement("article");art.className="quiz";const h=document.createElement("h2");h.style.margin="0";h.textContent=A?"🔑 اختر كلمة مرور جديدة":"🔑 Choose a new password";
     const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=SBS.user.email;art.append(h,p,pwFormEl(()=>{RECOVER=false;try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}store.set("pwDone",1);sbSession().then(()=>go("account"))}));box.append(art);return}
