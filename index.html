@@ -230,6 +230,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .camt{display:grid;gap:10px;border:2px solid var(--pitch);border-radius:14px;padding:12px}.camhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.camstage{position:relative;line-height:0;border-radius:10px;overflow:hidden;background:#000}.camstage video{width:100%;height:auto;display:block}.camstage canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:manipulation}.camscrub{width:100%}
 .anspick{display:grid;gap:6px}.anspick .btn{justify-self:stretch;text-align:start;white-space:normal}
 .clipedit{gap:10px}.clipedit summary{cursor:pointer;font-weight:700}.clipedit[open]{display:grid}
+.testchk{display:flex!important;align-items:center;gap:8px;font-size:.9rem}.testchk input{width:20px;height:20px;accent-color:var(--pitch)}.sheetdel{display:grid;justify-items:center;gap:4px;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line)}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -1311,11 +1312,13 @@ function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.inner
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📝 صفحة المقيّم":"📝 Assessor's page";
   hd.querySelector("p").textContent=A?"ورقة مباراة كاملة: المعلومات، التشكيلتان، الساعة وتسجيل الأحداث يدويًا، الطاقم، الوقت الضائع، ثم تقدير الحكم. نموذج تدريبي من «قرار الحكم» وليس نموذجًا رسميًا لأي اتحاد.":"A full match sheet: information, line-ups, clock and manual event logging, officials, time lost, then the referee's rating. A Qarar Al-Hakam training form, not an official form of any federation.";box.append(hd);
   let x=anCur();const L0=anList().filter(m=>!m.ro);
+  if(x&&x.test){const tb=document.createElement("p");tb.className="tip";tb.textContent=A?"🧪 ورقة تجريبية: محفوظة في جوالك فقط، ولا تُرفع للخادم ولا تدخل في ملفات الحكام. احذفها من أسفل الصفحة عند الانتهاء.":"🧪 Practice sheet: on this phone only, not uploaded or counted. Delete it at the bottom when done.";box.append(tb)}
   if(x?.ro){const rb=document.createElement("p");rb.className="tip";rb.textContent=A?`📥 تقرير المقيّم ${x.by||""}: نسخة للاطلاع على جوالك، وتعديلها لا يغيّر تقرير المقيّم.`:`📥 ${x.by||"An assessor"}'s report: a copy to read on your phone; editing it doesn't change the assessor's report.`;box.append(rb)}
   if(!x){const art=document.createElement("article");art.className="quiz";art.innerHTML="<h2 style='margin:0'></h2><div class='anform'></div>";art.querySelector("h2").textContent=A?"مباراة جديدة":"New match";
     const f=art.querySelector(".anform");[["home",A?"الفريق المضيف":"Home team"],["away",A?"الفريق الضيف":"Away team"],["date",A?"التاريخ":"Date","date"]].forEach(([k,n,ty])=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.type=ty||"text";i.id="nm-"+k;l.append(i);f.append(l)});
+    const tl=document.createElement("label");tl.className="testchk";const tc=document.createElement("input");tc.type="checkbox";tc.id="nm-test";const ts=document.createElement("span");ts.textContent=A?"🧪 ورقة تجريبية (للتدريب فقط: لا تُرفع للخادم ولا تدخل في ملفات الحكام)":"🧪 Practice sheet (not uploaded, not counted in referee profiles)";tl.append(tc,ts);f.append(tl);
     const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"إنشاء ورقة المباراة":"Create match sheet";
-    b.onclick=()=>{const v=k=>$("#nm-"+k).value.trim(),h=v("home"),w=v("away");const it={id:"a"+Date.now(),title:h&&w?`${h} × ${w}`:(h||w||(A?"مباراة بلا اسم":"Untitled match")),comp:"",date:v("date"),ref:"",inc:[],at:Date.now(),info:{home:h,away:w,date:v("date")}};const l=anList();l.unshift(it);anSave(l);AN=it.id;renderAssess()};
+    b.onclick=()=>{const v=k=>$("#nm-"+k).value.trim(),h=v("home"),w=v("away"),test=$("#nm-test").checked;const it={id:"a"+Date.now(),title:(test?"🧪 ":"")+(h&&w?`${h} × ${w}`:(h||w||(test?(A?"تجربة":"Practice"):(A?"مباراة بلا اسم":"Untitled match")))),comp:"",date:v("date"),ref:"",inc:[],at:Date.now(),info:{home:h,away:w,date:v("date")},...(test?{test:1}:{})};const l=anList();l.unshift(it);anSave(l);AN=it.id;renderAssess()};
     art.append(b);box.append(art);
     if(L0.length){const ls=document.createElement("article");ls.className="quiz";const h3=document.createElement("h3");h3.style.margin="0";h3.textContent=A?"أو افتح مباراة محفوظة":"Or open a saved match";ls.append(h3);
       L0.forEach(m=>{const o=document.createElement("button");o.className="btn";o.style.justifySelf="start";o.textContent=`${m.title}${m.date?" · "+m.date:""}`;o.onclick=()=>{AN=m.id;renderAssess()};ls.append(o)});box.append(ls)}
@@ -1446,6 +1449,10 @@ function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.inner
       [1,2,3,4].forEach(h=>{const m=stSummary(x2,h);if(m.S.length||m.ann!=null)L2.push(`⏱ ${HALF_N(h)}: ${A?"الوقت الضائع":"time lost"} ${mmss2(m.lost)}${m.ann!=null?` · ${A?"المعلن":"announced"} ${m.ann}${A?" د":" min"}`:""}`)});
       [["str",A?"نقاط القوة":"Strengths"],["imp",A?"للتطوير":"To improve"],["goals",A?"أهداف المباراة القادمة":"Next-match goals"]].forEach(([k,n])=>{if(S[k])L2.push(`${n}: ${S[k]}`)});sendRef(x2,null,L2.join("\n"))};
     b.append(pr,sr)}
+  {const dz=document.createElement("div");dz.className="sheetdel noprint";const dd=document.createElement("button");dd.className="btn";dd.style.color="var(--red)";dd.textContent=x.test?(A?"🗑 حذف الورقة التجريبية":"🗑 Delete the practice sheet"):(A?"🗑 حذف ورقة المباراة":"🗑 Delete this match sheet");
+    const dn=document.createElement("small");dn.className="muted";dn.textContent=x.test?(A?"تُحذف من جوالك نهائيًا.":"Removed from this phone for good."):x.ro?(A?"تُحذف نسختك للاطلاع فقط، ويبقى تقرير المقيّم كما هو.":"Removes only your read-only copy; the assessor's report stays."):(A?"تُحذف من جوالك ومن النسخة الاحتياطية على الخادم، ولا يمكن استرجاعها.":"Removed from this phone and the server backup; it can't be recovered.");
+    dd.onclick=()=>{if(!ask2(dd,A?"اضغط مرة ثانية للحذف النهائي":"Tap again to delete for good"))return;if(asTick)clearInterval(asTick);anSave(anList().filter(y=>y.id!==x.id));store.set("as:"+x.id,null);AN=null;go("assessor")};
+    dz.append(dd,dn);box.append(dz)}
   paintEvents()}
 
 function paintEvents(){const box=$("#asEv"),x=anCur();if(!box||!x)return;const A=ar();box.innerHTML="";
@@ -2312,7 +2319,7 @@ let REFsel=null;
 /* assessor reports backed up on the server: the phone keeps the working copy, the server keeps one per member, the admin reads all */
 const AS_SYNC={t:null,busy:false,err:"",at:0,miss:false};
 const asHash=t=>{let h=5381;for(let i=0;i<t.length;i++)h=(h*33^t.charCodeAt(i))|0;return t.length+":"+h};
-const asSyncable=x=>x&&x.id!=="demo"&&!x.ro;
+const asSyncable=x=>x&&x.id!=="demo"&&!x.ro&&!x.test;
 window.asQueue=()=>{if(!SB)return;clearTimeout(AS_SYNC.t);AS_SYNC.t=setTimeout(asPush,3000)};
 async function asPush(){if(!SB||!SBS.user||!SBS.member||AS_SYNC.busy)return;AS_SYNC.busy=true;let fail=0;
   try{const map=store.get("an:sync",{}),L=anList().filter(asSyncable),ids=new Set(L.map(x=>x.id));
@@ -2363,8 +2370,8 @@ function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=
   hero.querySelector("p").textContent=A?"ورقة مباراة كاملة، ساعة وأحداث بأرقام اللاعبين، الملعب الذكي، التوقفات، المحلل الذكي، وتقرير يصل للحكم.":"A full match sheet, clock and events with shirt numbers, the smart pitch, stoppages, the smart analyst, and a report sent to the referee.";
   const nb=document.createElement("button");nb.className="btn big";nb.textContent=A?"＋ مباراة جديدة":"＋ New match";nb.onclick=()=>{AN=null;go("assess")};
   const ex=document.createElement("button");ex.className="btn ghost";ex.textContent=A?"📘 افتح مثالًا كاملًا للتقييم":"📘 Open a complete worked example";ex.onclick=()=>{AN=asDemo();go("assess")};hero.querySelector(".lvl").append(nb,ex);box.append(hero);
-  const refs=[...new Set(L.map(refOf).filter(Boolean))],sc=L.map(x=>asScore(x.id)).filter(v=>v!=null);
-  const st=document.createElement("div");st.className="stats";[[L.length,A?"مباريات":"Matches"],[refs.length,A?"حكام":"Referees"],[sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):"—",A?"متوسط التقدير":"Average rating"],[L.reduce((n,x)=>n+x.inc.length,0),A?"أحداث مسجلة":"Events logged"]].forEach(([v,l])=>{const d=document.createElement("div");d.className="stat";d.innerHTML="<b></b><span class='muted'></span>";d.querySelector("b").textContent=v;d.querySelector("span").textContent=l;st.append(d)});box.append(st);
+  const LS=L.filter(x=>!x.test),refs=[...new Set(LS.map(refOf).filter(Boolean))],sc=LS.map(x=>asScore(x.id)).filter(v=>v!=null);
+  const st=document.createElement("div");st.className="stats";[[LS.length,A?"مباريات":"Matches"],[refs.length,A?"حكام":"Referees"],[sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):"—",A?"متوسط التقدير":"Average rating"],[LS.reduce((n,x)=>n+x.inc.length,0),A?"أحداث مسجلة":"Events logged"]].forEach(([v,l])=>{const d=document.createElement("div");d.className="stat";d.innerHTML="<b></b><span class='muted'></span>";d.querySelector("b").textContent=v;d.querySelector("span").textContent=l;st.append(d)});box.append(st);
   const g=document.createElement("div");g.className="tiles";
   [["🎥",A?"تحليل فيديو":"Video analysis",A?"صوّر أو اختر فيديو وارسم على اللقطة":"Record or pick a video and draw on it",()=>{AN=null;anMode="video";go("analyze")}],
    ["📍",A?"الملعب الذكي":"Smart pitch",A?"سبورة لشرح أين يقف الحكم":"A board to show where the referee should stand",()=>go("board")],
@@ -2387,7 +2394,7 @@ function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=
     const d=document.createElement("button");d.className="btn";d.textContent="🗑";d.setAttribute("aria-label",A?"حذف":"Delete");d.onclick=()=>{if(ask2(d,A?"اضغط مرة ثانية للحذف":"Tap again to delete")){anSave(anList().filter(y=>y.id!==x.id));store.set("as:"+x.id,null);if(AN===x.id)AN=null;renderAssessor()}};
     bt.append(o,vd,d);c.append(bt);cards.append(c)});box.append(cards)}
 
-function renderRefs(){const box=$("#rfBox");box.innerHTML="";const A=ar();box.append(backBtn("assessor"));const L=anList(),by={};
+function renderRefs(){const box=$("#rfBox");box.innerHTML="";const A=ar();box.append(backBtn("assessor"));const L=anList().filter(x=>!x.test),by={};
   L.forEach(x=>{const r=refOf(x);if(r)(by[r]=by[r]||[]).push(x)});const names=Object.keys(by);
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";box.append(hd);
   if(!REFsel||!by[REFsel]){hd.querySelector("h1").textContent=A?"🧑‍⚖️ ملفات الحكام":"🧑‍⚖️ Referee profiles";hd.querySelector("p").textContent=A?"كل حكم قيّمته، مع متوسط تقديره ودقة قراراته. اكتب اسم الحكم في «الحكم ومساعدوه» ليظهر هنا.":"Every referee you assessed, with average rating and decision accuracy. Enter the referee's name under Referee and assistants to see them here.";
