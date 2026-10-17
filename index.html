@@ -205,7 +205,8 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .mediagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.mediagrid figure{margin:0;display:grid;gap:4px;font-size:.8rem}.mediagrid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:var(--line)}.mediagrid button{justify-self:start}
 .annbar{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:14px 16px;border-radius:16px;background:color-mix(in srgb,#F2C230 18%,var(--surface));border:1px solid color-mix(in srgb,#F2C230 55%,transparent)}.annbar>span{font-size:1.6rem}.annbar b{display:block;font-size:1.05rem}.annbar p{margin:4px 0;line-height:1.8}.annbar small{color:var(--muted)}.annbar button{border:0;background:none;font-size:1.1rem;cursor:pointer;color:var(--muted)}
 .sugcard{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:14px}.sugbox>summary{font-weight:700;cursor:pointer}.sugbox[open]{display:grid;gap:10px}
-.tblwrap{overflow-x:auto}.paytbl{width:100%;border-collapse:collapse;font-size:.85rem;min-width:620px}.paytbl th,.paytbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}.paytbl th{color:var(--muted);font-weight:600}.paytbl .amt{font-weight:700;white-space:nowrap}.paytbl .amt.in{color:var(--pitch)}.paytbl .amt.out{color:var(--red)}
+.tblwrap{overflow-x:auto}.stmeter{display:grid;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.stbar{height:12px;border-radius:99px;background:var(--line);overflow:hidden}.stbar i{display:block;height:100%;background:var(--pitch);transition:width .4s}.stmeter[data-level=high] .stbar i{background:#e8891c}.stmeter[data-level=full] .stbar i{background:var(--red)}.stwarn{margin:0;font-size:.85rem;padding:8px 10px;border-radius:8px;background:rgba(232,137,28,.12)}.stmeter[data-level=full] .stwarn{background:rgba(200,40,40,.12)}
+.paytbl{width:100%;border-collapse:collapse;font-size:.85rem;min-width:620px}.paytbl th,.paytbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}.paytbl th{color:var(--muted);font-weight:600}.paytbl .amt{font-weight:700;white-space:nowrap}.paytbl .amt.in{color:var(--pitch)}.paytbl .amt.out{color:var(--red)}
 .shot{max-width:100%;width:260px;border-radius:10px;border:1px solid var(--line);display:block}
 .inc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
 .inc:last-child{border-bottom:0}.inc .tbtn{font-family:"IBM Plex Mono",monospace;cursor:pointer;border:0;background:var(--night);color:#fff;border-radius:8px;padding:3px 8px}
@@ -2348,7 +2349,21 @@ function statsAdminEl(){const A=ar(),art=document.createElement("article");art.c
      [d.new7,A?"جدد هذا الأسبوع":"New this week"],[d.active7,A?"نشطون هذا الأسبوع":"Active this week"],[d.clips,A?"مقاطع منشورة":"Published clips"],[d.votes,A?"أصوات على اللقطات":"Clip votes"],
      [d.comments,A?"تعليقات":"Comments"],[d.sessions,A?"جلسات قاعة":"Classroom sessions"],[d.answers,A?"إجابات في الجلسات":"Session answers"],[d.suggestions,A?"لقطات مقترحة تنتظرك":"Clip suggestions waiting"]]
       .forEach(([v,l])=>{const s=document.createElement("div");s.className="stat";s.innerHTML="<b></b><span class='muted'></span>";s.querySelector("b").textContent=v??"—";s.querySelector("span").textContent=l;g.append(s)});
-    if(d.rejected)p.textContent=A?`مرفوضون: ${d.rejected}`:`Rejected: ${d.rejected}`});return art}
+    if(d.rejected)p.textContent=A?`مرفوضون: ${d.rejected}`:`Rejected: ${d.rejected}`});
+  art.append(storageMeterEl());return art}
+/* storage used by uploaded videos and photos, against the free plan's 1 GB */
+const STORE_LIMIT=1024**3;
+function storageMeterEl(){const A=ar(),box=document.createElement("div");box.className="stmeter";box.id="storeMeter";
+  const h=document.createElement("b");h.textContent=A?"💾 مساحة التخزين":"💾 Storage";const bar=document.createElement("div");bar.className="stbar";const fill=document.createElement("i");bar.append(fill);
+  const line=document.createElement("small");const det=document.createElement("small");det.className="muted";const warn=document.createElement("p");warn.className="stwarn";warn.hidden=true;box.append(h,bar,line,det,warn);
+  const n=v=>Number(v||0).toLocaleString("en-US");
+  const size=b=>{b=Number(b)||0;return "\u2066"+(b>=1024**3?`${(b/1024**3).toFixed(2)} GB`:b>=1024**2?`${(b/1024**2).toFixed(1)} MB`:`${Math.round(b/1024)} KB`)+"\u2069"};
+  SB.rpc("admin_storage").then(({data:d,error})=>{if(error||!d){bar.hidden=true;line.textContent=/admin_storage/.test(error?.message||"")?(A?"شغّل ملف storage_stats.sql في Supabase ليظهر عدّاد المساحة.":"Run storage_stats.sql in Supabase to see the storage meter."):(error?.message||"");return}
+    const used=Number(d.all_bytes)||0,pct=Math.min(100,used/STORE_LIMIT*100),lvl=pct>=100?"full":pct>=80?"high":"ok";box.dataset.level=lvl;fill.style.width=`${Math.max(pct,used?1:0)}%`;
+    line.textContent=A?`${size(used)} من \u20661 GB\u2069 (\u2066${pct.toFixed(pct<10?1:0)}%\u2069)`:`${size(used)} of 1 GB (${pct.toFixed(pct<10?1:0)}%)`;
+    det.textContent=A?`🎬 فيديو: ${n(d.video_count)} (${size(d.video_bytes)}) · 🖼 صور: ${n(d.photo_count)} (${size(d.photo_bytes)})`:`🎬 Videos: ${n(d.video_count)} (${size(d.video_bytes)}) · 🖼 Photos: ${n(d.photo_count)} (${size(d.photo_bytes)})`;
+    if(lvl!=="ok"){warn.hidden=false;warn.textContent=lvl==="full"?(A?"⛔ امتلأت المساحة المجانية. احذف فيديوهات قديمة، أو ارفع المقاطع الطويلة على يوتيوب «غير مدرج» وأضف رابطها، أو رقِّ الخطة إلى Pro.":"⛔ The free storage is full. Delete old videos, or put long clips on YouTube as unlisted and add the link, or upgrade to Pro."):(A?"⚠️ تجاوزت 80% من المساحة المجانية. للمقاطع الطويلة استخدم رابط يوتيوب «غير مدرج» بدل الرفع، وراجع صفحة Usage في Supabase لحجم التحميل الشهري.":"⚠️ Over 80% of the free storage. For long clips use an unlisted YouTube link instead of uploading, and check Usage in Supabase for monthly egress.")}});
+  return box}
 
 const SUG_DEF=()=>ar()?["لا شيء، استمرار اللعب","خطأ دون عقوبة انضباطية","خطأ + إنذار 🟨","خطأ + طرد 🟥"]:["Nothing, play on","Foul, no disciplinary sanction","Foul + caution 🟨","Foul + sending-off 🟥"];
 function suggestAdminEl(){const A=ar(),art=document.createElement("article");art.className="quiz";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"💡 لقطات مقترحة من الأعضاء":"💡 Clips suggested by members";
