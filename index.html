@@ -1759,7 +1759,7 @@ function profileForm(embedded){const A=ar(),w=document.createElement("div");w.cl
   if(!embedded){const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"حفظ الملف":"Save profile";b.onclick=async()=>{const p=w.read();if(!p)return;await SB.from("profiles").upsert({id:SBS.user.id,...p});await sbSession();renderAccount()};w.append(b)}
   return w}
 function pollEl(c){const A=ar(),art=document.createElement("article");art.className="poll";const h=document.createElement("h3");h.style.margin="0";h.textContent=A?"🗳 شاركنا قرارك":"🗳 Your call";art.append(h);
-  if(!c.options||!c.options.length){const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"لا يوجد تصويت لهذه اللقطة.":"No poll for this clip.";art.append(p);return art}
+  if(!c.options||!c.options.length){h.textContent=A?"💬 للنقاش":"💬 For discussion";const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?"هذا المقطع للنقاش بدون تصويت. شاهد اللقطة وشارك رأيك في التعليقات، واستشهد بالقانون.":"This clip is for discussion, without a poll. Watch it and share your view in the comments, citing the Law.";art.append(p);return art}
   const body=document.createElement("div");body.style.cssText="display:grid;gap:8px";art.append(body);
   const showResults=async(mine)=>{body.innerHTML="";const {data}=await SB.rpc("clip_results",{cid:c.sid});const cnt={};(data||[]).forEach(r=>cnt[r.choice]=Number(r.n));const tot=Object.values(cnt).reduce((a,b)=>a+b,0)||1;
     const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?`${tot} صوتًا من الحكام`:`${tot} referees voted`;body.append(p);
@@ -2683,17 +2683,22 @@ function pollOptsEl(start,init){const A=ar(),w=document.createElement("div");w.c
     ["goal",A?"هدف":"Goal",A?["هدف صحيح","هدف ملغى: خطأ","هدف ملغى: تسلل","هدف ملغى: لمسة يد"]:["Goal stands","Goal disallowed: foul","Goal disallowed: offside","Goal disallowed: handball"]],
     ["blank",A?"فارغ":"Blank",["","","",""]]];
   const ph=document.createElement("small");ph.className="muted";ph.textContent=A?"اختر نوع الحالة لتعبئة خيارات جاهزة، ثم عدّلها كما تريد. خياران على الأقل، وأربعة كحد أقصى.":"Pick the kind of incident to fill ready options, then edit them. At least two, at most four.";
-  const pr=document.createElement("div");pr.className="lvl";w.append(ph,pr);let ansSel=null;
-  const optsIn=[0,1,2,3].map(k=>{const r=document.createElement("label");r.className="optrow";const n=document.createElement("b");n.textContent=k+1;const i=document.createElement("input");i.maxLength=80;i.placeholder=k<2?(A?"مطلوب":"Required"):(A?"اختياري":"Optional");r.append(n,i);w.append(r);return i});
+  const pr=document.createElement("div");pr.className="lvl";let ansSel=null,on=true;
+  const mode=document.createElement("div");mode.className="lvl";const mB=(v,t2)=>{const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=t2;b.onclick=()=>setOn(v);mode.append(b);return b};
+  const bOn=mB(true,A?"🗳 مع تصويت":"🗳 With a poll"),bOff=mB(false,A?"💬 نقاش فقط بدون تصويت":"💬 Discussion only, no poll");
+  const body=document.createElement("div");body.className="opt4b";const offNote=document.createElement("small");offNote.className="muted";offNote.textContent=A?"يظهر المقطع للأعضاء مع النقاش والتعليقات فقط، بدون خيارات. يمكنك إضافة تصويت لاحقًا من «✏️ تعديل الخيارات».":"Members see the clip with discussion and comments only. You can add a poll later from Edit options.";
+  const setOn=v=>{on=v;bOn.setAttribute("aria-pressed",v);bOff.setAttribute("aria-pressed",!v);body.hidden=!v;offNote.hidden=v};
+  w.append(mode,offNote,body);body.append(ph,pr);
+  const optsIn=[0,1,2,3].map(k=>{const r=document.createElement("label");r.className="optrow";const n=document.createElement("b");n.textContent=k+1;const i=document.createElement("input");i.maxLength=80;i.placeholder=k<2?(A?"مطلوب":"Required"):(A?"اختياري":"Optional");r.append(n,i);body.append(r);return i});
   const ah=document.createElement("strong");ah.textContent=A?"الإجابة الصحيحة":"Correct answer";const ch=document.createElement("div");ch.className="anspick";
   const paintAns=()=>{ch.innerHTML="";[0,1,2,3,null].forEach(v=>{if(v!=null&&!optsIn[v].value.trim())return;const b=document.createElement("button");b.type="button";b.className="btn";b.textContent=v==null?(A?"💬 نقاش مفتوح (بلا إجابة معتمدة)":"💬 Open debate (no official answer)"):`${v+1}. ${optsIn[v].value.trim()}`;
     b.setAttribute("aria-pressed",v===ansSel);b.onclick=()=>{ansSel=v;paintAns()};ch.append(b)});if(ansSel!=null&&!optsIn[ansSel].value.trim()){ansSel=null;paintAns()}};
   optsIn.forEach(i=>i.oninput=paintAns);
   const fill=k=>{const P=PRE.find(z=>z[0]===k)||PRE[0];optsIn.forEach((i,j)=>i.value=P[2][j]||"");ansSel=null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed",z.dataset.k===P[0]));paintAns()};
   PRE.forEach(([k,n2])=>{const b=document.createElement("button");b.type="button";b.className="btn";b.style.fontSize=".85rem";b.dataset.k=k;b.textContent=n2;b.onclick=()=>fill(k);pr.append(b)});
-  w.append(ah,ch);fill(start||"foul");
-  if(init){optsIn.forEach((i,j)=>i.value=(init.options||[])[j]||"");ansSel=init.answer??null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed","false"));paintAns()}
-  w.read=()=>{const raw=optsIn.map(i=>i.value.trim()),options=raw.filter(Boolean);
+  body.append(ah,ch);fill(start||"foul");setOn(true);
+  if(init){if(!(init.options||[]).length){fill("foul");setOn(false)}else{optsIn.forEach((i,j)=>i.value=(init.options||[])[j]||"");ansSel=init.answer??null;pr.querySelectorAll("button").forEach(z=>z.setAttribute("aria-pressed","false"));paintAns()}}
+  w.read=()=>{if(!on)return {options:[],answer:null};const raw=optsIn.map(i=>i.value.trim()),options=raw.filter(Boolean);
     if(options.length<2)return {err:A?"اكتب خيارين على الأقل.":"Write at least two options."};
     if(new Set(options.map(o=>o.replace(/\s+/g," ").toLowerCase())).size!==options.length)return {err:A?"يوجد خيار مكرر. اجعل كل خيار مختلفًا.":"Two options are the same. Make each one different."};
     const a=ansSel==null?-1:options.indexOf(raw[ansSel]);return {options,answer:a<0?null:a}};
