@@ -231,6 +231,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .anspick{display:grid;gap:6px}.anspick .btn{justify-self:stretch;text-align:start;white-space:normal}
 .clipedit{gap:10px}.clipedit summary{cursor:pointer;font-weight:700}.clipedit[open]{display:grid}
 .testchk{display:flex!important;align-items:center;gap:8px;font-size:.9rem}.testchk input{width:20px;height:20px;accent-color:var(--pitch)}.sheetdel{display:grid;justify-items:center;gap:4px;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line)}
+.protosec summary{cursor:pointer;font-weight:700;font-size:1.02rem}.protosec ul{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:6px;line-height:1.7}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -347,6 +348,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
   <section data-view="join" id="v-join" hidden><div id="joBox" style="display:grid;gap:16px"></div></section>
   <section data-view="plan" id="v-plan" hidden><div id="plBox" style="display:grid;gap:16px"></div></section>
   <section data-view="refs" id="v-refs" hidden><div id="rfBox" style="display:grid;gap:16px"></div></section>
+  <section data-view="protocol" id="v-protocol" hidden><div id="prBox" style="display:grid;gap:16px"></div></section>
   <section data-view="kit" id="v-kit" hidden><div id="kitBox" style="display:grid;gap:16px"></div></section>
   <section data-view="board" id="v-board" hidden><div id="bdBox" style="display:grid;gap:16px"></div></section>
   <section data-view="news" id="v-news" hidden><div id="newsBox" style="display:grid;gap:16px"></div></section>
@@ -744,19 +746,24 @@ function applyLang(){
   renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();if(!$("#v-vcases").hidden)renderVC();if(!$("#v-account").hidden)renderAccount();if(!$("#v-clips").hidden)renderClips();if(!$("#v-library").hidden)renderLibrary();if(!$("#v-lectures").hidden)renderLectures();if(!$("#v-analyze").hidden)renderAnalyze();if(!$("#v-assess").hidden)renderAssess();if(!$("#v-ai").hidden)renderAI();
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
-const TABOF=v=>({guide:"guide",news:"guide",kit:"guide",assistant:"guide",instr:"guide",present:"guide",host:"guide",plan:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress",assessor:"assessor",assess:"assessor",analyze:"assessor",ai:"assessor",refs:"assessor",board:"assessor"})[v]||"train";
+const TABOF=v=>({guide:"guide",news:"guide",kit:"guide",protocol:"library",assistant:"guide",instr:"guide",present:"guide",host:"guide",plan:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress",assessor:"assessor",assess:"assessor",analyze:"assessor",ai:"assessor",refs:"assessor",board:"assessor"})[v]||"train";
 function go(v){if(document.body.classList.contains("locked")&&v!=="account")v="account";if(v!=="analyze"&&v!=="assess"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===TABOF(v)));
   if(v==="train"){$("#trainH").textContent=ar()?"❓ الأسئلة":"❓ Questions";$("#trainP").textContent=ar()?"كل الأسئلة والاختبارات هنا فقط: البنك، الحالات، صح أم خطأ، المباراة التفاعلية، والاختبار الشامل.":"Every question and test lives here only: the bank, cases, true or false, the interactive match and the full exam.";renderTiles();renderDaily()}
   if(v==="instr")renderInstr();if(v==="present")renderPresent();if(v==="host")renderHost();if(v==="join")renderJoin();if(v==="plan")renderPlan();
-  if(v==="assessor")renderAssessor();if(v==="kit")renderKit();if(v==="refs")renderRefs();if(v==="board")renderBoardView();
+  if(v==="assessor")renderAssessor();if(v==="kit")renderKit();if(v==="protocol")renderProtocol();if(v==="refs")renderRefs();if(v==="board")renderBoardView();
   if(v==="progress")renderProgress();if(v==="exam")renderExam();if(v==="news")renderNews();if(v==="review")renderReview();if(v==="signals")renderSignals();if(v==="myths")renderMyths();if(v==="match")renderMatch();if(v==="bank")renderBank();if(v==="vcases")renderVC();if(v==="account")renderAccount();if(v==="clips")renderClips();if(v==="library")renderLibrary();if(v==="lectures")renderLectures();if(v==="analyze")renderAnalyze();if(v==="assess")renderAssess();if(v==="assistant")initChat();if(v==="ai")renderAI();window.scrollTo(0,0)}
 
 /* index */
 const LAW_IDS=()=>Object.keys(LAW_DATA).map(Number).sort((a,b)=>a-b);
 function nextTarget(){for(const law of LAW_IDS()){const ps=LAW_DATA[law].parts;for(let i=0;i<ps.length;i++)if(!partDone(law,i))return [law,i]}return [1,0]}
+let LAWS_OPEN=false;
 function renderIndex(){renderGTools();renderAnn();
+  /* the 17 laws open from one tile; the home page keeps the tools */
+  ["nextUp","annBox","gtools","results"].forEach(id=>{const e=$("#"+id);if(e)e.hidden=LAWS_OPEN});const sq=$("#q")?.closest(".search");if(sq)sq.hidden=LAWS_OPEN;
+  const lh=$("#v-guide h2[data-t=lawsTitle]");if(lh)lh.hidden=!LAWS_OPEN;$("#laws").hidden=!LAWS_OPEN;
+  let lb=$("#lawsBack");if(!lb){lb=document.createElement("button");lb.id="lawsBack";lb.className="btn";lb.style.justifySelf="start";lb.onclick=()=>{LAWS_OPEN=false;renderIndex();window.scrollTo(0,0)};lh.before(lb)}lb.textContent=ar()?"→ الصفحة الرئيسية":"← Home";lb.hidden=!LAWS_OPEN;
   const box=$("#laws");box.innerHTML="";
   LAWS.forEach(([n,a,e])=>{const ready=!!LAW_DATA[n];const b=document.createElement("button");b.className="law"+(ready?" ready":"");
     b.innerHTML=`<b>${n}</b><span></span><small></small>`;b.querySelector("span").textContent=ar()?a:e;
@@ -1185,7 +1192,7 @@ const fmtT=s=>{s=Math.max(0,Math.round(s||0));return `${Math.floor(s/60)}:${Stri
 const lbl2=(o,k)=>(o[k]||["",""])[ar()?0:1];
 function anCur(){return anList().find(x=>x.id===AN)}
 function anUpdate(fn){const l=anList(),i=l.findIndex(x=>x.id===AN);if(i<0)return;fn(l[i]);anSave(l)}
-function backBtn(to){const b=document.createElement("button");b.className="btn noprint";b.style.justifySelf="start";const A=ar(),N={assessor:["صفحة المقيّم","Assessor"],instr:["منصة المحاضر","Instructor"],library:["المكتبة","Library"],train:["الأسئلة","Questions"]}[to];b.textContent=N?(A?`→ ${N[0]}`:`← ${N[1]}`):t("back");b.onclick=()=>go(to);return b}
+function backBtn(to){const b=document.createElement("button");b.className="btn noprint";b.style.justifySelf="start";const A=ar(),N={assessor:["صفحة المقيّم","Assessor"],instr:["منصة المحاضر","Instructor"],library:["المكتبة","Library"],train:["الأسئلة","Questions"],guide:["الصفحة الرئيسية","Home"],clips:["كل المقاطع","All clips"]}[to];b.textContent=N?(A?`→ ${N[0]}`:`← ${N[1]}`):t("back");b.onclick=()=>go(to);return b}
 function renderAnalyze(){const box=$("#anBox");box.innerHTML="";$("#asBox").innerHTML="";const A=ar();box.append(backBtn("assessor"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🎥 تحليل الحكم":"🎥 Referee analysis";
   hd.querySelector("p").textContent=A?"صوّر المباراة بالجوال أو اختر فيديو، وسجّل كل حالة بوقتها وتقييمها. الفيديو يبقى على جهازك ولا يُرفع لأي مكان، والتحليل يُحفظ في هذا المتصفح. احصل على إذن من يظهر في التصوير.":"Record with your phone or pick a video, and log each incident with its time and evaluation. The video stays on your device and is never uploaded; the analysis is saved in this browser. Get consent from people you film.";box.append(hd);
@@ -1540,17 +1547,20 @@ let CLi=null;
 function ytId(u){u=(u||"").trim();const m=u.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
 const toSec=v=>{v=String(v||"").trim();if(!v)return 0;const p=v.split(":").map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:+p[0]||0};
 const allClips=()=>[...CLIP_DATA.clips.map(c=>({...c,mine:false})),...SBD.clips.map(c=>({...c,server:true})),...store.get("myclips",[]).map(c=>({...c,mine:true}))];
-function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.append(backBtn("library"));const C=allClips();
-  if(CLi===null){const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🎥 مقاطع حقيقية":"🎥 Real clips";
-    hd.querySelector("p").textContent=A?"لقطات من مباريات حقيقية تُعرض من يوتيوب مباشرة، من ثانية البداية إلى ثانية النهاية فقط. الفيديو يبقى على يوتيوب عند صاحبه، ولا نحمّله أو ننسخه.":"Real match moments played straight from YouTube, only between the start and end seconds. The video stays on YouTube with its owner; we don't download or copy it.";box.append(hd);
+let CL_FROM="library";
+function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.append(backBtn(CLi===null?CL_FROM:"clips"));const C=allClips();
+  if(CLi!==null)box.firstChild.onclick=()=>{CLi=null;renderClips()};
+  if(CLi===null){const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🗳 مقاطع تعليمية للتصويت":"🗳 Teaching clips to vote on";
+    hd.querySelector("p").textContent=A?"لقطات من مباريات حقيقية: شاهد الحالة، ثم صوّت بقرارك وشارك رأيك في النقاش، وشاهد كيف صوّت بقية الحكام.":"Real match incidents: watch, cast your call, join the discussion and see how other referees voted.";box.append(hd);
     if(C.length){const l=document.createElement("div");l.className="vclist";C.forEach((c,i)=>{const b=document.createElement("button");b.className="vccard";b.innerHTML="<img style='width:100%;border-radius:8px;aspect-ratio:16/9;object-fit:cover' alt=''><small></small><b></b><small></small>";
       b.querySelector("img").src=`https://i.ytimg.com/vi/${c.yt}/mqdefault.jpg`;b.querySelectorAll("small")[0].textContent=c.law?`${A?"القانون":"Law"} ${c.law} — ${LAWS[c.law-1][A?1:2]}`:"";
       b.querySelector("b").textContent=c.title||(A?"لقطة":"Clip");b.querySelectorAll("small")[1].textContent=`${fmtT(c.start)} → ${fmtT(c.end)}${c.mine?(A?" · أضفتها أنت":" · added by you"):""}`;b.onclick=()=>{CLi=i;renderClips()};l.append(b)});box.append(l)}
-    else{const p=document.createElement("p");p.className="muted";p.textContent=A?"لا توجد مقاطع بعد. أضف أول مقطع من النموذج أدناه.":"No clips yet. Add the first one below.";box.append(p)}
+    else{const p=document.createElement("p");p.className="muted";p.textContent=A?"لا توجد مقاطع بعد.":"No clips yet.";box.append(p)}
     if(SB&&SBS.member&&!SBS.admin&&!SBS.instr)box.append(suggestMemberEl());
-    const f=document.createElement("article");f.className="quiz";const fh=document.createElement("h3");fh.style.margin="0";fh.textContent=A?"＋ إضافة مقطع":"＋ Add a clip";f.append(fh);
+    if(!(SB&&SBS.admin))return;
+    const f=document.createElement("article");f.className="quiz";const fh=document.createElement("h3");fh.style.margin="0";fh.textContent=A?"＋ إضافة مقطع تعليمي للتصويت":"＋ Add a teaching clip";f.append(fh);
     const g=document.createElement("div");g.className="anform";const inp=(id,n,ph)=>{const l=document.createElement("label");l.textContent=n;const i=document.createElement("input");i.id=id;if(ph)i.placeholder=ph;l.append(i);g.append(l);return i};
-    let pickedVid=null,pickedDur=0;const canUp=!!(SB&&(SBS.admin||SBS.instr));
+    let pickedVid=null,pickedDur=0;const canUp=!!(SB&&SBS.admin);
     if(canUp){const src=document.createElement("div");src.className="srcpick";const fi=document.createElement("input");fi.type="file";fi.accept="video/*";fi.hidden=true;const info2=document.createElement("small");info2.className="muted";
       const bY=document.createElement("button");bY.type="button";bY.className="srcbtn";bY.innerHTML="<b>▶️</b><span></span>";bY.querySelector("span").textContent=A?"رابط يوتيوب":"YouTube link";
       const bP=document.createElement("button");bP.type="button";bP.className="srcbtn";bP.innerHTML="<b>📱</b><span></span>";bP.querySelector("span").textContent=A?"من مكتبة الصور":"From photo library";
@@ -1565,11 +1575,11 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
     f.append(g);{const l=document.createElement("label");l.className="field";l.textContent=A?"القرار الصحيح والتعليل (يظهر بعد المشاهدة)":"Correct decision and reasoning (shown after watching)";const i=document.createElement("textarea");i.id="cl-w";i.rows=2;l.append(i);f.append(l)}
     const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";
     const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ المقطع":"Save clip";
-    let po=null;if(SBS.admin||SBS.instr){po=pollOptsEl();f.append(po);
+    let po=null;if(SBS.admin){po=pollOptsEl();f.append(po);
       const bd=document.createElement("p");bd.style.cssText="margin:0;font-weight:600;color:var(--pitch)";bd.textContent=SBS.admin?(A?"🛡 أنت مدير: المقطع يُنشر لكل المستخدمين.":"🛡 Admin: the clip is published to everyone."):(A?"🎓 أنت محاضر: المقطع يُنشر لكل الأعضاء، وتستطيع حذف مقاطعك أنت فقط.":"🎓 Instructor: the clip is published to all members; you can delete only your own clips.");f.append(bd)}
     add.onclick=async()=>{const id=pickedVid?null:ytId(u.value),s=toSec($("#cl-s").value),e=toSec($("#cl-e").value)||(pickedVid?pickedDur:0);if(!id&&!pickedVid){msg.textContent=A?"الرابط غير صحيح. الصق رابط فيديو يوتيوب أو اختر فيديو من مكتبة الصور.":"Invalid link. Paste a YouTube link or pick a video from your library.";return}
       if(!(e>s)&&!(pickedVid&&!e)){msg.textContent=A?"يجب أن تكون النهاية بعد البداية.":"End must be after start.";return}
-      if(SBS.admin||SBS.instr){const pv=po.read();if(pv.err){msg.textContent=pv.err;return}const {options,answer}=pv;
+      if(SBS.admin){const pv=po.read();if(pv.err){msg.textContent=pv.err;return}const {options,answer}=pv;
         let vpath=null;if(pickedVid){add.disabled=true;msg.textContent=A?"⏳ جارٍ رفع الفيديو… لا تغلق الصفحة.":"⏳ Uploading the video… keep this page open.";const ext=(pickedVid.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";vpath=`${SBS.user.id}/${Date.now()}.${ext}`;
           const {error:ue}=await SB.storage.from("clips").upload(vpath,pickedVid,{contentType:pickedVid.type||"video/mp4",upsert:false});add.disabled=false;if(ue){msg.textContent=(A?"تعذر رفع الفيديو: ":"Video upload failed: ")+ue.message;return}}
         const row={yt:id,video_path:vpath,start_s:s,end_s:e,title:$("#cl-t").value.trim()||(A?"لقطة":"Clip"),law:+$("#cl-law").value||null,options,answer,why:$("#cl-w").value.trim()||null};
@@ -1589,7 +1599,7 @@ function renderClips(){const box=$("#clBox");box.innerHTML="";const A=ar();box.a
   let vv=v;if(c.vp){vv=clipMedia(c);op.remove();setTimeout(()=>fb.remove());rp.className="btn primary";rp.onclick=()=>clipReplay(vv,c)}
   box.append(hd,vv,ctl,info);
   if(c.server)box.append(pollEl(c),commentsEl(c));
-  if(c.w&&!c.server){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
+  if(c.w&&!c.server&&SBS.admin){const d=document.createElement("details");d.className="book";d.innerHTML="<summary></summary><p style='margin:8px 0 0;line-height:1.8'></p>";d.querySelector("summary").textContent=A?"👁 اعرض القرار الصحيح":"👁 Show the correct decision";d.querySelector("p").textContent=c.w;box.append(d)}
   const nav=document.createElement("div");nav.className="partnav";const all=document.createElement("button");all.className="btn";all.textContent=A?"كل المقاطع":"All clips";all.onclick=()=>{CLi=null;renderClips()};nav.append(all);
   if(c.server&&SB&&(SBS.admin||(SBS.instr&&c.by===SBS.user?.id))){
     /* fix a published clip: poll options, answer and the reasoning */
@@ -1611,7 +1621,8 @@ function renderLibrary(){const box=$("#libBox");box.innerHTML="";const A=ar();bo
   const L=lecAll(),up=L.live.filter(x=>new Date(x.when).getTime()+3*36e5>Date.now()).length;
   const g=document.createElement("div");g.className="tiles";
   [["🎬",VC_DATA.cases.length,A?"حالات الفيديو المتحركة":"Animated video cases",A?"تتوقف وتسألك":"Pause and ask you",()=>{VCi=null;go("vcases")}],
-   ["🎥",allClips().length,A?"مقاطع حقيقية":"Real clips",A?"لقطات مقصوصة من يوتيوب":"Trimmed YouTube moments",()=>{CLi=null;go("clips")}],
+   ["🗳",allClips().length,A?"مقاطع تعليمية للتصويت":"Teaching clips to vote on",A?"شاهد الحالة وصوّت بقرارك":"Watch and cast your call",()=>{CLi=null;CL_FROM="library";go("clips")}],
+   ["📋","",A?"البروتوكول":"Protocol",A?"إجراءات الحكم يوم المباراة":"The referee's match-day procedure",()=>go("protocol")],
    ["🎓",L.recorded.length,A?"محاضرات مسجلة":"Recorded lectures",A?"تسجيلات زوم وغيرها":"Zoom recordings and more",()=>{LECtab="rec";LECi=null;go("lectures")}],
    ["🔴",up,A?"محاضرات مباشرة":"Live lectures",A?"مواعيد وغرفة بث":"Schedule and live room",()=>{LECtab="live";LECi=null;go("lectures")}]].forEach(([ic,n,tt,sub,fn])=>{
     const b=document.createElement("button");b.className="tile";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=`${ic} ${n}`;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;b.onclick=fn;g.append(b)});
@@ -1770,11 +1781,12 @@ function pollEl(c){const A=ar(),art=document.createElement("article");art.classN
   const body=document.createElement("div");body.style.cssText="display:grid;gap:8px";art.append(body);
   const showResults=async(mine)=>{body.innerHTML="";const {data}=await SB.rpc("clip_results",{cid:c.sid});const cnt={};(data||[]).forEach(r=>cnt[r.choice]=Number(r.n));const tot=Object.values(cnt).reduce((a,b)=>a+b,0)||1;
     const p=document.createElement("p");p.className="muted";p.style.margin="0";p.textContent=A?`${tot} صوتًا من الحكام`:`${tot} referees voted`;body.append(p);
-    c.options.forEach((o,i)=>{const r=document.createElement("div");r.className="pbar"+(c.answer===i?" ok":"")+(mine===i?" mine":"");const pct=Math.round((cnt[i]||0)/tot*100);
-      r.innerHTML=`<div class="t"><i style="width:${pct}%"></i><span></span></div><b>${pct}%</b>`;r.querySelector("span").textContent=(c.answer===i?"✓ ":"")+o+(mine===i?(A?" · صوتك":" · your vote"):"");body.append(r)});
-    if(c.answer!=null){const d=document.createElement("p");d.style.cssText="margin:0;font-weight:600;color:var(--pitch)";d.textContent=(A?"القرار الصحيح: ":"Correct decision: ")+c.options[c.answer];body.append(d)}
-    else{const d=document.createElement("p");d.className="muted";d.style.margin="0";d.textContent=A?"نقاش مفتوح: لا يوجد قرار معتمد بعد.":"Open debate: no official answer yet.";body.append(d)}
-    if(c.w){const w=document.createElement("p");w.style.cssText="margin:0;line-height:1.8";w.textContent=c.w;body.append(w)}};
+    const staff=SBS.admin||(SBS.instr&&c.by&&c.by===SBS.user?.id),showAns=staff&&c.answer!=null;
+    c.options.forEach((o,i)=>{const r=document.createElement("div");r.className="pbar"+(showAns&&c.answer===i?" ok":"")+(mine===i?" mine":"");const pct=Math.round((cnt[i]||0)/tot*100);
+      r.innerHTML=`<div class="t"><i style="width:${pct}%"></i><span></span></div><b>${pct}%</b>`;r.querySelector("span").textContent=(showAns&&c.answer===i?"✓ ":"")+o+(mine===i?(A?" · صوتك":" · your vote"):"");body.append(r)});
+    if(staff){if(c.answer!=null){const d=document.createElement("p");d.style.cssText="margin:0;font-weight:600;color:var(--pitch)";d.textContent=(A?"🛡 القرار الصحيح (يظهر لك فقط): ":"🛡 Correct decision (only you see this): ")+c.options[c.answer];body.append(d)}
+      if(c.w){const w=document.createElement("p");w.style.cssText="margin:0;line-height:1.8";w.textContent=c.w;body.append(w)}}
+    else{const d=document.createElement("p");d.className="muted";d.style.margin="0";d.textContent=A?"شكرًا، سُجّل صوتك. هذه آراء المشاركين، والهدف معرفة اختيارات الحكام. شارك تعليلك في النقاش بالأسفل.":"Thanks, your vote is in. These are the participants' views; the aim is to see how referees decide. Share your reasoning in the discussion below.";body.append(d)}};
   if(!SB||!SBS.user){const p=document.createElement("p");p.style.margin="0";p.textContent=A?"سجّل الدخول لتصوّت وترى رأي بقية الحكام.":"Sign in to vote and see what other referees chose.";const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"👤 تسجيل الدخول":"👤 Sign in";b.onclick=()=>go("account");body.append(p,b);return art}
   (async()=>{const {data}=await SB.from("votes").select("choice").eq("clip_id",c.sid).maybeSingle();if(data){showResults(data.choice);return}
     const p=document.createElement("p");p.style.margin="0";p.textContent=A?"شاهد اللقطة ثم اختر قرارك. تظهر النتائج بعد تصويتك.":"Watch the clip, then make your call. Results appear after you vote.";body.append(p);
@@ -1837,8 +1849,27 @@ function renderKit(){const box=$("#kitBox");box.innerHTML="";const A=ar();box.ap
   const reset=document.createElement("button");reset.className="btn primary";reset.style.justifySelf="start";reset.textContent=A?"🔄 مباراة جديدة: امسح العلامات":"🔄 New match: clear the ticks";reset.onclick=()=>{if(!ask2(reset,A?"اضغط مرة ثانية للتأكيد":"Tap again to confirm"))return;K.ok={};save();renderKit()};box.append(reset);
   const shop=document.createElement("article");shop.className="quiz aisoon";shop.innerHTML="<b></b><p></p>";shop.querySelector("b").textContent=A?"🛒 متجر أدوات الحكم · ⏳ قريبًا":"🛒 Referee equipment shop · ⏳ Coming soon";
   shop.querySelector("p").textContent=A?"صافرات، بطاقات، رايات، ساعات، وأطقم الحكام، في مكان واحد.":"Whistles, cards, flags, watches and referee kits, all in one place.";box.append(shop)}
+/* match-day protocol: general guidance written by the platform; the federation's instructions always come first */
+const PROTO=[["📅",["قبل يوم المباراة","Before match day"],[["تأكد من التكليف: المسابقة، الفريقان، الملعب، الموعد، وأسماء الطاقم.","Confirm the appointment: competition, teams, venue, kick-off and crew."],["راجع لوائح المسابقة: عدد التبديلات، الوقت الإضافي، ركلات الترجيح، والإجراءات الخاصة.","Review the competition rules: substitutions, extra time, penalties and any special procedures."],["تواصل مع الطاقم واتفقوا على موعد اللقاء ووسيلة الوصول.","Contact the crew and agree when and how you'll arrive."],["جهّز حقيبتك من قائمة «🎒 حقيبة الحكم».","Pack your bag using the “🎒 Referee's kit bag” list."],["نم جيدًا، واهتم بالتغذية وشرب الماء.","Sleep well, eat well and stay hydrated."]]],
+  ["🏟",["الوصول إلى الملعب","Arriving at the ground"],[["احضر في الوقت الذي يحدده الاتحاد، وغالبًا ساعة ونصف قبل البداية أو أكثر.","Arrive at the time the federation sets, usually an hour and a half or more before kick-off."],["ادخل بالزي الرسمي ومظهر لائق، وتوجّه إلى غرفة الحكام.","Arrive in official dress and go straight to the referees' room."],["عرّف بنفسك لمسؤول الملعب ومندوب المباراة.","Introduce yourself to the ground manager and the match commissioner."]]],
+  ["🔍",["فحص الملعب والمعدات","Inspecting the pitch and equipment"],[["الخطوط واضحة وبالمقاسات الصحيحة.","Markings are clear and correct."],["المرميان ثابتان والشباك سليمة ومثبتة.","Goals are secure and nets intact and fixed."],["رايات الركنية في أماكنها.","Corner flags are in place."],["الكرات: العدد والضغط والحالة.","Balls: number, pressure and condition."],["المنطقة الفنية ومقاعد البدلاء.","Technical areas and benches."],["الإسعاف والطاقم الطبي جاهزون.","First aid and medical staff are ready."]]],
+  ["🤝",["اجتماع الطاقم","Crew briefing"],[["توزيع المسؤوليات: التسلل، الركنيات، المنطقة الفنية، التبديلات.","Split duties: offside, corners, technical area, substitutions."],["الاتفاق على الإشارات وطريقة الاتصال.","Agree signals and how you'll communicate."],["التمركز في الكرات الثابتة والهجمات المرتدة.","Positioning at set pieces and counter-attacks."],["كيف نتعامل مع التجمهر والحالات الصعبة.","How to handle mass confrontations and difficult moments."]]],
+  ["📋",["الإجراءات قبل البداية","Pre-match administration"],[["استلم قوائم الفريقين وراجع الأرقام والأسماء.","Collect both team sheets and check numbers and names."],["تحقق من ألوان الأطقم وعدم تعارضها مع الحكام والحارسين.","Check kit colours don't clash with the officials or goalkeepers."],["افحص معدات اللاعبين: الحلي، الأحذية، واقيات الساق.","Inspect players' equipment: jewellery, boots, shin guards."],["احضر الاجتماع الفني إن وُجد.","Attend the technical meeting if there is one."]]],
+  ["🏃",["الإحماء","Warm-up"],[["إحماء كامل مع الطاقم في الوقت المحدد.","A full warm-up with the crew at the set time."],["جرّب الاتصال والرايات أثناء الإحماء.","Test comms and flags during the warm-up."],["العودة إلى الغرفة قبل الدخول بوقت كافٍ.","Return to the room in good time before walking out."]]],
+  ["🪙",["الدخول والقرعة","Walk-out and the toss"],[["الدخول بحسب ترتيب المسابقة، ثم المصافحة.","Walk out as the competition requires, then the handshake."],["القرعة بالعملة: الفريق الفائز يختار المرمى الذي يهاجمه في الشوط الأول، والآخر يبدأ اللعب.","The toss: the winning team chooses which goal to attack in the first half; the other team kicks off."],["تأكد من جاهزية الطاقم والحارسين قبل صافرة البداية.","Check the crew and both goalkeepers are ready before the whistle."]]],
+  ["⏱",["أثناء المباراة","During the match"],[["سجّل الأهداف والبطاقات والتبديلات فور حدوثها.","Record goals, cards and substitutions as they happen."],["سجّل التوقفات لحساب الوقت الضائع.","Log stoppages to calculate time lost."],["حافظ على التمركز والتواصل مع الطاقم.","Keep good positioning and communication with the crew."]]],
+  ["☕",["بين الشوطين","Half-time"],[["الخروج مع الطاقم بهدوء.","Leave the field calmly with the crew."],["مراجعة سريعة: ما نجح وما يحتاج تعديلًا.","Quick review: what worked and what to adjust."],["راجع ملاحظاتك، واشرب الماء.","Check your notes and drink water."],["العودة في الموعد.","Be back on time."]]],
+  ["📝",["بعد المباراة","After the match"],[["الخروج مع الطاقم، وتجنّب الجدال.","Leave with the crew and avoid arguments."],["اكتب التقرير بدقة: الإنذارات والطرد وأسبابها، والحوادث.","Write an accurate report: cautions, sendings-off and reasons, and any incidents."],["سلّم التقرير في المهلة المحددة.","Submit the report on time."],["لا تصريحات للإعلام إلا بإذن الاتحاد.","No media statements without the federation's permission."],["راجع أداءك وسجّل ما تعلمته.","Review your performance and note what you learned."]]],
+  ["🧭",["السلوك العام","Conduct"],[["الحياد التام والمظهر اللائق.","Complete neutrality and a smart appearance."],["الهاتف بعيد أثناء العمل.","Phone away while on duty."],["الحذر في وسائل التواصل، ولا تعليق على مباريات تديرها.","Care on social media; no comment on matches you officiate."]]]];
+function renderProtocol(){const box=$("#prBox");box.innerHTML="";const A=ar();box.append(backBtn("library"));
+  const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📋 البروتوكول: إجراءات الحكم يوم المباراة":"📋 Protocol: the referee's match-day procedure";
+  hd.querySelector("p").textContent=A?"إرشادات عامة من إعداد المنصة بالترتيب الزمني ليوم المباراة. اتبع دائمًا تعليمات اتحادك ولوائح المسابقة، فهي المرجع عند أي اختلاف.":"General guidance from the platform, in match-day order. Always follow your federation's instructions and the competition rules; they prevail in any difference.";box.append(hd);
+  PROTO.forEach(([ic,n,items],k)=>{const d=document.createElement("details");d.className="quiz protosec";d.open=k===0;const sm=document.createElement("summary");sm.textContent=`${ic} ${k+1}. ${n[A?0:1]}`;const ul=document.createElement("ul");items.forEach(it=>{const li=document.createElement("li");li.textContent=it[A?0:1];ul.append(li)});d.append(sm,ul);box.append(d)});
+  const kb=document.createElement("button");kb.className="btn";kb.style.justifySelf="start";kb.textContent=A?"🎒 افتح حقيبة الحكم":"🎒 Open the kit bag";kb.onclick=()=>go("kit");box.append(kb)}
 function renderGTools(){const box=$("#gtools");if(!box)return;box.innerHTML="";const A=ar();
-  [["🆕 "+NEW_DATA.items.length,A?"الجديد في 2026/27":"New in 2026/27",A?"تعديلات هذا الموسم بصياغتنا":"This season's changes in our words",()=>go("news")],
+  [["📘 17",A?"مواد القانون":"The Laws",A?"القوانين الـ17 بالترتيب":"All 17 Laws in order",()=>{LAWS_OPEN=true;renderIndex();window.scrollTo(0,0)}],
+   ["🗳 "+allClips().filter(c=>c.options&&c.options.length>=2).length,A?"مقاطع تعليمية للتصويت":"Teaching clips to vote on",A?"شاهد الحالة وصوّت بقرارك":"Watch the incident and cast your call",()=>{CLi=null;CL_FROM="guide";go("clips")}],
+   ["🆕 "+NEW_DATA.items.length,A?"الجديد في 2026/27":"New in 2026/27",A?"تعديلات هذا الموسم بصياغتنا":"This season's changes in our words",()=>go("news")],
    ["🧑‍⚖️",A?"منصة المقيّم":"Assessor's platform",A?"قيّم الحكم وأرسل له التقرير":"Assess the referee and send the report",()=>go("assessor")],
    ...(isInstr()?[["🎓",A?"منصة المحاضر":"Instructor's platform",A?"العرض، اختبار القاعة، خطة المحاضرة":"Presenting, live quiz, lecture plan",()=>go("instr")]]:[]),
    ["🎒",A?"حقيبة الحكم":"Referee's kit bag",A?"جهّز أغراضك قبل كل مباراة":"Pack your kit before every match",()=>go("kit")]].forEach(([ic,tt,sub,fn])=>{
@@ -3013,7 +3044,7 @@ function aiMatchCard(o){const A=ar();const art=document.createElement("article")
 function aiFoot(){const p=document.createElement("p");p.className="muted";p.style.cssText="margin:0;font-size:.8rem";p.textContent=ar()?"تحليل آلي تعليمي مبني على ملخصات المنصة، وقد يخطئ. راجع المادة في الدليل، والقرار النهائي للحكم.":"Automated learning analysis based on the platform's summaries; it can be wrong. Check the section in the guide; the referee decides.";return p}
 
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
-document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.onclick=()=>{const v=b.dataset.tab;if(v==="guide"&&!$("#lawView").hidden)closeLaw();go(v)});
+document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.onclick=()=>{const v=b.dataset.tab;if(v==="guide"){LAWS_OPEN=false;if(!$("#lawView").hidden)closeLaw();else renderIndex()}go(v)});
 $("#backBtn").onclick=closeLaw;$("#q").addEventListener("input",renderSearch);
 $("#acctBtn").onclick=()=>go("account");
 /* sign out: clear the session on this device right away (no waiting on the server), then reload so no content stays in memory */
