@@ -362,7 +362,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
   <section data-view="join" id="v-join" hidden><div id="joBox" style="display:grid;gap:16px"></div></section>
   <section data-view="plan" id="v-plan" hidden><div id="plBox" style="display:grid;gap:16px"></div></section>
   <section data-view="refs" id="v-refs" hidden><div id="rfBox" style="display:grid;gap:16px"></div></section>
-  <section data-view="protocol" id="v-protocol" hidden><div id="prBox" style="display:grid;gap:16px"></div></section>
+  <section data-view="protocol" id="v-protocol" hidden><div id="protoBox" style="display:grid;gap:16px"></div></section>
   <section data-view="kit" id="v-kit" hidden><div id="kitBox" style="display:grid;gap:16px"></div></section>
   <section data-view="board" id="v-board" hidden><div id="bdBox" style="display:grid;gap:16px"></div></section>
   <section data-view="news" id="v-news" hidden><div id="newsBox" style="display:grid;gap:16px"></div></section>
@@ -411,7 +411,7 @@ const LAWS=[
 
 const T={
  ar:{brand:"REF.LAB",navGuide:"الدليل",navAsk:"المساعد",navExam:"الاختبار",navProg:"تقدّمي",
-  credit:"© جميع الحقوق محفوظة لصاحبها خالد السناني، المشرف العام على المنصة.",proto:"نسخة مراجعة خاصة، يُرجى عدم نشرها. نموذج أولي للعرض. المحتوى ملخص تعليمي من إعداد «قرار الحكم» ولم يُراجع تحكيميًا بعد، وليس نص القانون. الرسوم من إنتاج المنصة. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
+  credit:"© جميع الحقوق محفوظة لصاحبها خالد السناني، المشرف العام على المنصة.",proto:"المحتوى ملخص تعليمي من إعداد «قرار الحكم» وليس النص الرسمي للقانون، والمرجع دائمًا قوانين اللعبة الصادرة عن IFAB. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
   searchPh:"ابحث بمصطلح أو رقم قانون… مثل: منطقة الجزاء، 7.32، تسلل",lawsTitle:"قوانين اللعبة 2026/27 — بالترتيب",
   back:"→ كل القوانين",chipSrc:"المرجع: قوانين اللعبة 2026/27 — IFAB",chipDraft:"مسودة — بانتظار المراجعة التحكيمية",
   lawN:n=>`القانون ${n}`,parts:n=>`${n} أجزاء`,soon:"قيد الإعداد",part:"الجزء",
@@ -425,13 +425,13 @@ const T={
   askTitle:"اسأل المساعد",askLead:"يجيب من ملخصاتنا التعليمية فقط ويذكر رقم الفقرة. القوانين المغطاة حاليًا: ",
   askWarn:"إجابات تعليمية مولّدة آليًا من محتوى لم يُعتمد بعد. المرجع الملزم هو نص القانون الرسمي وقرار الحكم في الملعب.",
   askPh:"اكتب حالة أو سؤالًا…",send:"إرسال",stop:"إيقاف",
-  progTitle:"تقدّمي",favTitle:"المفضلة",localNote:"في هذا النموذج يُحفظ التقدم على جهازك فقط. في المنصة يُحفظ في حسابك.",
+  progTitle:"تقدّمي",favTitle:"المفضلة",localNote:"تقدّمك في القراءة والأسئلة محفوظ على هذا الجهاز.",
   stParts:"أجزاء أنهيتها",stAcc:"دقة الإجابات",stLaws:"قوانين مكتملة",noData:"لم تُجب عن أي سؤال بعد.",favEmpty:"لا شيء في المفضلة. اضغط ★ في صفحة القانون.",
   thinking:"يفكر…",unavailable:"",
   declined:"",limited:"وصلت حد الاستخدام مؤقتًا. حاول لاحقًا.",failed:"تعذّر الحصول على إجابة. حاول مرة أخرى.",
   hello:"أهلًا. صف لي حالة من القوانين المغطاة، وسأوضح القرار مع رقم الفقرة."},
  en:{brand:"REF.LAB",navGuide:"Guide",navAsk:"Assistant",navExam:"Exam",navProg:"My progress",
-  credit:"© All rights reserved to Khalid Al-Sanani, General Supervisor of the platform.",proto:"Private review copy, please do not share. Prototype for review. The content is an educational summary written by Qarar Al-Hakam, not yet reviewed by a referee, and is not the text of the Law. Illustrations are our own. The platform is independent and not affiliated with IFAB or FIFA.",
+  credit:"© All rights reserved to Khalid Al-Sanani, General Supervisor of the platform.",proto:"The content is an educational summary by Qarar Al-Hakam, not the official text of the Laws; the reference is always the Laws of the Game published by IFAB. The platform is independent and not affiliated with IFAB or FIFA.",
   searchPh:"Search a term or Law number… e.g. penalty area, 7.32, offside",lawsTitle:"Laws of the Game 2026/27 — in order",
   back:"← All Laws",chipSrc:"Source: Laws of the Game 2026/27 — IFAB",chipDraft:"Draft — awaiting referee review",
   lawN:n=>`Law ${n}`,parts:n=>`${n} parts`,soon:"In preparation",part:"Part",
@@ -445,7 +445,7 @@ const T={
   askTitle:"Ask the assistant",askLead:"Answers only from our educational summaries and cites the section. Laws covered so far: ",
   askWarn:"AI-generated educational answers from content not yet approved. The official text of the Law and the referee's decision on the field prevail.",
   askPh:"Describe a situation or ask a question…",send:"Send",stop:"Stop",
-  progTitle:"My progress",favTitle:"Favourites",localNote:"In this prototype progress is saved on this device only. On the platform it is saved to your account.",
+  progTitle:"My progress",favTitle:"Favourites",localNote:"Your reading and question progress is saved on this device.",
   stParts:"Parts completed",stAcc:"Answer accuracy",stLaws:"Laws completed",noData:"No questions answered yet.",favEmpty:"Nothing saved yet. Tap ★ on a Law page.",
   thinking:"Thinking…",unavailable:"",
   declined:"",limited:"Usage limit reached for now. Try again later.",failed:"Could not get an answer. Try again.",
@@ -1884,7 +1884,7 @@ const PROTO=[["📅",["قبل يوم المباراة","Before match day"],[["ت
   ["☕",["بين الشوطين","Half-time"],[["الخروج مع الطاقم بهدوء.","Leave the field calmly with the crew."],["مراجعة سريعة: ما نجح وما يحتاج تعديلًا.","Quick review: what worked and what to adjust."],["راجع ملاحظاتك، واشرب الماء.","Check your notes and drink water."],["العودة في الموعد.","Be back on time."]]],
   ["📝",["بعد المباراة","After the match"],[["الخروج مع الطاقم، وتجنّب الجدال.","Leave with the crew and avoid arguments."],["اكتب التقرير بدقة: الإنذارات والطرد وأسبابها، والحوادث.","Write an accurate report: cautions, sendings-off and reasons, and any incidents."],["سلّم التقرير في المهلة المحددة.","Submit the report on time."],["لا تصريحات للإعلام إلا بإذن الاتحاد.","No media statements without the federation's permission."],["راجع أداءك وسجّل ما تعلمته.","Review your performance and note what you learned."]]],
   ["🧭",["السلوك العام","Conduct"],[["الحياد التام والمظهر اللائق.","Complete neutrality and a smart appearance."],["الهاتف بعيد أثناء العمل.","Phone away while on duty."],["الحذر في وسائل التواصل، ولا تعليق على مباريات تديرها.","Care on social media; no comment on matches you officiate."]]]];
-function renderProtocol(){const box=$("#prBox");box.innerHTML="";const A=ar();box.append(backBtn("library"));
+function renderProtocol(){const box=$("#protoBox");box.innerHTML="";const A=ar();box.append(backBtn("library"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"📋 البروتوكول: إجراءات الحكم يوم المباراة":"📋 Protocol: the referee's match-day procedure";
   hd.querySelector("p").textContent=A?"إرشادات عامة من إعداد المنصة بالترتيب الزمني ليوم المباراة. اتبع دائمًا تعليمات اتحادك ولوائح المسابقة، فهي المرجع عند أي اختلاف.":"General guidance from the platform, in match-day order. Always follow your federation's instructions and the competition rules; they prevail in any difference.";box.append(hd);
   PROTO.forEach(([ic,n,items],k)=>{const d=document.createElement("details");d.className="quiz protosec";d.open=k===0;const sm=document.createElement("summary");sm.textContent=`${ic} ${k+1}. ${n[A?0:1]}`;const ul=document.createElement("ul");items.forEach(it=>{const li=document.createElement("li");li.textContent=it[A?0:1];ul.append(li)});d.append(sm,ul);box.append(d)});
