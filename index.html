@@ -1701,6 +1701,8 @@ const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
   const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
   if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,vp:x.video_path||null,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
+  /* the correct answers live in clip_keys, readable only by the admin and instructors */
+  if(!c.error&&(SBS.admin||SBS.instr)){const k=await SB.from("clip_keys").select("clip_id,answer,why");if(!k.error&&k.data){const K={};k.data.forEach(r=>K[r.clip_id]=r);SBD.clips.forEach(x=>{const r=K[x.sid];if(r){x.answer=r.answer;x.w=r.why||""}})}}
   if(!l.error)SBD.lect=l.data;SBD.at=Date.now()}
 async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession();SBS.user=data.session?data.session.user:null;SBS.profile=null;SBS.admin=false;
   if(SBS.user){const [p,a]=await Promise.all([SB.from("profiles").select("*").eq("id",SBS.user.id).maybeSingle(),SB.rpc("is_admin")]);SBS.profile=p.data||null;SBS.admin=!!a.data}
