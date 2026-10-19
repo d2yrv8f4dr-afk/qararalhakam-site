@@ -12,7 +12,7 @@
 <title>REF.LAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@600;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@600;800&family=IBM+Plex+Mono:wght@500&family=Inter:wght@500;800;900&display=swap">
 <style>
 /* Layout: a referee's notebook — app bar, a stepper of parts, one working column; turf + chalk illustrations, yellow-card highlight */
 :root{
@@ -233,6 +233,17 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .testchk{display:flex!important;align-items:center;gap:8px;font-size:.9rem}.testchk input{width:20px;height:20px;accent-color:var(--pitch)}.sheetdel{display:grid;justify-items:center;gap:4px;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line)}
 .protosec summary{cursor:pointer;font-weight:700;font-size:1.02rem}.protosec ul{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:6px;line-height:1.7}
 .anform label{min-width:0}.anform input[type=date],.anform input[type=datetime-local],.anform input[type=time]{-webkit-appearance:none;appearance:none;width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:46px;text-align:start;display:block}
+.rlsplash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#111a24;transition:opacity .45s ease,visibility .45s}
+.rlsplash.out{opacity:0;visibility:hidden}.rlsplash .rlbrand{animation:rlIn .7s ease both}
+@keyframes rlIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rlsplash .rlbrand{animation:none}.rlsplash{transition:none}}
+.rlbrand{display:grid;justify-items:center;gap:14px;text-align:center;font-family:Inter,system-ui,sans-serif;padding:24px}
+.rl-logo{display:flex;align-items:center;gap:.22em;font-weight:900;font-size:clamp(44px,13vw,84px);letter-spacing:-.01em;line-height:1}
+.rl-w{color:#fff}.rl-g{color:#c6f432}.rl-shield{width:.78em;height:.9em;color:#c6f432;margin-inline-start:.08em}
+.rl-tag{color:#fff;font-weight:800;font-size:clamp(17px,5vw,30px);letter-spacing:.01em}
+.rl-sub{color:#a9b4c4;font-weight:500;font-size:clamp(15px,4.2vw,24px)}
+.rlcard{background:#111a24;border-radius:18px;padding:8px 6px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.rlcard .rl-logo{font-size:clamp(38px,11vw,64px)}.rlcard .rl-tag{font-size:clamp(14px,4.2vw,22px)}.rlcard .rl-sub{font-size:clamp(13px,3.8vw,18px)}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -282,6 +293,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 </style>
 </head>
 <body>
+<div id="splash" class="rlsplash" aria-hidden="true"><div class="rlbrand" dir="ltr"><div class="rl-logo"><span class="rl-w">REF</span><span class="rl-g">LAB</span><svg class="rl-shield" viewBox="0 0 48 56" aria-hidden="true"><path d="M24 3 6 10v14c0 13 8 23 18 28 10-5 18-15 18-28V10L24 3Z" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"/><path d="m15.5 29 6 6 11-12" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="rl-tag">THE SCIENCE OF REFEREEING</div><div class="rl-sub">Learn. Analyze. Officiate.</div></div></div>
 
 <div class="bar"><div class="bar-in">
   <div class="brand">
@@ -1720,6 +1732,11 @@ async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession()
   if(RECOVER&&SBS.user){go("account");return}
   if(!open)go("account");else if(was||!UI_DONE){UI_DONE=true;applyLang();go("guide")}}
 function refreshOpen(){["clips","lectures","library","account"].forEach(v=>{if(!$("#v-"+v).hidden)({clips:renderClips,lectures:renderLectures,library:renderLibrary,account:renderAccount})[v]()})}
+/* opening screen: shown once per visit while the session and content load */
+window.RL_BRAND="<div class=\"rlbrand\" dir=\"ltr\"><div class=\"rl-logo\"><span class=\"rl-w\">REF</span><span class=\"rl-g\">LAB</span><svg class=\"rl-shield\" viewBox=\"0 0 48 56\" aria-hidden=\"true\"><path d=\"M24 3 6 10v14c0 13 8 23 18 28 10-5 18-15 18-28V10L24 3Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4.5\" stroke-linejoin=\"round\"/><path d=\"m15.5 29 6 6 11-12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div><div class=\"rl-tag\">THE SCIENCE OF REFEREEING</div><div class=\"rl-sub\">Learn. Analyze. Officiate.</div></div>";
+(function(){const sp=document.getElementById("splash");if(!sp)return;let seen=false;try{seen=sessionStorage.getItem("rlSplash")==="1";sessionStorage.setItem("rlSplash","1")}catch(e){}
+  const t0=Date.now(),done=()=>{sp.classList.add("out");setTimeout(()=>sp.remove(),600)};if(seen){sp.remove();return}
+  const tick=()=>{const el=Date.now()-t0;if((el>1200&&!document.body.classList.contains("pending"))||el>4000)done();else setTimeout(tick,150)};setTimeout(tick,150)})();
 if(SB){document.body.classList.add("pending");setTimeout(()=>{if(document.body.classList.contains("pending")){document.body.classList.remove("pending");document.body.classList.add("locked");go("account")}},8000);SB.auth.onAuthStateChange((ev)=>{if(ev==="PASSWORD_RECOVERY"){RECOVER=true;store.set("lastActive",Date.now())}if(ev==="SIGNED_IN")store.set("lastActive",Date.now());sbSession().then(refreshOpen)});Promise.all([sbSession(),sbLoad(true)]).then(refreshOpen)}
 const COUNTRIES=[["SA","السعودية","Saudi Arabia"],["AE","الإمارات","UAE"],["KW","الكويت","Kuwait"],["QA","قطر","Qatar"],["BH","البحرين","Bahrain"],["OM","عُمان","Oman"],["EG","مصر","Egypt"],["JO","الأردن","Jordan"],["MA","المغرب","Morocco"],["DZ","الجزائر","Algeria"],["TN","تونس","Tunisia"],["IQ","العراق","Iraq"],["GB","بريطانيا","United Kingdom"],["ES","إسبانيا","Spain"],["IT","إيطاليا","Italy"],["DE","ألمانيا","Germany"],["FR","فرنسا","France"],["PT","البرتغال","Portugal"],["BR","البرازيل","Brazil"],["AR","الأرجنتين","Argentina"],["US","الولايات المتحدة","United States"],["XX","أخرى","Other"]];
 const GRADES=[["new","حكم مستجد","New referee"],["g3","درجة ثالثة","Grade 3"],["g2","درجة ثانية","Grade 2"],["g1","درجة أولى","Grade 1"],["elite","نخبة","Elite"],["fifa","دولي (FIFA)","International (FIFA)"],["instr","محاضر","Instructor"],["assessor","مقيّم","Assessor"],["fan","مهتم","Enthusiast"]];
@@ -2496,7 +2513,7 @@ function asDemo(){const A=ar(),id="demo";const old=anList().filter(x=>x.id!==id)
 async function loadContent(){try{const {data,error}=await SB.from("content").select("key,data");if(error||!data||!data.length)return false;const m={};data.forEach(r=>m[r.key]=r.data);
   const L={};Object.keys(m).filter(k=>k.startsWith("law-")).forEach(k=>L[k.slice(4)]=m[k]);if(!Object.keys(L).length)return false;
   LAW_DATA=L;if(m.new)NEW_DATA=m.new;if(m.matches)MATCH_DATA=m.matches;if(m.vcases)VC_DATA=m.vcases;if(m.clips)CLIP_DATA=m.clips;if(m.lectures)LECT_DATA=m.lectures;if(m.links)LINK_DATA=m.links;if(m.edits)EDITS=m.edits;if(m.photos)PHOTOS=m.photos;CONTENT_LOADED=true;return true}catch(e){return false}}
-function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){clearTimeout(window.__idleClr);window.__idleClr=setTimeout(()=>store.set("idleOut",0),4000);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 10 دقائق دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 10 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
+function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){clearTimeout(window.__idleClr);window.__idleClr=setTimeout(()=>store.set("idleOut",0),4000);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 10 دقائق دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 10 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";if(!SBS.user){const bc=document.createElement("div");bc.className="rlcard";bc.innerHTML=window.RL_BRAND||"";setTimeout(()=>w.before(bc))}w.querySelector(".eyebrow").textContent=A?"قرار الحكم":"Qarar Al-Hakam";
   const [h,p]=!SBS.user?[A?"أهلًا بك في منصة الحكام":"Welcome to the referees' platform",A?"سجّل الدخول أو أنشئ حسابًا جديدًا. يراجع المشرف كل حساب جديد قبل فتح المنصة.":"Sign in or create an account. The admin reviews every new account before the platform opens."]
     :!SBS.member?(SBS.mstatus==="rejected"?[A?"❌ لم تتم الموافقة على حسابك":"❌ Your account was not approved",A?"تواصل مع إدارة المنصة إذا كنت ترى أن هناك خطأ.":"Contact the platform team if you think this is a mistake."]:[A?"⏳ حسابك بانتظار موافقة المشرف":"⏳ Your account is waiting for approval",A?"وصل طلبك للمشرف. أكمل بياناتك أدناه ليتعرّف عليك، وستُفتح المنصة بعد الموافقة.":"Your request reached the admin. Complete your details below so they know you; the platform opens once approved."])
     :SBS.admin?[A?"📦 ارفع محتوى المنصة":"📦 Upload the platform content",A?"المحتوى لم يُرفع للخادم بعد. ارفع ملف المحتوى من الأسفل لتفتح المنصة للأعضاء.":"The content is not on the server yet. Upload the content file below to open the platform for members."]
