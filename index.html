@@ -7,8 +7,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#123524">
-<meta name="apple-mobile-web-app-title" content="REF.LAB">
+<meta name="theme-color" content="#111a24">
+<meta name="apple-mobile-web-app-title" content="REF LAB">
 <title>REF.LAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -245,6 +245,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .rlcard{background:#111a24;border-radius:18px;padding:8px 6px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
 .rlcard .rl-logo{font-size:clamp(38px,11vw,64px)}.rlcard .rl-tag{font-size:clamp(14px,4.2vw,22px)}.rlcard .rl-sub{font-size:clamp(13px,3.8vw,18px)}
 .joinmode{display:grid;gap:6px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px}
+.rlbadge{display:inline-flex;align-items:center;gap:6px;background:#111a24;border-radius:10px;padding:6px 11px;font-family:Inter,system-ui,sans-serif;font-weight:900;font-size:1.05rem;letter-spacing:-.01em;line-height:1}.rlbadge b{color:#fff}.rlbadge i{color:#c6f432;font-style:normal}.rlbadge svg{width:15px;height:17px;color:#c6f432}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -298,8 +299,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 
 <div class="bar"><div class="bar-in">
   <div class="brand">
-    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="5" y="2" width="12" height="18" rx="2" fill="var(--card)" transform="rotate(-10 11 11)"/><rect x="9" y="5" width="12" height="18" rx="2" fill="var(--red)" transform="rotate(8 15 14)"/></svg>
-    <span data-t="brand" dir="ltr">REF.LAB</span>
+    <span class="rlbadge" dir="ltr" aria-label="REF LAB"><b>REF</b><i>LAB</i><svg viewBox="0 0 48 56" aria-hidden="true"><path d="M24 3 6 10v14c0 13 8 23 18 28 10-5 18-15 18-28V10L24 3Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="m15.5 29 6 6 11-12" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
   </div>
   <span style="flex:1"></span>
   <button class="lang" id="themeBtn" aria-label="Day or night">🌙</button>
