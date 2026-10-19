@@ -232,6 +232,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 .clipedit{gap:10px}.clipedit summary{cursor:pointer;font-weight:700}.clipedit[open]{display:grid}
 .testchk{display:flex!important;align-items:center;gap:8px;font-size:.9rem}.testchk input{width:20px;height:20px;accent-color:var(--pitch)}.sheetdel{display:grid;justify-items:center;gap:4px;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line)}
 .protosec summary{cursor:pointer;font-weight:700;font-size:1.02rem}.protosec ul{margin:8px 0 0;padding-inline-start:20px;display:grid;gap:6px;line-height:1.7}
+.anform label{min-width:0}.anform input[type=date],.anform input[type=datetime-local],.anform input[type=time]{-webkit-appearance:none;appearance:none;width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:46px;text-align:start;display:block}
 .tile{display:grid;gap:4px;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;color:var(--ink);font:inherit}
 .tile b{font-family:var(--f-display);font-size:1.35rem;color:var(--pitch)}.tile span{font-size:.85rem;font-weight:600}.tile small{color:var(--muted);font-size:.75rem}
 .tile.new b{color:var(--red)}.tile[disabled]{opacity:.6;cursor:default}
@@ -1655,6 +1656,7 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
       b.innerHTML=(y?`<img style="width:100%;border-radius:8px;aspect-ratio:16/9;object-fit:cover" alt="" src="https://i.ytimg.com/vi/${y}/mqdefault.jpg">`:`<div style="aspect-ratio:16/9;border-radius:8px;background:var(--night);display:grid;place-items:center;font-size:2rem">🎓</div>`)+"<b></b><small></small>";
       b.querySelector("b").textContent=x.title;b.querySelector("small").textContent=[x.lecturer,x.date].filter(Boolean).join(" · ");b.onclick=()=>{LECi=i;renderLectures()};l.append(b)});box.append(l)}
     else{const p=document.createElement("p");p.className="muted";p.textContent=A?"لا توجد محاضرات مسجلة بعد.":"No recorded lectures yet.";box.append(p)}
+    if(!(SB&&SBS.admin))return;
     const f=document.createElement("article");f.className="quiz";const fh=document.createElement("h3");fh.style.margin="0";fh.textContent=A?"＋ إضافة محاضرة مسجلة":"＋ Add a recorded lecture";f.append(fh);
     const g=document.createElement("div");g.className="anform";const u=field(g,"lr-url",A?"رابط التسجيل":"Recording link","YouTube / Vimeo / Zoom");const t1=field(g,"lr-t",A?"عنوان المحاضرة":"Title");const t2=field(g,"lr-l",A?"المحاضر":"Lecturer");const t3=field(g,"lr-d",A?"التاريخ":"Date","","date");
     f.append(g);const ds=document.createElement("label");ds.className="field";ds.textContent=A?"وصف قصير":"Short description";const dt=document.createElement("textarea");dt.rows=2;ds.append(dt);f.append(ds);
@@ -1681,6 +1683,7 @@ function renderLectures(){const box=$("#lecBox");box.innerHTML="";const A=ar(),L
     b.innerHTML="<small></small><b></b><small></small>";b.querySelectorAll("small")[0].textContent=st;b.querySelector("b").textContent=x.title;b.querySelectorAll("small")[1].textContent=[x.lecturer,new Date(x.when).toLocaleString(A?"ar":"en",{dateStyle:"medium",timeStyle:"short"})].filter(Boolean).join(" · ");
     b.onclick=()=>{LECi=i;renderLectures()};l.append(b)});box.append(l)}
   else{const p=document.createElement("p");p.className="muted";p.textContent=A?"لا توجد محاضرات مباشرة قادمة.":"No upcoming live lectures.";box.append(p)}
+  if(!(SB&&SBS.admin))return;
   const f=document.createElement("article");f.className="quiz";const fh=document.createElement("h3");fh.style.margin="0";fh.textContent=A?"＋ جدولة محاضرة مباشرة":"＋ Schedule a live lecture";f.append(fh);
   const g=document.createElement("div");g.className="anform";const t1=field(g,"ll-t",A?"عنوان المحاضرة":"Title");const t2=field(g,"ll-l",A?"المحاضر":"Lecturer");const t3=field(g,"ll-w",A?"الموعد":"When","","datetime-local");const t4=field(g,"ll-z",A?"رابط زوم (اختياري)":"Zoom link (optional)","https://zoom.us/j/…");
   f.append(g);const msg=document.createElement("p");msg.className="muted";msg.style.margin="0";const add=document.createElement("button");add.className="btn primary";add.style.justifySelf="start";add.textContent=A?"حفظ الموعد":"Save session";
