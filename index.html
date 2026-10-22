@@ -1714,7 +1714,7 @@ const SB_URL="https://lrjxrkbjllincxymlcys.supabase.co",SB_KEY="sb_publishable_C
 /* a password-reset link lands here with #…type=recovery: keep that session alive until the new password is saved */
 let RECOVER=/type=recovery/.test(location.hash);if(RECOVER)store.set("lastActive",Date.now());
 let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){SB=null}
-const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const AI_SOON=CONTENT_REMOTE;const SBD={clips:[],lect:[],at:0};
+const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const aiSoon=()=>CONTENT_REMOTE&&!SBS.admin;const SBD={clips:[],lect:[],at:0};
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
   const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
   if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,vp:x.video_path||null,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
@@ -2430,7 +2430,7 @@ function renderAssessor(){const box=$("#ahBox");box.innerHTML="";const A=ar(),L=
   const g=document.createElement("div");g.className="tiles";
   [["🎥",A?"تحليل فيديو":"Video analysis",A?"صوّر أو اختر فيديو وارسم على اللقطة":"Record or pick a video and draw on it",()=>{AN=null;anMode="video";go("analyze")}],
    ["📍",A?"الملعب الذكي":"Smart pitch",A?"سبورة لشرح أين يقف الحكم":"A board to show where the referee should stand",()=>go("board")],
-   ["🧠",A?"المحلل الذكي":"Smart analyst",AI_SOON?(A?"⏳ قريبًا":"⏳ Coming soon"):(A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match"),()=>go("ai")],
+   ["🧠",A?"المحلل الذكي":"Smart analyst",aiSoon()?(A?"⏳ قريبًا":"⏳ Coming soon"):(A?"حلّل حالة أو لقطات أو مباراة":"Analyse a case, frames or a match"),()=>go("ai")],
    ["🧑‍⚖️",A?"ملفات الحكام":"Referee profiles",A?"تطوّر كل حكم عبر مبارياته":"Each referee's progress across matches",()=>{REFsel=null;go("refs")}]].forEach(([ic,tt,sub,fn])=>{const b=document.createElement("button");b.className="tile";b.innerHTML="<b></b><span></span><small></small>";b.querySelector("b").textContent=ic;b.querySelector("span").textContent=tt;b.querySelector("small").textContent=sub;b.onclick=fn;g.append(b)});
   g.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";box.append(g);
   if(SB&&SBS.admin)box.append(asRemoteEl());
@@ -2901,7 +2901,7 @@ $("#stopBtn").onclick=()=>ctl?.abort();
 
 /* smart analyst: grounded in the approved summaries; images stay on the device until the viewer sends them */
 let AIM="case",aiS,aiCaps=null,aiImgs=[],aiOut=null,aiBusy=null,aiVidUrl=null,aiAn=null;
-async function aiSample(){if(AI_SOON)return null;if(aiS===undefined){try{aiS=(await (async()=>null)("sample"))||null}catch(e){aiS=null}if(!aiS)aiS=sbAI()
+async function aiSample(){if(aiSoon())return null;if(aiS===undefined){try{aiS=(await (async()=>null)("sample"))||null}catch(e){aiS=null}if(!aiS)aiS=sbAI()
   try{aiCaps=aiS?await aiS.limits():null}catch(e){aiCaps=null}}return aiS}
 const aiRefSet=()=>{const s=new Set();for(const n in LAW_DATA)LAW_DATA[n].parts.forEach(p=>p.ref.split("·").forEach(r=>s.add(r.trim())));return s};
 const aiMaxImg=()=>Math.min(4,aiCaps?.images?.maxCount||0);
@@ -2912,7 +2912,7 @@ function sbAI(){if(!SB)return null;const call=async(input,o={})=>{
     const {data:sd}=await SB.auth.getSession();if(!sd.session)throw {code:"signin"};
     const k=input.indexOf("\n\nTASK:"),system=k>0?input.slice(0,k):"",prompt=k>0?input.slice(k+2):input;
     const images=await Promise.all((o.images||[]).map(async b=>({type:["image/png","image/webp","image/gif"].includes(b.type)?b.type:"image/jpeg",data:await blob64(b)})));
-    const run=SB.functions.invoke("ai",{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c="failed";try{const j=await error.context.json();c={quota:"quota",paid:"paid",rate_limited:"rate_limited",auth:"signin",refused:"refused"}[j.error]||"failed"}catch(e){}throw {code:c}}return data});
+    const run=SB.functions.invoke("ai",{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c=error.context?.status===404?"setup":"failed";try{const j=await error.context.json();c={quota:"quota",paid:"paid",rate_limited:"rate_limited",auth:"signin",refused:"refused",server_key:"setup",quota_check:"setup"}[j.error]||c}catch(e){}throw {code:c}}return data});
     const stop=new Promise((_,no)=>o.signal?.addEventListener("abort",()=>no({code:"cancelled"})));
     const d=await Promise.race([run,stop]);return aiParse(d.text)};
   const f=async(input,o)=>({text:JSON.stringify(await call(input,o))});f.json=call;
@@ -2945,7 +2945,8 @@ Return ONLY a JSON object:
 function renderAI(){const box=$("#aiBox");box.innerHTML="";const A=ar();box.append(backBtn("assessor"));
   const hd=document.createElement("div");hd.className="prose";hd.innerHTML="<h1></h1><p class='muted'></p>";hd.querySelector("h1").textContent=A?"🧠 المحلل الذكي":"🧠 Smart analyst";
   hd.querySelector("p").textContent=A?"يحلّل الحالة مثل مقيّم خبير ويستند فقط إلى ملخصات المنصة لقوانين 2026/27: القرار، الاستئناف، العقوبة، المادة، وما يحتاج تقدير الحكم. هو أداة تعليمية مساعدة، والقرار في الملعب للحكم.":"Analyses incidents like an expert assessor, using only the platform's summaries of the 2026/27 Laws: decision, restart, sanction, section and what needs the referee's judgement. A learning aid; on the pitch the referee decides.";box.append(hd);
-  if(AI_SOON){const c=document.createElement("article");c.className="quiz aisoon";c.innerHTML="<b></b><p></p><ul></ul>";c.querySelector("b").textContent=A?"⏳ قريبًا":"⏳ Coming soon";
+  if(CONTENT_REMOTE&&SBS.admin){const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 مفتوح لك كمشرف فقط (حتى 200 تحليل يوميًا). الأعضاء يرون «قريبًا».":"🔒 Open to you as admin only (up to 200 analyses a day). Members see “Coming soon”.";box.append(n)}
+  if(aiSoon()){const c=document.createElement("article");c.className="quiz aisoon";c.innerHTML="<b></b><p></p><ul></ul>";c.querySelector("b").textContent=A?"⏳ قريبًا":"⏳ Coming soon";
     c.querySelector("p").textContent=A?"نجهّز المحلل الذكي ليكون متاحًا لكم قريبًا بإذن الله. سيمكّنك من:":"The smart analyst is being prepared and will be available soon. It will let you:";
     (A?["تحليل حالة مكتوبة أو لقطات من فيديو: القرار، الاستئناف، العقوبة، والمادة","تقرير كامل عن مباراة من أحداث المقيّم","إرسال التحليل مع الأخطاء للحكم"]:["Analyse a written case or video frames: decision, restart, sanction and section","Get a full report on a match from the assessor's events","Send the analysis and the errors to the referee"]).forEach(t=>{const li=document.createElement("li");li.textContent=t;c.querySelector("ul").append(li)});
     box.append(c);return}
@@ -3039,6 +3040,7 @@ function aiSave(o){const l=store.get("ai:hist",[]);l.unshift(o);store.set("ai:hi
 function aiErr(e){const A=ar(),c=e?.code;if(c==="cancelled")return A?"أوقفت التحليل.":"Stopped.";
   if(c==="signin")return A?"سجّل الدخول من زر 👤 أعلى الصفحة لاستخدام المحلل الذكي.":"Sign in with the 👤 button to use the smart analyst.";
   if(c==="paid")return A?"🔒 التحليل بالذكاء الاصطناعي خدمة مدفوعة. اطلب الاشتراك من أعلى صفحة المحلل الذكي.":"🔒 AI analysis is a paid service. Request a subscription at the top of the Smart analyst page.";
+  if(c==="setup")return A?"⚙️ المحلل لم يُجهَّز على الخادم بعد: شغّل ملف ai.sql، وانشر دالة ai، وأضف مفتاح ANTHROPIC_API_KEY في أسرار Supabase.":"⚙️ The analyst is not set up on the server yet: run ai.sql, deploy the ai function and add ANTHROPIC_API_KEY to the Supabase secrets.";
   if(c==="quota")return A?"استخدمت كل تحليلاتك لهذا اليوم. يتجدد الرصيد غدًا.":"You have used today's analyses. They renew tomorrow.";
   if(c==="refused")return A?"لم يستطع المحلل تحليل هذا الطلب. أعد صياغة الوصف.":"The analyst could not handle this request. Rephrase the description.";if(c==="rate_limited")return t("limited");
   if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","images_unavailable"].includes(c))return A?"لم يُسمح للمحلل بالعمل في هذا العرض.":"The analyst was not allowed in this view.";
