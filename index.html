@@ -1714,7 +1714,7 @@ const SB_URL="https://lrjxrkbjllincxymlcys.supabase.co",SB_KEY="sb_publishable_C
 /* a password-reset link lands here with #…type=recovery: keep that session alive until the new password is saved */
 let RECOVER=/type=recovery/.test(location.hash);if(RECOVER)store.set("lastActive",Date.now());
 let SB=null;try{if(window.supabase&&location.protocol.startsWith("http"))SB=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){SB=null}
-const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const aiSoon=()=>CONTENT_REMOTE&&!SBS.admin;const SBD={clips:[],lect:[],at:0};
+const SBS={user:null,profile:null,admin:false,ready:false};let UI_DONE=!CONTENT_REMOTE;const aiSoon=()=>CONTENT_REMOTE&&!SBS.admin;const AI_FN="clever-function";const SBD={clips:[],lect:[],at:0};
 async function sbLoad(force){if(!SB)return;if(!force&&Date.now()-SBD.at<60000)return;
   const [c,l]=await Promise.all([SB.from("clips").select("*").order("created_at",{ascending:false}),SB.from("lectures").select("*").order("created_at",{ascending:false})]);
   if(!c.error)SBD.clips=c.data.map(x=>({id:"c"+x.id,sid:x.id,by:x.created_by,vp:x.video_path||null,yt:x.yt,start:x.start_s,end:x.end_s,title:x.title,law:x.law,options:x.options||[],answer:x.answer,w:x.why||""}));
@@ -2912,7 +2912,7 @@ function sbAI(){if(!SB)return null;const call=async(input,o={})=>{
     const {data:sd}=await SB.auth.getSession();if(!sd.session)throw {code:"signin"};
     const k=input.indexOf("\n\nTASK:"),system=k>0?input.slice(0,k):"",prompt=k>0?input.slice(k+2):input;
     const images=await Promise.all((o.images||[]).map(async b=>({type:["image/png","image/webp","image/gif"].includes(b.type)?b.type:"image/jpeg",data:await blob64(b)})));
-    const run=SB.functions.invoke("ai",{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c=error.context?.status===404?"setup":"failed";try{const j=await error.context.json();c={quota:"quota",paid:"paid",rate_limited:"rate_limited",auth:"signin",refused:"refused",server_key:"setup",quota_check:"setup"}[j.error]||c}catch(e){}throw {code:c}}return data});
+    const run=SB.functions.invoke(AI_FN,{body:{system,prompt,images}}).then(async({data,error})=>{if(error){let c=error.context?.status===404?"setup":"failed";try{const j=await error.context.json();c={quota:"quota",paid:"paid",rate_limited:"rate_limited",auth:"signin",refused:"refused",server_key:"setup",quota_check:"setup"}[j.error]||c}catch(e){}throw {code:c}}return data});
     const stop=new Promise((_,no)=>o.signal?.addEventListener("abort",()=>no({code:"cancelled"})));
     const d=await Promise.race([run,stop]);return aiParse(d.text)};
   const f=async(input,o)=>({text:JSON.stringify(await call(input,o))});f.json=call;
