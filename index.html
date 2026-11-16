@@ -1392,11 +1392,11 @@ function renderAssess(){const box=$("#asBox");$("#anBox").innerHTML="";box.inner
     const paintClock=()=>{ck.innerHTML="";const l=L();const big=document.createElement("p");big.className="clock";big.id="asClk";big.textContent=clockTxt(l);
       const hs=document.createElement("div");hs.className="lvl";hs.style.justifyContent="center";[1,2,3,4].forEach(h=>{const bt=document.createElement("button");bt.className="btn";bt.textContent=HALF_N(h);bt.setAttribute("aria-pressed",l.half===h);bt.onclick=()=>{if(l.half===h)return;if(l.run){l.acc+=Date.now()-l.run;l.run=null}l.half=h;l.acc=l.played[h]||0;saveL(l);paintClock();paintStops()};hs.append(bt)});
       const ct=document.createElement("div");ct.className="lvl";ct.style.justifyContent="center";const mk=(t2,cls,fn)=>{const bt=document.createElement("button");bt.className="btn "+cls;bt.textContent=t2;bt.onclick=fn;ct.append(bt)};
-      if(l.run)mk(A?"⏸ إيقاف الساعة":"⏸ Pause clock","",()=>{l.acc+=Date.now()-l.run;l.run=null;saveL(l);paintClock();paintStops()});
-      else mk(l.acc?(A?"▶ استئناف":"▶ Resume"):(A?`▶ بدء ${HALF_N(l.half)}`:`▶ Start ${HALF_N(l.half)}`),"primary",()=>{l.run=Date.now();saveL(l);paintClock();paintStops()});
+      if(l.run)mk(A?"⏸ إيقاف الساعة":"⏸ Pause clock","",()=>{l.acc+=Date.now()-l.run;l.run=null;buzz();saveL(l);paintClock();paintStops()});
+      else mk(l.acc?(A?"▶ استئناف":"▶ Resume"):(A?`▶ بدء ${HALF_N(l.half)}`:`▶ Start ${HALF_N(l.half)}`),"primary",()=>{l.run=Date.now();buzz();htCancel();saveL(l);paintClock();paintStops()});
       mk(A?"✏️ تعديل الوقت":"✏️ Edit time","",()=>{window.clkAdjOpen=true;const d=$("#clkAdj");if(d){d.open=true;d.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>d.querySelector("input")?.focus(),300)}});
       mk(A?"↺ تصفير":"↺ Reset","",()=>{window.clkAdjOpen=true;const d=$("#clkAdj");if(d){d.open=true;d.scrollIntoView({behavior:"smooth",block:"center"});const r=d.querySelector(".rshalf");if(r){r.style.outline="3px solid var(--red)";setTimeout(()=>r.style.outline="",1500)}}});
-      if(l.acc||l.run)mk(A?"⏹ نهاية الشوط":"⏹ End of half","",()=>{if(l.run){l.acc+=Date.now()-l.run;l.run=null}l.played[l.half]=l.acc;if(l.half<4){l.half++;l.acc=l.played[l.half]||0}saveL(l);paintClock();paintStops()});
+      if(l.acc||l.run)mk(A?"⏹ نهاية الشوط":"⏹ End of half","",()=>{if(l.run){l.acc+=Date.now()-l.run;l.run=null}l.played[l.half]=l.acc;buzz(true);if(l.half===1)htRemind();if(l.half<4){l.half++;l.acc=l.played[l.half]||0}saveL(l);paintClock();paintStops()});
       const st=document.createElement("p");st.className="muted";st.style.cssText="margin:0;text-align:center;font-size:.85rem";st.textContent=l.run?(A?"الساعة تعمل ولا تتوقف مع التوقفات، فالوقت الضائع يُحسب تحتها":"The clock keeps running through stoppages; time lost is counted below it"):(l.acc?(A?"الساعة متوقفة":"Clock paused"):(A?"اضغط البدء مع صافرة الحكم":"Start with the referee's whistle"));
       /* live time-lost counter: the match clock never stops, stoppages add up here */
       const lostBox=document.createElement("div");lostBox.className="lostbox";lostBox.innerHTML="<div><small id='asLostH' class='muted'></small><div class='lostnum'><b id='asLost'></b><span id='asLostAdd'></span></div><small id='asLostSub' class='muted'></small></div>";
@@ -1782,7 +1782,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
   if(mode==="up"){const lg=document.createElement("p");lg.className="muted";lg.style.margin="0";lg.innerHTML=A?'بإنشاء الحساب توافق على <a href="terms.html" target="_blank">شروط الاستخدام</a> و<a href="privacy.html" target="_blank">سياسة الخصوصية</a>.':'By creating an account you agree to the <a href="terms.html" target="_blank">Terms of use</a> and the <a href="privacy.html" target="_blank">Privacy policy</a>.';art.append(lg)}
   if(mode==="in"){const fg=document.createElement("button");fg.className="linkbtn";fg.textContent=A?"نسيت كلمة المرور؟":"Forgot your password?";
     fg.onclick=async()=>{const e=em.value.trim();if(!/^\S+@\S+\.\S+$/.test(e)){msg.textContent=A?"اكتب بريدك الإلكتروني في الخانة أعلاه، ثم اضغط «نسيت كلمة المرور؟».":"Type your email above, then tap “Forgot your password?”.";em.focus();return}
-      fg.disabled=true;msg.textContent=A?"لحظة…":"One moment…";const {error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});fg.disabled=false;
+      fg.disabled=true;msg.textContent=A?"لحظة…":"One moment…";const {error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:CAP?"https://qararalhakam.com/":location.origin+location.pathname});fg.disabled=false;
       msg.textContent=error?(/rate|seconds|limit/i.test(error.message)?(A?"طلبات كثيرة. انتظر دقائق ثم حاول مرة أخرى.":"Too many requests. Wait a few minutes and try again."):(A?"تعذر الإرسال: ":"Could not send: ")+error.message)
         :(A?"📧 إذا كان البريد مسجّلًا ستصلك رسالة خلال دقائق فيها رابط لاختيار كلمة مرور جديدة. افحص أيضًا البريد غير المرغوب (Spam).":"📧 If this email is registered, a message with a link to choose a new password will arrive in a few minutes. Check your spam folder too.")};art.append(fg)}
   box.append(art)}
@@ -3102,6 +3102,20 @@ $("#themeBtn").onclick=()=>{const dark=document.documentElement.dataset.theme?do
 /* sign out automatically after 30 minutes without any activity (public site) */
 /* the last activity time is kept on the device, so closing the app and coming back later also counts as idle */
 const IDLE_MS=10*60*1000;
+/* phone features: in the iPhone app they use native plugins (Capacitor); on the web the closest browser feature or nothing */
+const CAP=window.Capacitor?.isNativePlatform?.()?window.Capacitor:null;const capP=n=>CAP?.Plugins?.[n];
+function buzz(strong){try{const h=capP("Haptics");if(h)h.impact({style:strong?"HEAVY":"MEDIUM"});else navigator.vibrate?.(strong?[60,40,60]:30)}catch(e){}}
+/* half-time: a reminder 15 minutes after the first half ends, cancelled when the second half starts (app only) */
+async function htRemind(){const n=capP("LocalNotifications");if(!n)return;const A=ar();try{const p=await n.requestPermissions();if(p.display!=="granted")return;
+  await n.schedule({notifications:[{id:4501,title:A?"⏱ انتهت الاستراحة":"⏱ Half-time is over",body:A?"مرّت 15 دقيقة على نهاية الشوط الأول. جاهز للشوط الثاني؟":"15 minutes since the first half ended. Ready for the second half?",schedule:{at:new Date(Date.now()+15*60*1000)}}]})}catch(e){}}
+function htCancel(){try{capP("LocalNotifications")?.cancel({notifications:[{id:4501}]})}catch(e){}}
+/* keep the screen on while a match clock runs */
+let wakeOn=false,wakeL=null;
+async function wakeSync(){let want=false;try{want=document.visibilityState==="visible"&&!!anCur()?.live?.run}catch(e){}
+  if(want===wakeOn&&(!want||CAP||wakeL))return;wakeOn=want;
+  try{const k=capP("KeepAwake");if(CAP){if(k)await(want?k.keepAwake():k.allowSleep());return}
+    if(want){if("wakeLock" in navigator){wakeL=await navigator.wakeLock.request("screen");wakeL.addEventListener("release",()=>{wakeL=null})}}else{const w=wakeL;wakeL=null;await w?.release()}}catch(e){wakeL=null}}
+setInterval(wakeSync,3000);document.addEventListener("visibilitychange",()=>{wakeOn=false;wakeSync()});
 /* work in progress counts as activity: a running match clock, a live classroom session, or a playing video */
 /* a started match open on the assessor sheet keeps the session through half-time: 30 minutes instead of 10 */
 const idleLimit=()=>{try{const l=anCur()?.live;if(!$("#v-assess").hidden&&l&&(l.acc||Object.keys(l.played||{}).length))return 30*60*1000}catch(e){}return IDLE_MS};
