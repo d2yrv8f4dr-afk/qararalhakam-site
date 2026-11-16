@@ -191,7 +191,7 @@ details.pro summary{cursor:pointer;font-weight:600;color:var(--muted)}
 .bigboard svg{max-width:100%}.readbtn{justify-self:start}.readbtn[aria-pressed=true]{background:var(--pitch);color:var(--on-pitch);border-color:var(--pitch)}
 .tabbar button span{font-size:.72rem}
 body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,body.locked #acctBtn{display:none!important}
-.credit{max-width:860px;margin:0 auto;padding:0 16px 120px;text-align:center;font-size:.8rem;color:var(--muted)}@media print{.credit{padding:8px 0}}
+.credit a{color:inherit}.credit{max-width:860px;margin:0 auto;padding:0 16px 120px;text-align:center;font-size:.8rem;color:var(--muted)}@media print{.credit{padding:8px 0}}
 .slide{display:grid;gap:14px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}.slide h1{margin:0;font-size:1.8rem}.slide .prose{font-size:1.1rem;line-height:2}.slhead{display:flex;justify-content:space-between;gap:8px;color:var(--pitch);font-weight:700;flex-wrap:wrap}.slnav{display:flex;gap:8px;flex-wrap:wrap}
 .slide:fullscreen{background:var(--bg);padding:4vw;overflow:auto;border:0;border-radius:0}.slide:fullscreen h1{font-size:2.6rem}.slide:fullscreen .prose{font-size:1.5rem}
 .codebar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-radius:14px;background:#111A24;color:#fff}.codebar small{display:block;color:#A9B4C4}.codebar b{font-size:2.4rem;letter-spacing:.3em;font-variant-numeric:tabular-nums;direction:ltr;display:block}.codebar .muted{color:#C9D2DE;max-width:420px}
@@ -391,7 +391,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
     <p class="muted" style="font-size:.85rem" data-t="localNote"></p>
   </section>
 </main>
-<footer class="credit" data-t="credit"></footer>
+<footer class="credit"><span data-t="credit"></span><br><a href="privacy.html" data-t="privacyL"></a> · <a href="terms.html" data-t="termsL"></a> · <a href="mailto:support@qararalhakam.com">support@qararalhakam.com</a></footer>
 <nav class="tabbar" aria-label="sections">
   <button data-tab="guide" aria-pressed="true"><b>📖</b><span>الدليل</span></button>
   <button data-tab="assessor" aria-pressed="false"><b>📝</b><span>المقيّم</span></button>
@@ -412,7 +412,7 @@ const LAWS=[
 
 const T={
  ar:{brand:"REF.LAB",navGuide:"الدليل",navAsk:"المساعد",navExam:"الاختبار",navProg:"تقدّمي",
-  credit:"© جميع الحقوق محفوظة لصاحبها خالد السناني، المشرف العام على المنصة.",proto:"المحتوى ملخص تعليمي من إعداد «قرار الحكم» وليس النص الرسمي للقانون، والمرجع دائمًا قوانين اللعبة الصادرة عن IFAB. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
+  privacyL:"سياسة الخصوصية",termsL:"شروط الاستخدام",credit:"© جميع الحقوق محفوظة لصاحبها خالد السناني، المشرف العام على المنصة.",proto:"المحتوى ملخص تعليمي من إعداد «قرار الحكم» وليس النص الرسمي للقانون، والمرجع دائمًا قوانين اللعبة الصادرة عن IFAB. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
   searchPh:"ابحث بمصطلح أو رقم قانون… مثل: منطقة الجزاء، 7.32، تسلل",lawsTitle:"قوانين اللعبة 2026/27 — بالترتيب",
   back:"→ كل القوانين",chipSrc:"المرجع: قوانين اللعبة 2026/27 — IFAB",chipDraft:"مسودة — بانتظار المراجعة التحكيمية",
   lawN:n=>`القانون ${n}`,parts:n=>`${n} أجزاء`,soon:"قيد الإعداد",part:"الجزء",
@@ -432,7 +432,7 @@ const T={
   declined:"",limited:"وصلت حد الاستخدام مؤقتًا. حاول لاحقًا.",failed:"تعذّر الحصول على إجابة. حاول مرة أخرى.",
   hello:"أهلًا. صف لي حالة من القوانين المغطاة، وسأوضح القرار مع رقم الفقرة."},
  en:{brand:"REF.LAB",navGuide:"Guide",navAsk:"Assistant",navExam:"Exam",navProg:"My progress",
-  credit:"© All rights reserved to Khalid Al-Sanani, General Supervisor of the platform.",proto:"The content is an educational summary by Qarar Al-Hakam, not the official text of the Laws; the reference is always the Laws of the Game published by IFAB. The platform is independent and not affiliated with IFAB or FIFA.",
+  privacyL:"Privacy policy",termsL:"Terms of use",credit:"© All rights reserved to Khalid Al-Sanani, General Supervisor of the platform.",proto:"The content is an educational summary by Qarar Al-Hakam, not the official text of the Laws; the reference is always the Laws of the Game published by IFAB. The platform is independent and not affiliated with IFAB or FIFA.",
   searchPh:"Search a term or Law number… e.g. penalty area, 7.32, offside",lawsTitle:"Laws of the Game 2026/27 — in order",
   back:"← All Laws",chipSrc:"Source: Laws of the Game 2026/27 — IFAB",chipDraft:"Draft — awaiting referee review",
   lawN:n=>`Law ${n}`,parts:n=>`${n} parts`,soon:"In preparation",part:"Part",
@@ -1779,6 +1779,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
     await sbSession();const pend=store.get("pendingProfile",null);if(!SBS.profile&&pend){await SB.from("profiles").upsert({id:SBS.user.id,...pend});store.set("pendingProfile",null);await sbSession()}renderAccount()};
   pw.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go1.click()}};art.append(go1,msg);
   {const ft=document.createElement("p");ft.className="muted faceid";ft.textContent=A?"💡 احفظ كلمة المرور في جوالك عندما يسألك، وادخل بعدها بوجهك أو ببصمتك دون كتابتها.":"💡 Save the password on your phone when it asks; next time sign in with your face or fingerprint, no typing.";art.append(ft)}
+  if(mode==="up"){const lg=document.createElement("p");lg.className="muted";lg.style.margin="0";lg.innerHTML=A?'بإنشاء الحساب توافق على <a href="terms.html" target="_blank">شروط الاستخدام</a> و<a href="privacy.html" target="_blank">سياسة الخصوصية</a>.':'By creating an account you agree to the <a href="terms.html" target="_blank">Terms of use</a> and the <a href="privacy.html" target="_blank">Privacy policy</a>.';art.append(lg)}
   if(mode==="in"){const fg=document.createElement("button");fg.className="linkbtn";fg.textContent=A?"نسيت كلمة المرور؟":"Forgot your password?";
     fg.onclick=async()=>{const e=em.value.trim();if(!/^\S+@\S+\.\S+$/.test(e)){msg.textContent=A?"اكتب بريدك الإلكتروني في الخانة أعلاه، ثم اضغط «نسيت كلمة المرور؟».":"Type your email above, then tap “Forgot your password?”.";em.focus();return}
       fg.disabled=true;msg.textContent=A?"لحظة…":"One moment…";const {error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});fg.disabled=false;
