@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#111a24">
 <meta name="apple-mobile-web-app-title" content="مسار الحكم">
-<title>مسار الحكم المدرسي 2026-2027</title>
+<title>مسار الحكم المدرسي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@600;800&family=IBM+Plex+Mono:wght@500&family=Inter:wght@500;800;900&display=swap">
@@ -300,7 +300,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
 
 <div class="bar"><div class="bar-in">
   <div class="brand">
-    <span class="rlbadge mzb" aria-label="مسار الحكم المدرسي 2026-2027"><svg viewBox="0 0 48 56" aria-hidden="true"><path d="M24 3 6 10v14c0 13 8 23 18 28 10-5 18-15 18-28V10L24 3Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="m15.5 29 6 6 11-12" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><b>مسار الحكم المدرسي</b></span>
+    <span class="rlbadge mzb" aria-label="مسار الحكم المدرسي"><svg viewBox="0 0 48 56" aria-hidden="true"><path d="M24 3 6 10v14c0 13 8 23 18 28 10-5 18-15 18-28V10L24 3Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="m15.5 29 6 6 11-12" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><b>مسار الحكم المدرسي</b></span>
   </div>
   <span style="flex:1"></span>
   <button class="lang" id="themeBtn" aria-label="Day or night">🌙</button>
@@ -412,8 +412,10 @@ const LAWS=[
  [10,"تحديد نتيجة المباراة","Determining the Outcome of a Match","determining-the-outcome-of-a-match"],[11,"التسلل","Offside","offside"],[12,"الأخطاء وسوء السلوك","Fouls and Misconduct","fouls-and-misconduct"],
  [13,"الركلات الحرة","Free Kicks","free-kicks"],[14,"ركلة الجزاء","The Penalty Kick","the-penalty-kick"],[15,"رمية التماس","The Throw-in","the-throw-in"],[16,"ركلة المرمى","The Goal Kick","the-goal-kick"],[17,"ركلة الركنية","The Corner Kick","the-corner-kick"]];
 
+/* the season changes every year; the name and logo stay the same. Change it here only. */
+const SEASON="2026-2027",SEASON_SHORT="2026-27";document.title=`مسار الحكم المدرسي ${SEASON}`;
 const T={
- ar:{brand:"مسار الحكم المدرسي \u20662026-2027\u2069",navGuide:"الدليل",navAsk:"المساعد",navExam:"الاختبار",navProg:"تقدّمي",
+ ar:{brand:`مسار الحكم المدرسي \u2066${SEASON}\u2069`,navGuide:"الدليل",navAsk:"المساعد",navExam:"الاختبار",navProg:"تقدّمي",
   privacyL:"سياسة الخصوصية",termsL:"شروط الاستخدام",credit:"© جميع الحقوق محفوظة لصاحبها خالد السناني، المشرف العام على المنصة.",proto:"المحتوى ملخص تعليمي من إعداد «مسار الحكم المدرسي» وليس النص الرسمي للقانون، والمرجع دائمًا قوانين اللعبة الصادرة عن IFAB. المنصة مستقلة ولا تتبع IFAB أو FIFA.",
   searchPh:"ابحث بمصطلح أو رقم قانون… مثل: منطقة الجزاء، 7.32، تسلل",lawsTitle:"قوانين اللعبة 2026/27 — بالترتيب",
   back:"→ كل القوانين",chipSrc:"المرجع: قوانين اللعبة 2026/27 — IFAB",chipDraft:"مسودة — بانتظار المراجعة التحكيمية",
@@ -433,7 +435,7 @@ const T={
   thinking:"يفكر…",unavailable:"",
   declined:"",limited:"وصلت حد الاستخدام مؤقتًا. حاول لاحقًا.",failed:"تعذّر الحصول على إجابة. حاول مرة أخرى.",
   hello:"أهلًا. صف لي حالة من القوانين المغطاة، وسأوضح القرار مع رقم الفقرة."},
- en:{brand:"School Referee Pathway 2026-27",navGuide:"Guide",navAsk:"Assistant",navExam:"Exam",navProg:"My progress",
+ en:{brand:`School Referee Pathway ${SEASON_SHORT}`,navGuide:"Guide",navAsk:"Assistant",navExam:"Exam",navProg:"My progress",
   privacyL:"Privacy policy",termsL:"Terms of use",credit:"© All rights reserved to Khalid Al-Sanani, General Supervisor of the platform.",proto:"The content is an educational summary by the School Referee Pathway, not the official text of the Laws; the reference is always the Laws of the Game published by IFAB. The platform is independent and not affiliated with IFAB or FIFA.",
   searchPh:"Search a term or Law number… e.g. penalty area, 7.32, offside",lawsTitle:"Laws of the Game 2026/27 — in order",
   back:"← All Laws",chipSrc:"Source: Laws of the Game 2026/27 — IFAB",chipDraft:"Draft — awaiting referee review",
@@ -2375,7 +2377,7 @@ function refMsg(x,only,extra){const A=ar(),L=[];const errs=x.inc.map((i,k)=>({i,
   if(!errs.length)L.push(A?"لا توجد أخطاء مسجلة. عمل موفق 👏":"No errors logged. Well done 👏");
   errs.forEach(({i},n)=>{L.push(`${n+1}) ${evDesc(x,i)}${i.live?"":` · ${fmtT(i.t)} ${A?"في الفيديو":"in the video"}`} · ${lbl2(INC_E,i.ev)}`);if(i.note)L.push("   "+(A?"الملاحظة: ":"Note: ")+i.note);
     if(i.ai){if(i.ai.correct)L.push("   "+(A?"القرار الصحيح: ":"Correct call: ")+i.ai.correct);if(i.ai.error)L.push("   "+(A?"الخطأ: ":"Error: ")+i.ai.error);if(i.ai.why)L.push("   "+(A?"التحليل: ":"Analysis: ")+i.ai.why);if(i.ai.tip)L.push("   "+(A?"نصيحة: ":"Tip: ")+i.ai.tip);if(aiArr(i.ai.refs).length)L.push("   "+(A?"المرجع: ":"Ref: ")+aiArr(i.ai.refs).join("، "))}L.push("")});
-  if(extra)L.push(extra,"");L.push(A?"— مسار الحكم المدرسي \u20662026-2027\u2069":"— School Referee Pathway 2026-27");return {text:L.join("\n"),imgs:errs.filter(({i})=>i.img).map(({i},n)=>[i.img,`incident-${n+1}.jpg`])}}
+  if(extra)L.push(extra,"");L.push(A?`— مسار الحكم المدرسي \u2066${SEASON}\u2069`:`— School Referee Pathway ${SEASON_SHORT}`);return {text:L.join("\n"),imgs:errs.filter(({i})=>i.img).map(({i},n)=>[i.img,`incident-${n+1}.jpg`])}}
 async function sendRef(x,only,extra){const A=ar(),{text,imgs}=refMsg(x,only,extra);let files=[];try{files=await Promise.all(imgs.map(async([u,nm])=>new File([await (await fetch(u)).blob()],nm,{type:"image/jpeg"})))}catch(e){files=[]}
   try{if(navigator.canShare&&files.length&&navigator.canShare({files})){await navigator.share({text,files});return}if(navigator.share){await navigator.share({text});return}}catch(e){if(e?.name==="AbortError")return}
   const w=document.createElement("article");w.className="quiz";w.innerHTML="<h3 style='margin:0'></h3><textarea rows='10' readonly style='width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px'></textarea><div class='lvl'></div>";
@@ -2536,7 +2538,7 @@ function asDemo(){const A=ar(),id="demo";const old=anList().filter(x=>x.id!==id)
 async function loadContent(){try{const {data,error}=await SB.from("content").select("key,data");if(error||!data||!data.length)return false;const m={};data.forEach(r=>m[r.key]=r.data);
   const L={};Object.keys(m).filter(k=>k.startsWith("law-")).forEach(k=>L[k.slice(4)]=m[k]);if(!Object.keys(L).length)return false;
   LAW_DATA=L;if(m.new)NEW_DATA=m.new;if(m.matches)MATCH_DATA=m.matches;if(m.vcases)VC_DATA=m.vcases;if(m.clips)CLIP_DATA=m.clips;if(m.lectures)LECT_DATA=m.lectures;if(m.links)LINK_DATA=m.links;if(m.edits)EDITS=m.edits;if(m.photos)PHOTOS=m.photos;CONTENT_LOADED=true;return true}catch(e){return false}}
-function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){clearTimeout(window.__idleClr);window.__idleClr=setTimeout(()=>store.set("idleOut",0),4000);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 10 دقائق دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 10 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";if(!SBS.user){const bc=document.createElement("div");bc.className="rlcard";bc.innerHTML=window.RL_BRAND||"";setTimeout(()=>w.before(bc))}w.querySelector(".eyebrow").textContent=A?"مسار الحكم المدرسي \u20662026-2027\u2069":"School Referee Pathway 2026-27";
+function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&store.get("idleOut",0)){clearTimeout(window.__idleClr);window.__idleClr=setTimeout(()=>store.set("idleOut",0),4000);setTimeout(()=>{const n=document.createElement("p");n.className="tip";n.textContent=A?"🔒 خرجت تلقائيًا بعد 10 دقائق دون نشاط، حفاظًا على حسابك. سجّل الدخول من جديد.":"🔒 You were signed out after 10 minutes of inactivity to protect your account. Please sign in again.";w.after(n)})}w.className="ahero";w.innerHTML="<span class='eyebrow'></span><h1></h1><p></p>";if(!SBS.user){const bc=document.createElement("div");bc.className="rlcard";bc.innerHTML=window.RL_BRAND||"";setTimeout(()=>w.before(bc))}w.querySelector(".eyebrow").textContent=A?`مسار الحكم المدرسي \u2066${SEASON}\u2069`:`School Referee Pathway ${SEASON_SHORT}`;
   const [h,p]=!SBS.user?[A?"أهلًا بك في منصة الحكام":"Welcome to the referees' platform",A?"سجّل الدخول، أو أنشئ حسابًا جديدًا ببريدك الإلكتروني.":"Sign in, or create a new account with your email."]
     :!SBS.member?(SBS.mstatus==="rejected"?[A?"❌ لم تتم الموافقة على حسابك":"❌ Your account was not approved",A?"تواصل مع إدارة المنصة إذا كنت ترى أن هناك خطأ.":"Contact the platform team if you think this is a mistake."]:[A?"⏳ حسابك بانتظار موافقة المشرف":"⏳ Your account is waiting for approval",A?"وصل طلبك للمشرف. أكمل بياناتك أدناه ليتعرّف عليك، وستُفتح المنصة بعد الموافقة.":"Your request reached the admin. Complete your details below so they know you; the platform opens once approved."])
     :SBS.admin?[A?"📦 ارفع محتوى المنصة":"📦 Upload the platform content",A?"المحتوى لم يُرفع للخادم بعد. ارفع ملف المحتوى من الأسفل لتفتح المنصة للأعضاء.":"The content is not on the server yet. Upload the content file below to open the platform for members."]
@@ -2545,7 +2547,7 @@ function lockHero(){const A=ar(),w=document.createElement("div");if(!SBS.user&&s
 /* School Referee Pathway: the admin adds referees and supervisors; their sign-in details go to them on WhatsApp */
 const USERS_FN="admin-users";
 const waPhone=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("00"))d=d.slice(2);if(/^05\d{8}$/.test(d))d="966"+d.slice(1);else if(/^5\d{8}$/.test(d))d="966"+d;return d};
-const credMsg=c=>`السلام عليكم ${c.name||""} 👋\nتم إنشاء حسابك في منصة «مسار الحكم المدرسي \u20662026-2027\u2069» ⚽\n\n🔗 الرابط: https://qararalhakam.com\n👤 اسم المستخدم: ${c.username}\n🔑 كلمة المرور المؤقتة: ${c.password}\n\nعند أول دخول ستختار كلمة مرور جديدة خاصة بك. لا تشارك بياناتك مع أحد.`;
+const credMsg=c=>`السلام عليكم ${c.name||""} 👋\nتم إنشاء حسابك في منصة «مسار الحكم المدرسي \u2066${SEASON}\u2069» ⚽\n\n🔗 الرابط: https://qararalhakam.com\n👤 اسم المستخدم: ${c.username}\n🔑 كلمة المرور المؤقتة: ${c.password}\n\nعند أول دخول ستختار كلمة مرور جديدة خاصة بك. لا تشارك بياناتك مع أحد.`;
 async function usersCall(body){let r;try{r=await SB.functions.invoke(USERS_FN,{body})}catch(e){return {err:"failed"}}
   if(!r.error)return r.data;let c=r.error.context?.status===404?"setup":"failed";try{const j=await r.error.context.json();c={username_taken:"taken",bad_username:"bad_username",bad_name:"bad_name",not_admin:"not_admin",auth:"auth",server_key:"setup"}[j.error]||c}catch(e){}return {err:c}}
 function usersErr(c){const A=ar();return ({taken:A?"اسم المستخدم مأخوذ، اختر غيره.":"That username is taken; choose another.",bad_username:A?"اسم المستخدم: حروف إنجليزية صغيرة وأرقام والرموز . _ - (من 3 إلى 30).":"Username: lowercase English letters, digits and . _ - (3 to 30).",bad_name:A?"اكتب الاسم (حرفان على الأقل).":"Enter the name (2+ characters).",not_admin:A?"للمشرف العام فقط.":"Admin only.",auth:A?"سجّل الدخول من جديد.":"Sign in again.",setup:A?"⚙️ الميزة غير مفعّلة على الخادم بعد: شغّل school_accounts.sql وانشر دالة admin-users.":"⚙️ Not set up on the server yet: run school_accounts.sql and deploy the admin-users function."}[c])||(A?"تعذر التنفيذ الآن. حاول مرة ثانية.":"Could not do it now. Try again.")}
@@ -2947,7 +2949,7 @@ function renderSuggest(){const box=$("#suggest");box.innerHTML="";SUGGEST[lang].
 function addMsg(c,x){const d=document.createElement("div");d.className="msg "+c;d.textContent=x;$("#log").append(d);$("#log").scrollTop=1e9;return d}
 function knowledge(){const tmp=document.createElement("div");let out="";
   for(const n in LAW_DATA){out+=`\n\n### القانون ${n} — ${LAWS[n-1][1]}\n`;LAW_DATA[n].parts.forEach(p=>{tmp.innerHTML=(EDITS[`${n}-${p.id}`]?.body?.ar)||p.body.ar;out+=`\n[${p.ref}] ${p.title.ar}: ${tmp.textContent.replace(/\s+/g," ").trim()}\n`})}return out}
-function rules(){return `You are the study assistant of "School Referee Pathway 2026-2027" (مسار الحكم المدرسي), an educational platform for football referees, not affiliated with IFAB or FIFA.
+function rules(){return `You are the study assistant of "School Referee Pathway ${SEASON}" (مسار الحكم المدرسي), an educational platform for football referees, not affiliated with IFAB or FIFA.
 Answer ONLY from the approved-summary knowledge below (Laws of the Game 2026/27, Laws ${LAW_IDS().join(', ')}). Do not use outside knowledge.
 If the question is outside these Laws or the knowledge does not settle it, say so briefly and suggest asking a qualified referee instructor. Never invent rules.
 Reply in ${ar()?"Arabic":"English"}. Keep it short: the decision, the restart or sanction if any, why, and the section reference like (1.6) or (11.2). Say when a point depends on the referee's judgement or competition rules. Plain text.
@@ -2988,7 +2990,7 @@ function sbAI(){if(!SB)return null;const call=async(input,o={})=>{
     const d=await Promise.race([run,stop]);return aiParse(d.text)};
   const f=async(input,o)=>({text:JSON.stringify(await call(input,o))});f.json=call;
   f.limits=async()=>({images:{maxCount:4,maxInputBytes:8e6,mediaTypes:["image/jpeg","image/png","image/webp"]}});return f}
-function aiBase(){return `You are the senior match-incident analyst of "School Referee Pathway 2026-2027" (مسار الحكم المدرسي), an educational platform for football referees (not affiliated with IFAB or FIFA).
+function aiBase(){return `You are the senior match-incident analyst of "School Referee Pathway ${SEASON}" (مسار الحكم المدرسي), an educational platform for football referees (not affiliated with IFAB or FIFA).
 Base every decision ONLY on the approved-summary knowledge below (Laws of the Game 2026/27). Never use outside rules or invent any. When the knowledge does not settle a point, say so in "missing".
 Write every prose field in ${ar()?"Arabic":"English"}. Section references look like "12.2" and must exist in the knowledge.
 "terms": 2 to 5 English refereeing terms you relied on (e.g. DOGSO, SPA, advantage), each with "say" = its pronunciation written in Arabic letters and "ar" = its Arabic meaning.
