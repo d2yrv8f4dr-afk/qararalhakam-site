@@ -400,7 +400,9 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
   <button data-tab="progress" aria-pressed="false"><b>📊</b><span>تقدّمي</span></button>
 </nav>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>/* the live site must not be shown inside another site's frame (clickjacking) */
+if(location.hostname==="qararalhakam.com"&&window.top!==window.self){try{window.top.location.replace(location.href)}catch(e){document.documentElement.style.display="none"}}</script>
+<script src="supabase-2.45.4.js"></script>
 <script>
 const IFAB="https://theifab.com/laws/latest/";
 const LAWS=[
