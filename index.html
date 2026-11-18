@@ -1781,7 +1781,7 @@ function renderAccount(){const box=$("#acBox");box.innerHTML="";const A=ar();
     go1.disabled=true;msg.textContent=A?"لحظة…":"One moment…";
     if(mode==="up"){const prof=pf.read();if(!prof){go1.disabled=false;msg.textContent=A?"اكتب اسمك (حرفان على الأقل).":"Enter your name (2+ characters).";return}
       store.set("lastActive",Date.now());const {data,error}=await SB.auth.signUp({email:e,password:p,options:{data:{name:prof.name}}});
-      if(error){go1.disabled=false;msg.textContent=(A?"تعذر إنشاء الحساب: ":"Sign-up failed: ")+error.message;return}
+      if(error){go1.disabled=false;msg.textContent=weakPw(error)||(A?"تعذر إنشاء الحساب: ":"Sign-up failed: ")+error.message;return}
       if(data.session){await SB.from("profiles").upsert({id:data.user.id,...prof});await sbSession();renderAccount();return}
       store.set("pendingProfile",prof);go1.disabled=false;msg.textContent=A?"تم إنشاء الحساب. افتح بريدك واضغط رابط التأكيد، ثم سجّل الدخول.":"Account created. Confirm from your email, then sign in.";return}
     store.set("lastActive",Date.now());const {error}=await SB.auth.signInWithPassword({email:e,password:p});go1.disabled=false;store.set("lastActive",Date.now());
@@ -1840,13 +1840,14 @@ function mfaBoxEl(){const A=ar(),d=document.createElement("details");d.className
   d.addEventListener("toggle",()=>{if(d.open)paint()},{once:true});return d}
 /* accounts the admin creates sign in with a username; behind it is an address that receives no mail */
 const USER_DOMAIN="users.qararalhakam.com";
+const weakPw=e=>(e?.code==="weak_password"||/weak|pwned|leaked|easy to guess|at least/i.test(e?.message||""))?(ar()?"كلمة المرور ضعيفة أو مسرّبة في الإنترنت. اختر كلمة مرور أقوى: ٨ أحرف أو أكثر، غير مشهورة.":"This password is too weak or has appeared in a data leak. Choose a stronger one: 8+ characters, not a common password."):"";
 const loginId=(v,mode)=>{v=(v||"").trim();return mode==="in"&&v&&!v.includes("@")?v.toLowerCase()+"@"+USER_DOMAIN:v};
 function pwFormEl(done,meta){const A=ar(),w=document.createElement("div");w.className="anform";const mk=t=>{const l=document.createElement("label");l.textContent=t;const i=document.createElement("input");i.type="password";i.autocomplete="new-password";l.append(i);w.append(l);return i};
   const p1=mk(A?"كلمة المرور الجديدة (8 أحرف على الأقل)":"New password (8+ characters)"),p2=mk(A?"أعد كتابتها للتأكيد":"Type it again to confirm");
   const b=document.createElement("button");b.className="btn primary";b.style.justifySelf="start";b.textContent=A?"حفظ كلمة المرور":"Save password";const m=document.createElement("small");m.className="muted";w.append(b,m);
   b.onclick=async()=>{if(p1.value.length<8){m.textContent=A?"8 أحرف على الأقل.":"At least 8 characters.";return}if(p1.value!==p2.value){m.textContent=A?"الكلمتان غير متطابقتين.":"The two don't match.";return}
     b.disabled=true;m.textContent=A?"لحظة…":"One moment…";const {error}=await SB.auth.updateUser(meta?{password:p1.value,data:meta}:{password:p1.value});b.disabled=false;
-    if(error){m.textContent=/same|different/i.test(error.message)?(A?"اختر كلمة مرور مختلفة عن القديمة.":"Choose a password different from the old one."):(A?"تعذر الحفظ: ":"Could not save: ")+error.message;return}
+    if(error){m.textContent=/same|different/i.test(error.message)?(A?"اختر كلمة مرور مختلفة عن القديمة.":"Choose a password different from the old one."):weakPw(error)||(A?"تعذر الحفظ: ":"Could not save: ")+error.message;return}
     p1.value=p2.value="";done()};
   return w}
 function profileForm(embedded){const A=ar(),w=document.createElement("div");w.className="anform";
