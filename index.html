@@ -38,7 +38,7 @@ button,input,textarea{font:inherit;color:inherit}
 a{color:var(--pitch)}
 :focus-visible{outline:2px solid var(--pitch);outline-offset:2px}
 .wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:0 16px}
-.tabbar{position:fixed;inset-inline:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right))}
+.tabbar{position:fixed;inset-inline:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(6,1fr);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right))}
 .tabbar button{display:grid;justify-items:center;gap:2px;border:0;background:none;font:inherit;font-size:.72rem;font-weight:600;color:var(--muted);padding:4px 0;cursor:pointer;border-radius:12px}
 .tabbar button b{font-size:1.25rem;line-height:1.2;filter:grayscale(1);opacity:.7;transition:transform .15s}
 .tabbar button[aria-pressed="true"]{color:var(--pitch)}.tabbar button[aria-pressed="true"] b{filter:none;opacity:1;transform:translateY(-2px) scale(1.08)}
@@ -398,6 +398,7 @@ body.pending main,body.pending .tabbar{visibility:hidden}body.locked .tabbar,bod
   <button data-tab="train" aria-pressed="false"><b>❓</b><span>الأسئلة</span></button>
   <button data-tab="library" aria-pressed="false"><b>🎬</b><span>المكتبة</span></button>
   <button data-tab="progress" aria-pressed="false"><b>📊</b><span>تقدّمي</span></button>
+  <button data-tab="account" aria-pressed="false" id="acctTab"><b>👤</b><span>حسابي</span></button>
 </nav>
 
 <script>/* the live site must not be shown inside another site's frame (clickjacking) */
@@ -761,11 +762,11 @@ function applyLang(){
   document.querySelectorAll("[data-t]").forEach(el=>{const v=T[lang][el.dataset.t];if(typeof v==="string")el.textContent=v});
   document.querySelectorAll("[data-tp]").forEach(el=>el.placeholder=T[lang][el.dataset.tp]);
   $("#langBtn").textContent=ar()?"EN":"ع";if(!CONTENT_LOADED){if(!$("#v-account").hidden)renderAccount();return}
-  document.querySelectorAll(".tabbar span").forEach((s,i)=>s.textContent=(ar()?["الدليل","المقيّم","الأسئلة","المكتبة","تقدّمي"]:["Guide","Assessor","Questions","Library","Progress"])[i]);if(!$("#v-assessor").hidden)renderAssessor();if(!$("#v-refs").hidden)renderRefs();["instr","present","host","join","plan"].forEach(v=>{if(!$("#v-"+v).hidden)({instr:renderInstr,present:renderPresent,host:renderHost,join:renderJoin,plan:renderPlan})[v]()});if(!$("#v-board").hidden)renderBoardView();if(!$("#v-train").hidden)go("train");
+  document.querySelectorAll(".tabbar span").forEach((s,i)=>s.textContent=(ar()?["الدليل","المقيّم","الأسئلة","المكتبة","تقدّمي",acctTabLabel()]:["Guide","Assessor","Questions","Library","Progress",acctTabLabel()])[i]);if(!$("#v-assessor").hidden)renderAssessor();if(!$("#v-refs").hidden)renderRefs();["instr","present","host","join","plan"].forEach(v=>{if(!$("#v-"+v).hidden)({instr:renderInstr,present:renderPresent,host:renderHost,join:renderJoin,plan:renderPlan})[v]()});if(!$("#v-board").hidden)renderBoardView();if(!$("#v-train").hidden)go("train");
   renderIndex();renderSearch();if(!$("#lawView").hidden)renderLaw();renderSuggest();renderProgress();if(!$("#v-exam").hidden)renderExam();if(!$("#v-news").hidden)renderNews();if(!$("#v-review").hidden)renderReview();if(!$("#v-signals").hidden)renderSignals();if(!$("#v-myths").hidden)renderMyths();if(!$("#v-match").hidden)renderMatch();if(!$("#v-bank").hidden)renderBank();if(!$("#v-vcases").hidden)renderVC();if(!$("#v-account").hidden)renderAccount();if(!$("#v-clips").hidden)renderClips();if(!$("#v-library").hidden)renderLibrary();if(!$("#v-lectures").hidden)renderLectures();if(!$("#v-analyze").hidden)renderAnalyze();if(!$("#v-assess").hidden)renderAssess();if(!$("#v-ai").hidden)renderAI();
   document.querySelector('[data-t="askLead"]').textContent=t("askLead")+LAW_IDS().join("، ".replace("،",ar()?"،":","));
 }
-const TABOF=v=>({guide:"guide",news:"guide",kit:"guide",protocol:"library",assistant:"guide",instr:"guide",present:"guide",host:"guide",plan:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"progress",assessor:"assessor",assess:"assessor",analyze:"assessor",ai:"assessor",refs:"assessor",board:"assessor"})[v]||"train";
+const TABOF=v=>({guide:"guide",news:"guide",kit:"guide",protocol:"library",assistant:"guide",instr:"guide",present:"guide",host:"guide",plan:"guide",library:"library",vcases:"library",clips:"library",lectures:"library",progress:"progress",account:"account",assessor:"assessor",assess:"assessor",analyze:"assessor",ai:"assessor",refs:"assessor",board:"assessor"})[v]||"train";
 function go(v){if(document.body.classList.contains("locked")&&v!=="account")v="account";if(v!=="analyze"&&v!=="assess"&&anDet.on)detStop();document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===v));
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===TABOF(v)));
@@ -1735,7 +1736,7 @@ async function sbSession(){if(!SB)return;const {data}=await SB.auth.getSession()
   SBS.instr=false;if(SBS.member&&!SBS.admin){try{const {data:ii}=await SB.rpc("is_instructor");SBS.instr=!!ii}catch(e){}}
   if(SBS.member&&!CONTENT_LOADED)await loadContent();if(!DB)CAN_EDIT=!!SBS.admin;
   if(SBS.member){await sbLoad(true);await loadAnn();asPull()}
-  SBS.mustChange=!!SBS.user?.user_metadata?.must_change;SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤";
+  SBS.mustChange=!!SBS.user?.user_metadata?.must_change;SBS.ready=true;const b=$("#acctBtn");if(b)b.textContent=SBS.user?(SBS.admin?"🛡":"✅"):"👤";acctTabSync();
   const open=!!SBS.user&&SBS.member&&CONTENT_LOADED&&!SBS.mustChange,was=document.body.classList.contains("locked");document.body.classList.remove("pending");document.body.classList.toggle("locked",!open);
   if(RECOVER&&SBS.user){go("account");return}
   if(!open)go("account");else if(was||!UI_DONE){UI_DONE=true;applyLang();go("guide")}}
@@ -1840,6 +1841,9 @@ function mfaBoxEl(){const A=ar(),d=document.createElement("details");d.className
   d.addEventListener("toggle",()=>{if(d.open)paint()},{once:true});return d}
 /* accounts the admin creates sign in with a username; behind it is an address that receives no mail */
 const USER_DOMAIN="users.qararalhakam.com";
+/* the account page also has its own tab: "المشرف" for the admin, "حسابي" for everyone else */
+function acctTabLabel(){return window.ACCT_ADMIN?(ar()?"المشرف":"Admin"):(ar()?"حسابي":"Account")}
+function acctTabSync(){window.ACCT_ADMIN=!!SBS.admin;const t=$("#acctTab");if(!t)return;t.querySelector("b").textContent=SBS.admin?"🛡":"👤";t.querySelector("span").textContent=acctTabLabel()}
 const weakPw=e=>(e?.code==="weak_password"||/weak|pwned|leaked|easy to guess|at least/i.test(e?.message||""))?(ar()?"كلمة المرور ضعيفة أو مسرّبة في الإنترنت. اختر كلمة مرور أقوى: ٨ أحرف أو أكثر، غير مشهورة.":"This password is too weak or has appeared in a data leak. Choose a stronger one: 8+ characters, not a common password."):"";
 const loginId=(v,mode)=>{v=(v||"").trim();return mode==="in"&&v&&!v.includes("@")?v.toLowerCase()+"@"+USER_DOMAIN:v};
 function pwFormEl(done,meta){const A=ar(),w=document.createElement("div");w.className="anform";const mk=t=>{const l=document.createElement("label");l.textContent=t;const i=document.createElement("input");i.type="password";i.autocomplete="new-password";l.append(i);w.append(l);return i};
